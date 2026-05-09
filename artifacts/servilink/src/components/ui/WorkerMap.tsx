@@ -182,8 +182,6 @@ export function WorkerMap({ workers, height = "400px", centerLat, centerLng, onR
   // ── Init map ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current) return;
-    const apiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string) || "";
-    void apiKey;
     const HIDE_POI_STYLES: google.maps.MapTypeStyle[] = [
       { featureType: "poi", stylers: [{ visibility: "off" }] },
       { featureType: "poi.business", stylers: [{ visibility: "off" }] },

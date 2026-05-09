@@ -1,12 +1,25 @@
 import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 
-const API_KEY = "AIzaSyCUk4gxdWBl_w9DPd5C0CDGMgBrEsAWu1U";
+// Llave de Google Maps: se inyecta como variable Vite en build time.
+// - En dev: VITE_GOOGLE_MAPS_API_KEY del entorno de Replit.
+// - En producción: pasada como --build-arg desde cloudbuild.yaml
+//   (substitution _VITE_GOOGLE_MAPS_API_KEY).
+// Si falta, el cargador falla rápido en consola en lugar de mostrar el
+// watermark "For development purposes only" con una llave de prueba.
+const API_KEY = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined) ?? "";
 
 let _initialized = false;
 
 function ensureInit() {
   if (_initialized) return;
   _initialized = true;
+  if (!API_KEY) {
+    // eslint-disable-next-line no-console
+    console.error(
+      "[google-maps] VITE_GOOGLE_MAPS_API_KEY no está definida. El mapa no podrá cargar.",
+    );
+    return;
+  }
   setOptions({ apiKey: API_KEY, version: "weekly" });
 }
 
