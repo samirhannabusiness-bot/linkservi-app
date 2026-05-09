@@ -1,4 +1,4 @@
-import { Router, type IRouter, type Request, type Response } from "express";
+import { Router, type IRouter, type Request, type Response, raw } from "express";
 import { Readable } from "stream";
 import multer from "multer";
 import {
@@ -110,6 +110,41 @@ router.post("/storage/uploads/request-url", authenticate, async (req: Request, r
     });
   }
 });
+
+// PUT /storage/proxy-upload/:objectId
+// Receives raw file bytes from the client (no signed URL needed). The server
+// uploads the bytes to GCS using the SDK directly. Used in Cloud Run where
+// signed URL generation requires the iam.serviceAccounts.signBlob permission.
+router.put(
+  "/storage/proxy-upload/:objectId",
+  authenticate,
+  raw({ type: "*/*", limit: "60mb" }),
+  async (req: Request, res: Response) => {
+    try {
+      const objectId = req.params.objectId;
+      if (!/^[a-f0-9-]{32,40}$/i.test(objectId)) {
+        res.status(400).json({ error: "Invalid object id" });
+        return;
+      }
+      const body = req.body as Buffer | undefined;
+      if (!body || !Buffer.isBuffer(body) || body.length === 0) {
+        res.status(400).json({ error: "Empty body" });
+        return;
+      }
+      const contentType = req.header("content-type") || "application/octet-stream";
+      const objectPath = await objectStorageService.uploadObjectFromBuffer(
+        objectId,
+        body,
+        contentType,
+      );
+      res.json({ ok: true, objectPath });
+    } catch (error: unknown) {
+      req.log.error({ err: error }, "Proxy upload failed");
+      const err = error as { message?: string };
+      res.status(500).json({ error: "Proxy upload failed", detail: err?.message });
+    }
+  },
+);
 
 router.get("/storage/diag-sign", async (_req: Request, res: Response) => {
   let runtimeSA: string | null = null;

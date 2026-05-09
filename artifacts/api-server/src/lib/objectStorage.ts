@@ -131,12 +131,38 @@ export class ObjectStorageService {
 
     const { bucketName, objectName } = parseObjectPath(fullPath);
 
+    // In Cloud Run we proxy uploads through our own API to avoid the
+    // iam.serviceAccounts.signBlob permission requirement. The client PUTs
+    // bytes to /api/storage/proxy-upload/{objectId} and the server uploads
+    // them to GCS using the SDK directly. In Replit dev we still use the
+    // sidecar-signed URL.
+    if (!IS_REPLIT) {
+      return `/api/storage/proxy-upload/${objectId}`;
+    }
+
     return signObjectURL({
       bucketName,
       objectName,
       method: "PUT",
       ttlSec: 900,
     });
+  }
+
+  async uploadObjectFromBuffer(
+    objectId: string,
+    buffer: Buffer,
+    contentType: string,
+  ): Promise<string> {
+    const privateObjectDir = this.getPrivateObjectDir();
+    const fullPath = `${privateObjectDir}/uploads/${objectId}`;
+    const { bucketName, objectName } = parseObjectPath(fullPath);
+    const bucket = objectStorageClient.bucket(bucketName);
+    const file = bucket.file(objectName);
+    await file.save(buffer, {
+      contentType: contentType || "application/octet-stream",
+      resumable: false,
+    });
+    return `/objects/uploads/${objectId}`;
   }
 
   async getObjectEntityFile(objectPath: string): Promise<File> {
@@ -166,6 +192,11 @@ export class ObjectStorageService {
   }
 
   normalizeObjectEntityPath(rawPath: string): string {
+    // Proxy upload URL: /api/storage/proxy-upload/{objectId}
+    const proxyMatch = rawPath.match(/^\/api\/storage\/proxy-upload\/([^/?#]+)/);
+    if (proxyMatch) {
+      return `/objects/uploads/${proxyMatch[1]}`;
+    }
     if (!rawPath.startsWith("https://storage.googleapis.com/")) {
       return rawPath;
     }
