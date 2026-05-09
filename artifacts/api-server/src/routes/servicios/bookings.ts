@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { z } from "zod";
 import {
   db,
   bookingsTable,
@@ -16,6 +17,46 @@ import { logger } from "../../lib/logger";
 import { sendNewBookingEmail } from "../../lib/email";
 
 const router = Router();
+
+// ── Input validation schemas (defensive — replaces console.error/500 with 400) ─
+// Strings are length-capped to avoid DoS via huge payloads; numbers are
+// coerced and range-checked. Schemas are intentionally permissive about
+// optional fields so we don't break existing clients.
+const createBookingSchema = z.object({
+  workerId: z.coerce.number().int().positive(),
+  categoryId: z.coerce.number().int().positive(),
+  description: z.string().trim().min(1).max(2000),
+  address: z.string().trim().min(1).max(500),
+  lat: z.coerce.number().min(-90).max(90).optional().nullable(),
+  lng: z.coerce.number().min(-180).max(180).optional().nullable(),
+  estimatedHours: z.coerce.number().min(0).max(720).optional().nullable(),
+  scheduledAt: z.string().datetime().optional().nullable().or(z.literal("")),
+  clientBudget: z.coerce.number().min(0).max(1_000_000).optional().nullable(),
+  bookingType: z.enum(["service", "inquiry"]).optional(),
+  serviceId: z.coerce.number().int().positive().optional().nullable(),
+  autoAccept: z.boolean().optional(),
+  fixedPrice: z.coerce.number().min(0).max(1_000_000).optional().nullable(),
+}).passthrough();
+
+const disputeSchema = z.object({
+  reason: z.string().trim().min(3).max(2000).optional(),
+}).passthrough();
+
+const counterOfferSchema = z.object({
+  amount: z.coerce.number().positive().max(1_000_000),
+}).passthrough();
+
+const counterOfferRespondSchema = z.object({
+  accept: z.boolean(),
+}).passthrough();
+
+function badRequest(res: any, err: z.ZodError) {
+  const first = err.issues[0];
+  res.status(400).json({
+    error: first?.message ?? "Datos inválidos",
+    field: first?.path?.join(".") ?? null,
+  });
+}
 
 // ── Aliased table for worker's user record (avoids ambiguous join) ────────────
 const workerUsersTable = aliasedTable(usersTable, "wu");
@@ -186,11 +227,9 @@ router.get("/bookings", authenticate, async (req, res): Promise<void> => {
 
 // ── Create booking ────────────────────────────────────────────────────────────
 router.post("/bookings", authenticate, async (req, res): Promise<void> => {
-  const { workerId, categoryId, description, address, lat, lng, estimatedHours, scheduledAt, clientBudget, bookingType, serviceId, autoAccept, fixedPrice } = req.body;
-  if (!workerId) { res.status(400).json({ error: "Falta indicar el profesional." }); return; }
-  if (!categoryId) { res.status(400).json({ error: "Selecciona una categoría de servicio." }); return; }
-  if (!description) { res.status(400).json({ error: "Describe qué necesitas." }); return; }
-  if (!address) { res.status(400).json({ error: "Indica la dirección del servicio." }); return; }
+  const parsed = createBookingSchema.safeParse(req.body ?? {});
+  if (!parsed.success) { badRequest(res, parsed.error); return; }
+  const { workerId, categoryId, description, address, lat, lng, estimatedHours, scheduledAt, clientBudget, bookingType, serviceId, autoAccept, fixedPrice } = parsed.data;
 
   const [worker] = await db.select().from(workersTable).where(eq(workersTable.id, workerId));
   if (!worker) { res.status(404).json({ error: "Worker not found" }); return; }
@@ -743,6 +782,9 @@ router.post("/bookings/:bookingId/complete", authenticate, async (req, res): Pro
 // ── Client opens dispute ──────────────────────────────────────────────────────
 router.post("/bookings/:bookingId/dispute", authenticate, async (req, res): Promise<void> => {
   const bookingId = parseInt(req.params.bookingId as string, 10);
+  if (!Number.isFinite(bookingId) || bookingId <= 0) { res.status(400).json({ error: "ID de reserva inválido" }); return; }
+  const parsed = disputeSchema.safeParse(req.body ?? {});
+  if (!parsed.success) { badRequest(res, parsed.error); return; }
   const [booking] = await db.select().from(bookingsTable).where(eq(bookingsTable.id, bookingId));
   if (!booking) { res.status(404).json({ error: "Not found" }); return; }
 
@@ -754,7 +796,7 @@ router.post("/bookings/:bookingId/dispute", authenticate, async (req, res): Prom
 
   const [updated] = await db
     .update(bookingsTable)
-    .set({ status: "disputed", disputeReason: req.body?.reason ?? "Disputa abierta por el cliente" })
+    .set({ status: "disputed", disputeReason: parsed.data.reason ?? "Disputa abierta por el cliente" })
     .where(eq(bookingsTable.id, bookingId))
     .returning();
 
@@ -811,11 +853,9 @@ router.post("/bookings/:bookingId/counter-offer", authenticate, async (req, res)
   if (!await assertWorkerOwnsBooking(booking, user.id, res)) return;
   if (booking.status !== "pending") { res.status(400).json({ error: "Solo puedes proponer precio en solicitudes pendientes" }); return; }
 
-  const { amount } = req.body;
-  if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-    res.status(400).json({ error: "Monto inválido" });
-    return;
-  }
+  const parsedCO = counterOfferSchema.safeParse(req.body ?? {});
+  if (!parsedCO.success) { res.status(400).json({ error: "Monto inválido" }); return; }
+  const { amount } = parsedCO.data;
 
   const [updated] = await db
     .update(bookingsTable)
@@ -846,7 +886,9 @@ router.post("/bookings/:bookingId/counter-offer/respond", authenticate, async (r
   if (!await assertClientOwnsBooking(booking, user.id, res)) return;
   if (booking.counterOfferStatus !== "pending") { res.status(400).json({ error: "No hay una propuesta pendiente" }); return; }
 
-  const { accept } = req.body;
+  const parsedResp = counterOfferRespondSchema.safeParse(req.body ?? {});
+  if (!parsedResp.success) { badRequest(res, parsedResp.error); return; }
+  const { accept } = parsedResp.data;
   const [workerRow] = await db.select().from(workersTable).where(eq(workersTable.id, booking.workerId));
 
   if (accept) {

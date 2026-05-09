@@ -203,24 +203,21 @@
 
     <div id="root"></div>
 
-    <!-- ── Auto-curación de Service Worker en cualquier entorno ───────────
-         Corre INLINE en cada carga: si detecta un Service Worker registrado,
-         lo desregistra y limpia todos los cachés. En desarrollo el SW está
-         apagado a propósito, así que esto solo limpia restos de instalaciones
-         viejas que quedaron en el navegador del usuario. En producción el
-         flag SL_DISABLE_SW permite apagar el SW desde el HTML si fuera
-         necesario. -->
+    <!-- ── Limpieza ÚNICA de Service Workers heredados (one-shot) ──────────
+         Antes había una purga agresiva en cada carga que rompía la PWA.
+         Ahora ejecutamos UNA sola vez por navegador (vía localStorage):
+         desregistra cualquier SW antiguo + caches viejos. Después de eso,
+         el SW nuevo registrado por main.tsx puede instalarse normalmente
+         y la PWA funciona (instalable, offline-friendly, autoUpdate). -->
     <script>
       (function () {
         try {
-          var KEY = "sl_sw_purged_v2";
-          if (sessionStorage.getItem(KEY)) return;
-          var hadSomething = false;
+          var KEY = "sl_sw_one_shot_cleanup_v3";
+          if (localStorage.getItem(KEY)) return;
           var tasks = [];
           if ("serviceWorker" in navigator) {
             tasks.push(
               navigator.serviceWorker.getRegistrations().then(function (regs) {
-                if (regs.length > 0) hadSomething = true;
                 return Promise.all(regs.map(function (r) { return r.unregister(); }));
               })
             );
@@ -228,18 +225,12 @@
           if ("caches" in window) {
             tasks.push(
               caches.keys().then(function (keys) {
-                if (keys.length > 0) hadSomething = true;
                 return Promise.all(keys.map(function (k) { return caches.delete(k); }));
               })
             );
           }
-          Promise.all(tasks).then(function () {
-            try { sessionStorage.setItem(KEY, "1"); } catch (_) {}
-            if (hadSomething) {
-              window.location.reload();
-            }
-          }).catch(function () {
-            try { sessionStorage.setItem(KEY, "1"); } catch (_) {}
+          Promise.all(tasks).finally(function () {
+            try { localStorage.setItem(KEY, "1"); } catch (_) {}
           });
         } catch (_) {}
       })();
