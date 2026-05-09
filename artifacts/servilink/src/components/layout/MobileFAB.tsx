@@ -56,7 +56,10 @@ export function MobileFAB() {
       )}
 
       {/* Speed-dial container — above MobileNav (z-45) */}
-      <div className="fixed bottom-[72px] right-4 z-[45] md:hidden flex flex-col items-end gap-3">
+      <div
+        className="fixed right-4 z-[45] md:hidden flex flex-col items-end gap-3"
+        style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 76px)" }}
+      >
         {/* Options — animate from bottom */}
         {open && OPTIONS.map((opt, i) => {
           const Icon = opt.icon;

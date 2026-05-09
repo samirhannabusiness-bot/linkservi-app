@@ -532,7 +532,8 @@ export function Sidebar() {
       <>
         {/* Mobile hamburger */}
         <button
-          className="fixed top-4 left-4 z-50 md:hidden w-10 h-10 flex items-center justify-center rounded-2xl glass border border-white/10"
+          className="fixed left-4 z-50 md:hidden w-10 h-10 flex items-center justify-center rounded-2xl glass border border-white/10"
+          style={{ top: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}
           onClick={() => setMobileOpen(v => !v)}
           aria-label="Menú"
         >
@@ -1028,7 +1029,8 @@ export function Sidebar() {
       )}
 
       <button
-        className="fixed top-4 left-4 z-50 md:hidden w-10 h-10 glass rounded-xl flex items-center justify-center text-white shadow-lg transition-all duration-200 hover:bg-white/10"
+        className="fixed left-4 z-50 md:hidden w-10 h-10 glass rounded-xl flex items-center justify-center text-white shadow-lg transition-all duration-200 hover:bg-white/10"
+        style={{ top: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}
         onClick={() => setMobileOpen(!mobileOpen)}
         aria-label="Menú"
       >

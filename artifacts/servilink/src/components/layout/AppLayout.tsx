@@ -95,8 +95,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <div className="flex min-h-dvh overflow-x-hidden bg-background dark:bg-transparent">
       <Sidebar />
       <main
-        className="flex-1 pb-24 md:pb-8 md:px-8 md:pt-8 overflow-x-hidden w-full min-w-0"
-        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 3.75rem)" }}
+        className="flex-1 md:pb-8 md:px-8 md:pt-8 overflow-x-hidden w-full min-w-0"
+        style={{
+          paddingTop: "calc(env(safe-area-inset-top, 0px) + 3.75rem)",
+          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 6rem)",
+        }}
         data-compact={compact ? "1" : "0"}
       >
         <AnimatePresence mode="wait" initial={false}>
@@ -133,7 +136,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
       {isWorker && <WorkerAlertLayer />}
 
       {/* ── Top-right: mode switch (gestor) + notification bell + cart ── */}
-      <div className="fixed top-3 right-4 z-[300] flex items-center gap-2">
+      <div
+        className="fixed right-4 z-[300] flex items-center gap-2"
+        style={{ top: "calc(env(safe-area-inset-top, 0px) + 0.75rem)" }}
+      >
         <ModeSwitch />
         <NotificationBell />
         <CartButton />
