@@ -123,7 +123,7 @@ router.post("/storage/uploads/request-url", authenticate, async (req: Request, r
 router.put(
   "/storage/proxy-upload/:objectId",
   authenticate,
-  raw({ type: "*/*", limit: "60mb" }),
+  raw({ type: "*/*", limit: "100mb" }),
   async (req: Request, res: Response) => {
     try {
       const objectId = req.params.objectId;
