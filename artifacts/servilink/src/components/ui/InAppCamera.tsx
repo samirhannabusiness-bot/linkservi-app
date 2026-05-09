@@ -148,7 +148,10 @@ export function InAppCamera({
   useEffect(() => {
     if (!open) {
       stopStream();
-      setPreview(null);
+      setPreview((p) => {
+        if (p) { try { URL.revokeObjectURL(p.url); } catch { /* noop */ } }
+        return null;
+      });
       setError("");
       return;
     }
