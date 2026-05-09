@@ -7,6 +7,16 @@ const CARACAS = { lat: 10.4806, lng: -66.9036 };
 const GPS_ZOOM = 13;
 const CITY_ZOOM = 10;
 
+// Esconder negocios, transporte y otros POI ajenos a la app del mapa de Google.
+// Solo conservamos la geografía base (calles, agua, parques) para que los pines
+// de productos/profesionales sean los únicos puntos resaltados.
+const HIDE_POI_STYLES: google.maps.MapTypeStyle[] = [
+  { featureType: "poi", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.business", stylers: [{ visibility: "off" }] },
+  { featureType: "transit", stylers: [{ visibility: "off" }] },
+  { featureType: "transit.station", stylers: [{ visibility: "off" }] },
+];
+
 interface Product {
   id: number;
   name: string;
@@ -451,7 +461,9 @@ export function ProductMap({
           zoomControl: true,
           zoomControlOptions: { position: 9 },
           gestureHandling: "greedy",
-        });
+          clickableIcons: false,
+          styles: HIDE_POI_STYLES,
+        } as google.maps.MapOptions);
 
         map.addListener("click", () => selectProduct(null));
         map.addListener("idle", () => {

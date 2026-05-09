@@ -10,6 +10,7 @@ steps:
       - --build-arg=VITE_FIREBASE_API_KEY=$_VITE_FIREBASE_API_KEY
       - --build-arg=VITE_FIREBASE_PROJECT_ID=$_VITE_FIREBASE_PROJECT_ID
       - --build-arg=VITE_FIREBASE_APP_ID=$_VITE_FIREBASE_APP_ID
+      - --build-arg=VITE_GOOGLE_MAPS_API_KEY=$_VITE_GOOGLE_MAPS_API_KEY
       - .
 
   # ── Step 2: Push image to Container Registry ────────────────────────────────
@@ -87,6 +88,7 @@ substitutions:
   _VITE_FIREBASE_API_KEY: ""
   _VITE_FIREBASE_PROJECT_ID: ""
   _VITE_FIREBASE_APP_ID: ""
+  _VITE_GOOGLE_MAPS_API_KEY: ""
   _FIREBASE_PROJECT_ID: ""
   _BDV_API_KEY: ""
   _BDV_API_URL: "https://bdvconciliacion.banvenez.com/getMovement"

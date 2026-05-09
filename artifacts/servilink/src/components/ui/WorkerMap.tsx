@@ -182,8 +182,14 @@ export function WorkerMap({ workers, height = "400px", centerLat, centerLng, onR
   // ── Init map ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current) return;
-    const apiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string) || "AIzaSyBitFobNirrdggu5KDHW2u1JcOT0c4FGNs";
+    const apiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string) || "";
     void apiKey;
+    const HIDE_POI_STYLES: google.maps.MapTypeStyle[] = [
+      { featureType: "poi", stylers: [{ visibility: "off" }] },
+      { featureType: "poi.business", stylers: [{ visibility: "off" }] },
+      { featureType: "transit", stylers: [{ visibility: "off" }] },
+      { featureType: "transit.station", stylers: [{ visibility: "off" }] },
+    ];
 
     injectStyles();
     let destroyed = false;
@@ -204,7 +210,9 @@ export function WorkerMap({ workers, height = "400px", centerLat, centerLng, onR
           zoomControl: true,
           zoomControlOptions: { position: 9 },
           gestureHandling: "greedy",
-        });
+          clickableIcons: false,
+          styles: HIDE_POI_STYLES,
+        } as google.maps.MapOptions);
 
         map.addListener("click", () => setSelectedWorker(null));
 

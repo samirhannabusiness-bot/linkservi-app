@@ -41,7 +41,7 @@ ENV NODE_ENV=production
 
 # VITE_* variables are baked into the JS bundle at build time.
 # They must be passed as --build-arg from cloudbuild.yaml (not as runtime env vars).
-ARG VITE_GOOGLE_MAPS_API_KEY=AIzaSyBitFobNirrdggu5KDHW2u1JcOT0c4FGNs
+ARG VITE_GOOGLE_MAPS_API_KEY=""
 ENV VITE_GOOGLE_MAPS_API_KEY=$VITE_GOOGLE_MAPS_API_KEY
 ARG VITE_FIREBASE_API_KEY
 ENV VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY
