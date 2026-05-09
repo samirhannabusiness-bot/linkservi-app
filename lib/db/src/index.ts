@@ -23,14 +23,11 @@ const needsSsl = sslmode === "require" || sslmode === "verify" || sslmode === "p
 export const pool = new Pool({
   connectionString: cleanUrl,
   ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
-  // Fail fast if the DB is unreachable — without this, queries hang forever
-  // and the frontend spinner spins indefinitely. 10s gives slow handshakes
-  // (TLS + Cloud SQL proxy startup) plenty of time, but surfaces real outages.
   connectionTimeoutMillis: 10_000,
-  // Cap how long any single query waits for the server. 30s aligns with the
-  // Cloud Run request timeout so the request fails before the proxy gives up.
-  statement_timeout: 30_000,
-  query_timeout: 30_000,
+});
+
+pool.on("error", (err) => {
+  console.error("[db pool] idle client error:", err.message);
 });
 export const db = drizzle(pool, { schema });
 

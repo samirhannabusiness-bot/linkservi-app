@@ -134,6 +134,14 @@ app.use("/", seoRouter);
 
 app.use("/api", router);
 
+// Log API errors so production failures show up in Cloud Run logs instead of
+// silently returning the default Express "Internal Server Error" page.
+app.use("/api", (err: any, req: any, res: any, _next: any) => {
+  console.error(`[api error] ${req.method} ${req.originalUrl}:`, err?.message || err, err?.stack);
+  if (res.headersSent) return;
+  res.status(500).json({ error: "Internal Server Error", detail: err?.message || String(err) });
+});
+
 // ── Production: serve built Vite frontend ────────────────────────────────────
 // In the Docker image the compiled SPA lives at /app/public (copied from
 // artifacts/servilink/dist/public during the Docker build).
