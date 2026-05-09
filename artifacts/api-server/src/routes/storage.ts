@@ -111,6 +111,26 @@ router.post("/storage/uploads/request-url", authenticate, async (req: Request, r
   }
 });
 
+router.get("/storage/diag-sign", async (_req: Request, res: Response) => {
+  try {
+    const url = await objectStorageService.getObjectEntityUploadURL();
+    res.json({ ok: true, url });
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: number | string; stack?: string };
+    res.status(500).json({
+      ok: false,
+      message: err?.message ?? String(error),
+      code: err?.code,
+      stack: err?.stack,
+      env: {
+        PRIVATE_OBJECT_DIR: process.env.PRIVATE_OBJECT_DIR,
+        DEFAULT_OBJECT_STORAGE_BUCKET_ID: process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID,
+        K_SERVICE: process.env.K_SERVICE,
+      },
+    });
+  }
+});
+
 /**
  * GET /storage/public-objects/*
  *
