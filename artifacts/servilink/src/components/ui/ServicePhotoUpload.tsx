@@ -1,6 +1,8 @@
-import { useState, useRef } from "react";
-import { Camera, Upload, X, Check, Image as ImageIcon } from "lucide-react";
+import { useState } from "react";
+import { Camera, X, Check, Image as ImageIcon } from "lucide-react";
 import { getAuthHeader } from "@/lib/api";
+import { InAppCamera } from "@/components/ui/InAppCamera";
+import { useAuth } from "@/lib/auth-context";
 
 interface Props {
   bookingId: number;
@@ -10,15 +12,14 @@ interface Props {
 }
 
 export function ServicePhotoUpload({ bookingId, photoType, label, onUploaded }: Props) {
+  const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const uploadFile = async (file: File) => {
     if (file.size > 8 * 1024 * 1024) { setError("La imagen no debe superar 8 MB"); return; }
     setError("");
     setUploading(true);
@@ -80,9 +81,8 @@ export function ServicePhotoUpload({ bookingId, photoType, label, onUploaded }: 
 
   return (
     <div className="space-y-2">
-      <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile} />
       <button
-        onClick={() => fileRef.current?.click()}
+        onClick={() => setCameraOpen(true)}
         disabled={uploading}
         className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 border-dashed transition-all text-sm font-medium ${uploading ? "opacity-60 cursor-not-allowed" : "hover:bg-muted/50 cursor-pointer"} ${photoType === "before" ? "border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400" : "border-orange-300 dark:border-orange-700 text-orange-600 dark:text-orange-400"}`}
       >
@@ -99,6 +99,20 @@ export function ServicePhotoUpload({ bookingId, photoType, label, onUploaded }: 
         )}
       </button>
       {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
+      <InAppCamera
+        open={cameraOpen}
+        onClose={() => setCameraOpen(false)}
+        onCapture={(f) => { void uploadFile(f); }}
+        facingMode="environment"
+        watermark={{
+          workerName: user?.name ?? user?.email ?? undefined,
+          includeTimestamp: true,
+          includeGps: true,
+          brand: "LinkServi",
+        }}
+        title={label}
+        subtitle={photoType === "before" ? "Foto antes del servicio" : "Foto al finalizar el trabajo"}
+      />
     </div>
   );
 }

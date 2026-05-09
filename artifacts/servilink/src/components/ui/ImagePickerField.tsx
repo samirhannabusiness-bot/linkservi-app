@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback } from "react";
 import { Camera, ImageIcon, Upload, Eye, X, AlertCircle } from "lucide-react";
+import { InAppCamera, type InAppCameraWatermark } from "@/components/ui/InAppCamera";
 
 const MAX_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
 const ACCEPTED_FORMATS = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -70,6 +71,14 @@ interface ImagePickerFieldProps {
   onError?: (msg: string) => void;
   disabled?: boolean;
   allowPdf?: boolean;
+  /** Use the in-app camera (getUserMedia) instead of the OS camera. */
+  inAppCamera?: boolean;
+  /** When inAppCamera is true, applies a watermark on the captured photo. */
+  watermark?: InAppCameraWatermark;
+  /** Front (user) camera by default for selfies. */
+  facingMode?: "user" | "environment";
+  /** Hides the gallery option (forces the user to take a fresh photo). */
+  cameraOnly?: boolean;
 }
 
 export function ImagePickerField({
@@ -81,6 +90,10 @@ export function ImagePickerField({
   onError: onErrorProp,
   disabled = false,
   allowPdf = false,
+  inAppCamera = false,
+  watermark,
+  facingMode = "environment",
+  cameraOnly = false,
 }: ImagePickerFieldProps) {
   // Default to a no-op alert so callers that omit onError still get feedback
   // and the component never crashes with "onError is not a function".
@@ -97,6 +110,7 @@ export function ImagePickerField({
   const [showSheet, setShowSheet] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [showInApp, setShowInApp] = useState(false);
 
   // Two separate refs: one for camera, one for gallery
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -146,9 +160,20 @@ export function ImagePickerField({
 
   const openCamera = () => {
     setShowSheet(false);
+    if (inAppCamera) {
+      setTimeout(() => setShowInApp(true), 50);
+      return;
+    }
     // Use timeout to ensure sheet closes before triggering input (iOS requirement)
     setTimeout(() => cameraInputRef.current?.click(), 50);
   };
+
+  const handleInAppCapture = useCallback(
+    (file: File) => {
+      void processFile(file);
+    },
+    [processFile],
+  );
 
   const openGallery = () => {
     setShowSheet(false);
@@ -294,19 +319,21 @@ export function ImagePickerField({
             </div>
           </button>
 
-          <button
-            type="button"
-            onClick={openGallery}
-            className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl bg-muted hover:bg-muted/80 active:scale-[0.98] transition-all"
-          >
-            <div className="w-9 h-9 rounded-full bg-background flex items-center justify-center border border-border">
-              <ImageIcon className="w-5 h-5 text-foreground" />
-            </div>
-            <div className="text-left">
-              <p className="font-semibold text-foreground text-sm">Elegir de la galería</p>
-              <p className="text-xs text-muted-foreground">Seleccionar desde el almacenamiento</p>
-            </div>
-          </button>
+          {!cameraOnly && (
+            <button
+              type="button"
+              onClick={openGallery}
+              className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl bg-muted hover:bg-muted/80 active:scale-[0.98] transition-all"
+            >
+              <div className="w-9 h-9 rounded-full bg-background flex items-center justify-center border border-border">
+                <ImageIcon className="w-5 h-5 text-foreground" />
+              </div>
+              <div className="text-left">
+                <p className="font-semibold text-foreground text-sm">Elegir de la galería</p>
+                <p className="text-xs text-muted-foreground">Seleccionar desde el almacenamiento</p>
+              </div>
+            </button>
+          )}
 
           {allowPdf && (
             <p className="text-center text-xs text-muted-foreground">
@@ -334,6 +361,19 @@ export function ImagePickerField({
       {/* Lightbox */}
       {lightbox && !isPdf && (
         <Lightbox src={value} label={label} onClose={() => setLightbox(false)} />
+      )}
+
+      {/* In-app camera */}
+      {inAppCamera && (
+        <InAppCamera
+          open={showInApp}
+          onClose={() => setShowInApp(false)}
+          onCapture={handleInAppCapture}
+          facingMode={facingMode}
+          watermark={watermark}
+          title={label}
+          subtitle={sublabel}
+        />
       )}
     </>
   );

@@ -329,6 +329,8 @@ export function UserVerificationPage() {
                 onError={setError}
                 disabled={isApproved}
                 allowPdf
+                inAppCamera
+                watermark={{ includeTimestamp: true, brand: "LinkServi · Verificación" }}
               />
               <ImagePickerField
                 label="Selfie con documento"
@@ -338,6 +340,10 @@ export function UserVerificationPage() {
                 onChange={setSelfieImageUrl}
                 onError={setError}
                 disabled={isApproved}
+                inAppCamera
+                cameraOnly
+                facingMode="user"
+                watermark={{ includeTimestamp: true, includeGps: true, brand: "LinkServi · Selfie" }}
               />
             </div>
             <ul className="space-y-1">
