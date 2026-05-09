@@ -1,0 +1,135 @@
+AJUSTE UX + RENOMBRE COMPLETO: TRABAJADOR → PROFESIONAL
+
+OBJETIVO:
+Elevar la percepción de la app reemplazando “Trabajador” por “Profesional” en toda la experiencia del usuario, manteniendo estabilidad técnica y consistencia.
+
+IMPORTANTE:
+NO romper backend.
+NO cambiar lógica de roles.
+SOLO mejorar naming, UI y consistencia.
+
+---
+
+🧠 CAMBIO PRINCIPAL
+
+Reemplazar en TODA la UI:
+
+"Trabajador" → "Profesional"
+
+---
+
+🔄 SWITCH DE MODOS (HEADER)
+
+ANTES:
+Cliente · Trabajador · Gestor
+
+DESPUÉS:
+Cliente · Profesional · Gestor
+
+---
+
+🎯 TOOLTIP (NUEVO - RECOMENDADO)
+
+Al pasar o tocar "Profesional":
+
+"Ofrece tus servicios y recibe clientes"
+
+---
+
+---
+
+🧭 RUTAS (IMPORTANTE)
+
+Mantener backend intacto.
+
+Frontend:
+
+* Mostrar rutas como:
+  /professional  (preferido)
+  o /pro (si ya existe alias corto)
+
+* Redirigir automáticamente:
+  /worker → /professional
+
+---
+
+🧩 ICONO
+
+Reemplazar icono de casco 👷 por uno más universal:
+
+Opciones:
+
+* maletín
+* check badge
+* estrella
+* herramienta genérica
+
+EVITAR iconos de construcción.
+
+---
+
+---
+
+🖥️ TEXTOS EN TODA LA APP
+
+Actualizar:
+
+* "Trabajadores disponibles" → "Profesionales disponibles"
+* "Perfil del trabajador" → "Perfil profesional"
+* "Contratar trabajador" → "Contratar profesional"
+* "Trabajos realizados" → "Servicios realizados"
+
+---
+
+---
+
+📄 PÁGINAS Y SECCIONES
+
+Actualizar títulos y headers:
+
+* /worker dashboard → "Panel profesional"
+* /search → "Encuentra profesionales"
+* perfiles → "Profesional verificado"
+
+---
+
+---
+
+🔐 BACKEND (NO CAMBIAR)
+
+Mantener:
+
+* role = "worker"
+* tablas
+* endpoints
+
+Solo cambiar representación en frontend.
+
+---
+
+---
+
+⚠️ CONSISTENCIA (CRÍTICO)
+
+NO dejar mezcla de términos:
+
+❌ trabajador / profesional mezclado
+✔ todo debe decir "Profesional"
+
+---
+
+---
+
+🎯 RESULTADO FINAL
+
+El usuario debe sentir:
+
+* más confianza
+* más profesionalismo
+* mayor valor del servicio
+
+---
+
+Esto no es solo un cambio de nombre.
+
+Es un cambio de percepción del producto.

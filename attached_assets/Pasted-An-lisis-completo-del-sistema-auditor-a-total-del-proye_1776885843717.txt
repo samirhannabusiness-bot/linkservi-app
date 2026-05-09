@@ -1,0 +1,113 @@
+Análisis completo del sistema — auditoría total del proyecto
+
+OBJETIVO
+
+Realizar un análisis profundo de toda la aplicación para entender con precisión:
+
+qué está construido
+cómo está estructurado
+qué funcionalidades existen realmente
+qué falta para escalar
+1. ANÁLISIS GENERAL
+
+Describe:
+
+arquitectura del proyecto (frontend / backend)
+tecnologías usadas
+estructura de carpetas completa
+cómo se comunican frontend y backend
+2. FRONTEND
+
+Detallar:
+
+páginas existentes (todas)
+componentes principales
+estado global (si existe)
+rutas configuradas
+sistema de diseño (UI/UX)
+módulos implementados (dashboard, tasas, jobs, rentals, etc.)
+3. BACKEND
+
+Detallar:
+
+todas las rutas API existentes
+lógica de negocio por módulo
+autenticación (cómo funciona)
+middlewares
+integraciones externas (APIs de pago, tasas, etc.)
+4. BASE DE DATOS
+
+Mostrar:
+
+todas las tablas
+relaciones entre tablas
+campos importantes
+qué datos se están guardando realmente
+5. MÓDULOS DEL NEGOCIO
+
+Separar claramente:
+
+servicios (tipo Uber)
+marketplace / tienda
+alquileres
+bolsa de empleo (jobs)
+sistema de tasas (BCV / Binance / Euro)
+sistema de pagos (actual y futuro)
+6. SISTEMA DE PAGOS
+
+Explicar:
+
+cómo funciona actualmente (manual / comprobantes)
+qué está implementado
+qué falta para automatizar
+puntos de integración posibles con APIs bancarias
+7. PANEL ADMIN
+
+Detallar:
+
+qué puede hacer el admin
+métricas disponibles
+control de usuarios
+control financiero
+sistema de roles (si existe)
+8. SISTEMA DE ROLES
+
+Explicar:
+
+tipos de usuarios (cliente, trabajador, admin, host, etc.)
+permisos de cada uno
+cómo se controla el acceso
+9. ESTADO ACTUAL DEL PROYECTO
+
+Clasificar:
+
+funcionalidades completas
+funcionalidades parciales
+funcionalidades faltantes
+10. PROBLEMAS Y LIMITACIONES
+
+Identificar:
+
+cuellos de botella
+partes complejas o mal estructuradas
+posibles errores futuros
+11. PREPARACIÓN PARA ESCALAR
+
+Evaluar:
+
+si la arquitectura soporta crecimiento
+qué habría que mejorar para escalar
+riesgos técnicos actuales
+FORMATO DE RESPUESTA
+claro
+estructurado por secciones
+sin omitir detalles importantes
+basado en el código real del proyecto
+
+IMPORTANTE:
+
+No dar una respuesta superficial.
+
+Analizar el código existente y describir exactamente lo que ya está implementado.
+
+Prioridad: CRÍTICA 🚀

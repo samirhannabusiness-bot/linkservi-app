@@ -1,0 +1,147 @@
+Quiero hacer una revisión final completa de calidad (QA) en ServiLink para asegurar que la app esté 100% lista para producción, sin errores visuales ni funcionales.
+
+Implementar y verificar lo siguiente:
+
+---
+
+1. RESPONSIVE TOTAL (CRÍTICO)
+
+* Revisar TODAS las páginas de la app:
+
+  * Login
+  * Registro
+  * Dashboard cliente
+  * Dashboard trabajador
+  * Panel admin
+  * Chat
+  * Wallet / Retiros
+  * Perfil
+  * Búsqueda
+
+* Asegurar:
+
+  * Ningún elemento se salga de la pantalla
+  * No exista scroll horizontal
+  * Ningún texto o botón quede cortado
+  * Imágenes ajustadas correctamente (max-width: 100%)
+  * Botones siempre visibles y accesibles
+
+* Optimizar para:
+
+  * Android (Chrome)
+  * iPhone (Safari)
+  * PWA instalada
+
+---
+
+2. TEST COMPLETO (CHECK GLOBAL)
+
+* Hacer un recorrido completo por TODA la app como:
+
+  * Cliente
+  * Trabajador
+  * Administrador
+
+* Verificar que:
+
+  * No haya errores visuales
+  * No haya elementos desalineados
+  * Todo sea usable con una mano (mobile-first)
+
+---
+
+3. SISTEMA PREMIUM (TRABAJADOR)
+
+Actualmente el admin puede activar Premium, pero el trabajador NO tiene opción para activarlo.
+
+Implementar:
+
+* Crear sección visible en el dashboard del trabajador:
+
+Título:
+“🚀 Conviértete en Premium”
+
+Descripción:
+“Aparece primero en las búsquedas, consigue más clientes y aumenta tus ingresos. Con Premium tu perfil tiene mayor visibilidad en todo tu estado.”
+
+Beneficios:
+
+* ⭐ Apareces primero en resultados
+* 🌍 Visible en todo tu estado
+* 📈 Más solicitudes de clientes
+* 🔥 Mayor exposición
+
+Precio:
+
+* $5 USD mensual
+
+Botón:
+
+* “Activar Premium”
+
+---
+
+4. FLUJO DE PAGO PARA PREMIUM
+
+* Al hacer clic en “Activar Premium”:
+
+  * Mostrar los mismos métodos de pago de la plataforma:
+
+Pago Móvil:
+
+* Banco de Venezuela
+* 04163869939
+* 18268011
+
+Zelle:
+
+* [leisterabaja@gmail.com](mailto:leisterabaja@gmail.com)
+
+PayPal:
+
+* [samirhzv@gmail.com](mailto:samirhzv@gmail.com)
+
+Transferencia:
+
+* 01020597290000022651
+* V18268011
+* Samir Zahi Hanna Villarroe
+
+---
+
+5. PROCESO:
+
+* El trabajador paga manualmente
+* Sube comprobante
+* El admin verifica
+* El admin activa Premium desde el panel
+
+---
+
+6. UI:
+
+* Mostrar estado Premium activo/inactivo
+* Mostrar fecha de expiración
+* Mostrar badge ⭐ Premium en perfil
+
+---
+
+7. VALIDACIÓN FINAL
+
+* Verificar que:
+
+  * El trabajador vea claramente la opción Premium
+  * El flujo de pago funcione correctamente
+  * El admin pueda activarlo sin errores
+  * Premium realmente afecte la visibilidad
+
+---
+
+IMPORTANTE:
+
+* La app debe quedar totalmente limpia, sin errores visuales
+* Experiencia tipo app profesional (nivel Uber)
+* Premium debe ser fácil de entender, activar y monetizar
+* Este es el paso final antes del lanzamiento
+
+El objetivo es dejar la app perfecta al 100%.

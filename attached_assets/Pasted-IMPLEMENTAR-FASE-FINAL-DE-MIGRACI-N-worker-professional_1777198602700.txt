@@ -1,0 +1,172 @@
+IMPLEMENTAR: FASE FINAL DE MIGRACIÓN /worker → /professional (CIERRE COMPLETO)
+
+OBJETIVO:
+Finalizar la migración hacia /professional como única ruta canónica, eliminando duplicidad, mejorando SEO y manteniendo compatibilidad controlada.
+
+IMPORTANTE:
+NO romper enlaces existentes sin control.
+NO generar errores 404.
+Migración limpia, progresiva y verificable.
+
+---
+
+🧠 ESTADO ACTUAL
+
+* /professional/* ya funciona correctamente
+* /worker/* sigue activo como legacy
+* navegación interna ya usa /professional
+
+Falta:
+
+* cierre definitivo de /worker
+* consolidación SEO
+* limpieza de rutas
+
+---
+
+🎯 OBJETIVO FINAL
+
+* /professional = única ruta oficial
+* /worker = redirigido completamente (301)
+* SEO consolidado en una sola estructura
+
+---
+
+---
+
+🟢 FASE 1 — VALIDACIÓN PREVIA (OBLIGATORIO)
+
+Antes de redirigir:
+
+1. Confirmar que NO quedan usos internos de /worker:
+
+* navegación
+* botones
+* enlaces
+* formularios
+* notificaciones internas
+
+2. Confirmar que emails y push notifications nuevos ya usan /professional
+
+3. Confirmar que frontend funciona 100% con /professional
+
+---
+
+---
+
+🟡 FASE 2 — REDIRECT 301 GLOBAL
+
+Implementar redirect permanente:
+
+/worker → /professional
+/worker/* → /professional/*
+
+Ejemplos:
+
+/worker
+→ /professional
+
+/worker/bookings
+→ /professional/bookings
+
+/worker/profile
+→ /professional/profile
+
+---
+
+IMPORTANTE:
+
+* usar HTTP 301 (no 302)
+* mantener query params si existen
+* mantener parámetros dinámicos (:id, :slug)
+
+---
+
+---
+
+🟠 FASE 3 — SEO LIMPIO
+
+1. Eliminar completamente /worker de:
+
+* sitemap.xml
+* canonical tags
+* metadata
+
+2. Mantener:
+
+<link rel="canonical" href="https://linkservi.com/professional/...">
+
+3. robots.txt:
+
+Mantener bloqueo:
+
+Disallow: /worker
+Disallow: /professional  (porque es área privada)
+
+---
+
+---
+
+🟣 FASE 4 — LOGS Y CONTROL
+
+Agregar logging temporal:
+
+* detectar accesos a /worker
+* registrar frecuencia
+
+Objetivo:
+
+* verificar que el tráfico legacy disminuye
+
+---
+
+---
+
+🔴 FASE 5 — LIMPIEZA FUTURA (POSTERIOR)
+
+Cuando el tráfico a /worker sea mínimo:
+
+* eliminar código legacy
+* eliminar rutas antiguas
+* limpiar referencias internas
+
+---
+
+---
+
+🧪 VALIDACIÓN FINAL
+
+Verificar:
+
+* acceso a /worker redirige correctamente
+* subrutas mantienen comportamiento
+* no hay loops de redirección
+* navegación interna sigue funcionando
+* SEO apunta solo a /professional
+
+---
+
+---
+
+🚫 PROHIBIDO
+
+* eliminar /worker sin redirect
+* dejar ambas rutas indexables
+* romper enlaces antiguos
+
+---
+
+---
+
+🎯 RESULTADO FINAL
+
+* una sola estructura de rutas
+* SEO consolidado
+* experiencia consistente
+* sistema limpio
+
+---
+
+Esto no es un cambio técnico.
+
+Es el cierre definitivo de la identidad del producto.

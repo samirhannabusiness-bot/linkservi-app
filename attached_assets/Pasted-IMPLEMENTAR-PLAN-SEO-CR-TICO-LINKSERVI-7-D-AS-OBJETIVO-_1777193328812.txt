@@ -1,0 +1,205 @@
+IMPLEMENTAR: PLAN SEO CRÍTICO LINKSERVI (7 DÍAS)
+
+OBJETIVO:
+Corregir problemas reales de SEO y optimizar la app para indexación, posicionamiento y conversión en Google.
+
+IMPORTANTE:
+NO teoría.
+NO cambios innecesarios.
+SOLO ejecutar mejoras de alto impacto.
+
+---
+
+🚨 PRIORIDAD MÁXIMA
+
+El sitio actualmente tiene:
+
+* muchas páginas vacías en sitemap
+* SEO dinámico solo en pocas páginas
+* duplicados
+* productos y tiendas invisibles para Google
+
+Esto debe corregirse inmediatamente.
+
+---
+
+🟥 DÍA 1 — LIMPIEZA CRÍTICA
+
+OBJETIVO: eliminar riesgo de penalización
+
+TAREAS:
+
+1. Filtrar sitemap.xml:
+
+* incluir SOLO:
+
+  * categorías con al menos 1 trabajador verificado y disponible
+  * perfiles reales
+  * artículos de blog
+
+* EXCLUIR:
+
+  * categorías sin contenido (workers.length = 0)
+
+2. Corregir robots.txt:
+
+* eliminar sitemap duplicado inválido
+* corregir:
+  Disallow: /worker/ → Disallow: /worker
+
+3. Agregar noindex a páginas no SEO:
+
+* /login
+* /register
+* /forgot-password
+* /reset-password
+* /profile/setup
+* /manager-invite/:token
+* /admin-invite/:token
+* /unirme/:code
+* /notificaciones
+
+---
+
+🟧 DÍA 2 — ELIMINAR DUPLICADOS
+
+OBJETIVO: evitar confusión de Google
+
+TAREAS:
+
+1. Redirigir /workers → /search (301 redirect)
+
+2. Mantener solo una versión indexable
+
+3. Agregar canonical correcto en SearchPage
+
+---
+
+🟨 DÍA 3 — SEO EN TODAS LAS PÁGINAS
+
+OBJETIVO: evitar contenido duplicado
+
+TAREAS:
+
+Agregar useSeo en:
+
+* /store
+* /jobs
+* /ganar-dinero
+* páginas legales (/terms, /privacy, /cookies, /refunds)
+
+Cada página debe tener:
+
+* title único
+* meta description
+* h1 correcto
+
+---
+
+🟩 DÍA 4 — TIENDAS Y PRODUCTOS (CRÍTICO)
+
+OBJETIVO: indexar inventario
+
+TAREAS:
+
+1. Crear página pública de tienda:
+
+/tienda/:slug
+
+Debe incluir:
+
+* useSeo dinámico
+* JSON-LD LocalBusiness
+* listado de productos
+
+2. Crear página pública de producto:
+
+/producto/:slug
+
+Debe incluir:
+
+* useSeo dinámico
+* JSON-LD Product
+* precio
+* disponibilidad
+
+3. Incluir ambas en sitemap.xml
+
+---
+
+🟦 DÍA 5 — PRERENDER (CRÍTICO PARA SEO REAL)
+
+OBJETIVO: mejorar indexación y previews
+
+TAREAS:
+
+Implementar prerender para:
+
+* home
+* /blog
+* artículos
+* categorías principales
+* perfiles principales
+
+USAR:
+vite-plugin-prerender o react-snap
+
+IMPORTANTE:
+WhatsApp, Facebook, etc. deben ver contenido real sin JS
+
+---
+
+🟪 DÍA 6 — CONTENIDO BLOG
+
+OBJETIVO: tráfico SEO
+
+TAREAS:
+
+Publicar mínimo 10 artículos optimizados:
+
+* precios de servicios
+* problemas comunes
+* comparaciones
+
+---
+
+🟫 DÍA 7 — BASE PARA VIDEOS SEO
+
+OBJETIVO: crecimiento exponencial
+
+TAREAS:
+
+1. Crear estructura futura:
+
+/video/:slug
+
+2. Cada video debe:
+
+* tener página pública
+* tener SEO completo
+* incluir botón contratar
+
+3. Incluir en sitemap
+
+---
+
+⚠️ REGLAS IMPORTANTES
+
+* NO generar páginas vacías
+* NO duplicar contenido
+* TODO debe tener valor real
+
+---
+
+🎯 RESULTADO ESPERADO
+
+* menos páginas pero más calidad
+* mejor indexación
+* más tráfico orgánico
+* base lista para escalar SEO
+
+---
+
+Esto no es optimización.
+
+Es corrección estructural del SEO del sistema.

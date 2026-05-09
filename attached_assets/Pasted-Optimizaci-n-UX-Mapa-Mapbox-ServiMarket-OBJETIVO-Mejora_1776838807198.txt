@@ -1,0 +1,157 @@
+Optimización UX — Mapa (Mapbox) ServiMarket
+
+---
+
+# OBJETIVO
+
+Mejorar la experiencia del mapa con geolocalización inteligente, visualización limpia y mayor usabilidad.
+
+---
+
+# CAMBIOS
+
+## 1. Zoom inicial inteligente
+
+Mejorar comportamiento inicial del mapa según contexto del usuario.
+
+---
+
+### Lógica
+
+* si usuario acepta GPS:
+
+  * centrar en su ubicación
+  * zoom = 13
+
+* si NO acepta GPS:
+
+  * detectar ciudad (o fallback Caracas)
+  * zoom = 10–11
+
+* fallback final:
+
+  * Venezuela (zoom 5)
+
+---
+
+### Beneficio
+
+* experiencia más personalizada
+* mayor relevancia de resultados
+* sensación tipo Uber
+
+---
+
+## 2. Clustering de marcadores
+
+Evitar saturación del mapa cuando hay muchos puntos.
+
+---
+
+### Implementación
+
+* usar clustering nativo de Mapbox GL JS (`cluster: true`)
+* convertir datos a GeoJSON
+
+---
+
+### Comportamiento
+
+* agrupar puntos cercanos en burbujas
+* mostrar número de elementos por cluster
+* al hacer zoom → se separan automáticamente
+
+---
+
+### Referencia técnica
+
+Mapbox permite clustering directamente en la fuente GeoJSON usando `cluster: true` ([Mapbox][1])
+
+---
+
+### Beneficio
+
+* mapa limpio
+* mejor rendimiento
+* navegación más clara
+
+---
+
+## 3. Botón "Usar mi ubicación"
+
+Agregar CTA visible para activar geolocalización manualmente.
+
+---
+
+### UI
+
+* botón flotante (top o bottom)
+* icono 📍
+
+---
+
+### Acción
+
+* solicita permiso de ubicación
+* centra mapa en usuario
+* activa animación flyTo
+
+---
+
+### Beneficio
+
+* aumenta uso del mapa
+* mejora interacción
+* control directo del usuario
+
+---
+
+## 4. Fallback claro
+
+Mejorar experiencia cuando el mapa no puede cargarse.
+
+---
+
+### Casos
+
+* token inválido
+* error de red
+* Mapbox no disponible
+
+---
+
+### UI
+
+Mostrar mensaje:
+
+"⚠️ No se pudo cargar el mapa. Puedes seguir viendo los resultados en lista."
+
+---
+
+### Acción
+
+* mostrar botón "Reintentar"
+* mantener lista visible
+
+---
+
+### Beneficio
+
+* evita confusión
+* experiencia continua
+* percepción profesional
+
+---
+
+# RESULTADO
+
+* mapa más inteligente
+* mejor rendimiento visual
+* mayor interacción del usuario
+* experiencia tipo app real (Uber-style)
+
+---
+
+Prioridad: MEDIA 🚀
+
+[1]: https://docs.mapbox.com/mapbox-gl-js/example/cluster/?utm_source=chatgpt.com "Create and style clusters | Mapbox GL JS"

@@ -1,0 +1,29 @@
+Quiero que hagas un ajuste completo del panel de administrador enfocándote en experiencia de usuario, claridad visual y control real del negocio. El sistema ya funciona, pero ahora necesito llevarlo a nivel profesional e intuitivo.
+
+Primero, en el Dashboard principal, agrega una sección visible al inicio llamada “Acciones importantes” donde se muestren tareas pendientes como: retiros por aprobar, verificaciones nuevas y disputas en proceso. La idea es que el admin sepa qué debe atender apenas entra.
+
+Segundo, mejora la sección de Tiendas. Actualmente se ve muy plana. Cada tienda debe mostrar mejor información visual: logo, nombre claro, dueño de la tienda y un botón para verla o gestionarla. Esto debe sentirse como un marketplace real, no solo una lista.
+
+Tercero, reorganiza visualmente las Solicitudes. Hay muchos estados pero no se diferencian bien. Usa jerarquía visual con colores claros: rojo para acciones urgentes, amarillo para procesos en curso y verde para completados.
+
+Cuarto, agrega un bloque financiero más completo en el dashboard. Necesito ver claramente:
+
+* dinero total procesado
+* dinero retenido en escrow
+* dinero liberado
+* comisiones de la plataforma
+
+Esto es clave para control del negocio.
+
+Quinto, mejora las pantallas vacías (como disputas o listas sin datos). No deben verse muertas. Agrega mensajes claros como “Todo funcionando correctamente” para mejorar la percepción del sistema.
+
+Sexto, agrega más control al administrador. Debe poder:
+
+* modificar comisiones globales
+* suspender tiendas
+* suspender co-hosts
+* gestionar estados de usuarios fácilmente
+
+Séptimo, asegúrate de que toda la interfaz sea consistente, moderna e intuitiva. Debe ser fácil de usar incluso para alguien sin experiencia técnica. Prioriza claridad sobre complejidad.
+
+No quiero romper nada de lo que ya funciona. Solo mejorar organización, experiencia y control para que el sistema se vea y se sienta como una plataforma profesional lista para escalar.

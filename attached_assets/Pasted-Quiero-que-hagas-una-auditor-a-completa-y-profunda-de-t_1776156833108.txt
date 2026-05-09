@@ -1,0 +1,98 @@
+Quiero que hagas una auditoría completa y profunda de toda la aplicación.
+
+NO quiero un resumen superficial. Necesito un análisis detallado, técnico y funcional de TODO el sistema.
+
+Analiza lo siguiente:
+
+1. ARQUITECTURA GENERAL
+
+* Estructura del proyecto (frontend, backend, base de datos)
+* Organización del código
+* Posibles malas prácticas
+* Código duplicado o innecesario
+
+2. BASE DE DATOS
+
+* Esquema completo (tablas, relaciones, campos)
+* Validar integridad de datos
+* Campos faltantes o redundantes
+* Problemas de escalabilidad
+
+3. SISTEMA DE USUARIOS
+
+* Roles: cliente, trabajador, co-host, admin
+* Permisos por rol
+* Posibles fallos de seguridad o acceso indebido
+
+4. SISTEMA DE PAGOS
+
+* Flujo completo (servicios, productos, comisiones, retiros)
+* Separación de balances (tienda, trabajador, co-host)
+* Seguridad del dinero (evitar fraude)
+* Casos donde pueda romperse el flujo
+
+5. MARKETPLACE (TIENDA)
+
+* Flujo de compra completo
+* Visualización de productos
+* Lógica de stock
+* Problemas potenciales
+
+6. SISTEMA DE SERVICIOS
+
+* Solicitudes
+* Asignación de trabajadores
+* Estados del servicio
+* Posibles errores
+
+7. SISTEMA DE RETIROS
+
+* Flujo completo desde solicitud hasta pago
+* Validaciones
+* Posibles vulnerabilidades
+
+8. SISTEMA DE CALIFICACIONES
+
+* Integridad (1 orden = 1 calificación)
+* Cálculo de promedios
+* Posibles inconsistencias
+
+9. FRONTEND / UX
+
+* Flujo de navegación completo
+* Pantallas rotas o errores potenciales
+* Problemas de usabilidad
+* Inconsistencias visuales
+
+10. ERRORES Y BUGS
+
+* Detectar cualquier error actual o potencial
+* Pantallas que puedan romperse (ej: pantalla en blanco)
+* Problemas de estados (loading, null, undefined)
+
+11. SEGURIDAD
+
+* Validaciones backend
+* Accesos indebidos
+* Posibles exploits
+
+12. RENDIMIENTO
+
+* Consultas innecesarias
+* Procesos pesados
+* Optimización general
+
+IMPORTANTE:
+
+* Si detectas un problema, explícalo claramente
+* Propón la solución
+* Si es posible, corrígelo directamente
+* Indica el nivel de gravedad (bajo, medio, crítico)
+
+FORMATO DEL REPORTE:
+
+Quiero que estructures la respuesta por secciones, bien ordenada, clara y detallada.
+
+OBJETIVO FINAL:
+
+Tener un diagnóstico completo del estado real de la app antes de lanzar, detectar riesgos y dejar el sistema lo más sólido posible.

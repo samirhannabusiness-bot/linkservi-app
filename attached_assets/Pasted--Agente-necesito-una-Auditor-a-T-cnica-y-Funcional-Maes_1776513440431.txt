@@ -1,0 +1,28 @@
+"Agente, necesito una Auditoría Técnica y Funcional Maestra de ServiLink. Quiero que analices toda la estructura que hemos construido desde el primer día hasta hoy y me entregues un resumen detallado bajo los siguientes puntos:
+
+1. Resumen de Ecosistema: Explica cómo están integrados los 3 pilares: Servicios (Cliente-Trabajador), ServiMarket (Ventas y Alquileres con Escrow) y la Bolsa de Empleo (Suscripciones de $1 y $2).
+
+2. Verificación de Lógica Crítica:
+
+El Mapa: Confirma si la lógica de geolocalización y los anillos de expansión para encontrar servicios/productos cercanos están operativos al 100%.
+
+Seguridad (Filtro Anti-Fraude): Verifica que el interceptor de mensajes bloquee números de teléfono en cualquier formato en el chat y perfiles.
+
+Garantía de 15 días: Confirma la implementación del botón que reabre el servicio con el trabajador original.
+
+Panel Admin: Asegura que los controles de 'Quitar Verificación' y la gestión de Alquileres estén separados y funcionales.
+
+3. Análisis de Errores y Mejoras: Haz un escaneo profundo del código. Si encuentras algún error de lógica o una vulnerabilidad, arréglalo de inmediato. Si ves una forma más eficiente de conectar las tablas de la base de datos o mejorar la velocidad de carga, aplícala y explícame qué hiciste.
+
+4. ADN de la App: Describe cómo está integrado el sistema de pagos (Billetera interna, comisiones del 15%, y las nuevas suscripciones recurrentes).
+
+5. Veredicto de Robustez: Dame un porcentaje (0% al 100%) de qué tan robusta y lista para el mercado masivo está la app hoy, considerando seguridad, escalabilidad y experiencia de usuario.
+
+Misión: Entrégame un texto que sea el 'Manual de Identidad Técnica' de ServiLink para que yo sepa exactamente el poder que tiene mi plataforma ahora mismo."
+
+¿Qué vamos a buscar en su respuesta?
+El Mapa: Si él dice que el mapa está al 100%, significa que tu app ya sabe "leer" las calles de Maturín para dar resultados exactos.
+
+El % de Robustez: Si nos da más del 90%, estamos listos para "arropar al mundo".
+
+La Lógica de los $2 y $1: Verificaremos que no se le haya olvidado cobrarle a las empresas.

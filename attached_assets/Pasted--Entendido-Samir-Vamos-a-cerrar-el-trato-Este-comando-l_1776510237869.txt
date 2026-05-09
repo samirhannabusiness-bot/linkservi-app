@@ -1,0 +1,42 @@
+¡Entendido, Samir! Vamos a cerrar el trato. Este comando le da al Agente la estructura de alquiler (con la interfaz de carga que vimos) y le pone el "Escudo de Seguridad" al chat para que nadie se salte la plataforma.
+
+Aquí tienes el texto definitivo para pegar en Replit:
+
+Mensaje para el Agente:
+"Agente, vamos a implementar el módulo 'ServiRent' con una interfaz de carga de alto nivel y un sistema de comunicación blindado. Sigue estas especificaciones:
+
+1. Interfaz de Carga de Producto (Plantilla de Alquiler):
+
+Modifica el formulario de publicación con un diseño Dark Mode Premium.
+
+Añade un selector: [Venta / Alquiler]. Si es Alquiler, despliega estos campos específicos:
+
+Tarifas Dinámicas: Inputs para 'Precio por Día' y 'Precio por Semana'.
+
+Depósito de Garantía: Campo obligatorio para el monto de seguridad en Escrow.
+
+Calendario de Disponibilidad: Un DatePicker para que el dueño bloquee fechas.
+
+Condiciones: Área de texto para 'Reglas de uso'.
+
+2. Chat con Filtro Anti-Fraude (Security Filter):
+
+Implementa un sistema de chat entre arrendador y arrendatario.
+
+REGLA CRÍTICA DE SEGURIDAD: El chat debe tener un interceptor de mensajes en tiempo real. No permitas el envío de números de teléfono en ningún formato (ej. 0424-0000000, 4241112233, 424-545-5265).
+
+Si el sistema detecta un patrón de número telefónico, debe bloquear el mensaje y mostrar una alerta al usuario: 'Por tu seguridad, no está permitido compartir datos de contacto externos. Todas las transacciones deben realizarse dentro de ServiLink para contar con la garantía y el seguro de protección.'
+
+3. Lógica de Negocio y Geolocalización:
+
+Aplica la comisión del 15% sobre el subtotal del alquiler.
+
+Usa la lógica de Anillos de Expansión en la búsqueda: Prioriza lo cercano (<5km) y luego expande a Maturín/Estado si no hay resultados.
+
+Genera el contrato digital automático en PDF al confirmar la reserva.
+
+4. Visualización en el Market:
+
+Las tarjetas de alquiler deben mostrar el badge de 'Alquiler' y el precio con el sufijo / día.
+
+Al hacer clic, abre la ficha de detalles con el calendario de reserva y el botón de 'Chat con el dueño'."

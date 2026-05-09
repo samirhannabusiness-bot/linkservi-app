@@ -1,0 +1,75 @@
+"Agente, implementa el nuevo módulo de 'Bolsa de Empleo' como el tercer pilar estratégico de ServiLink. Diseña este sistema con los siguientes nombres y lógica en español:
+
+1. Ubicación y Accesos (Interfaz de Usuario):
+
+
+
+Botón Central (+): Al presionar el botón de acción principal, deben salir tres opciones:
+
+🛠️ Ofrecer un Servicio 2. 📦 Alquilar o Vender algo 3. 📄 Publicar Currículo / Vacante.
+
+Secciones en el Inicio: Añade botones claros que digan 'Busco Empleo' (para los trabajadores) y 'Contratar Personal' (para los negocios).
+
+2. Perfil del Trabajador (Hoja de Vida Digital):
+
+
+
+Crea una plantilla profesional que incluya:
+
+Video de Presentación (30 seg): Para que el trabajador se presente formalmente.
+
+Habilidades y Oficios: Sistema de etiquetas (ej. Electricista, Cajero, Cocinero).
+
+Experiencia Laboral: Lista de trabajos anteriores.
+
+Sello de Veridad: Resaltar si la identidad (Cédula/Selfie) ya fue validada por nosotros.
+
+Filtro de Privacidad: No permitas que el número de teléfono o correo se vean de forma pública en el perfil.
+
+3. Modelo de Suscripciones Mensuales:
+
+
+
+Trabajador Destacado ($1 al mes): El usuario paga 1 dólar mensual para salir de primero en las listas de búsqueda y tener una etiqueta de 'Disponible de inmediato'.
+
+Empresa Premium ($2 al mes): El negocio paga 2 dólares mensuales para poder ver los números de teléfono de todos los candidatos, descargar sus currículos en PDF y chatear con ellos.
+
+MÉTODO DE PAGO: El proceso es el mismo que ya usamos en la app: pago a través de la billetera interna, pero el destino de los fondos es la cuenta de la aplicación.
+
+4. Buscador para Negocios:
+
+
+
+Los dueños de negocios deben poder buscar por: Oficio, Ciudad y Años de experiencia.
+
+El sistema debe mostrar primero a los trabajadores que pagaron su dólar de suscripción.
+
+5. Reporte de Finalización:
+
+
+
+Agente, cuando termines, explícame cómo quedó la lógica para que las suscripciones venzan automáticamente a los 30 días y confírmame que el filtro para que no se pasen números de teléfono por el chat o el perfil está funcionando perfectamente.""Agente, para mantener un orden administrativo impecable, necesito que crees una sección dedicada en el Panel de Administración llamada 'Gestión de Alquileres'. Esta vista debe ser independiente de la de servicios y debe funcionar así:
+
+
+
+Registro Maestro de Alquileres:
+
+Crea una tabla que muestre todos los alquileres activos, terminados y pendientes.
+
+Cada fila debe incluir: Objeto alquilado, Nombre del Dueño, Nombre del Cliente, Fecha de inicio/fin y Estado del Depósito de Garantía.
+
+Control de Depósitos (Escrow):
+
+Añade un indicador visual que me diga qué depósitos están retenidos por la app.
+
+En caso de una disputa (si el dueño dice que le rompieron algo), yo como administrador debo tener un botón de 'Retener Depósito' o 'Liberar al Cliente'.
+
+Métricas de Alquiler:
+
+Un resumen arriba que me diga: Total de comisiones ganadas por alquileres hoy, Objetos más alquilados y valor total de depósitos en custodia.
+
+Historial de Contratos:
+
+Un botón por cada transacción para que yo pueda descargar o ver el PDF del contrato que se generó automáticamente.
+
+Objetivo: Necesito que el flujo de los objetos sea tan transparente como el de los servicios. Quiero ver en tiempo real qué se está moviendo en Maturín y asegurar que el 15% de comisión de la app se registre correctamente en mi balance de administrador."

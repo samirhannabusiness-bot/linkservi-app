@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "LinkServi - Marketplace de Servicios"
+version = "1.0.0"
+id = "artifacts/servilink"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19558
+
+[services.development]
+run = "pnpm --filter @workspace/servilink run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/servilink", "run", "build" ]
+publicDir = "artifacts/servilink/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19558"
+BASE_PATH = "/"

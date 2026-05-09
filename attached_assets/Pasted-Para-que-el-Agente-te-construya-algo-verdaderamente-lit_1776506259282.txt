@@ -1,0 +1,36 @@
+Para que el Agente te construya algo verdaderamente élite, no podemos pedirle un simple "archivo de texto". Necesitamos pedirle un Dashboard Analytics Engine con capacidad de exportación.
+
+Copia y pega este comando. Está diseñado con terminología técnica de alto nivel para que el Agente entienda que no quieres un juguete, sino una herramienta de inteligencia de negocios:
+
+Mensaje para el Agente en Replit:
+"Agente, vamos a implementar el 'Executive Analytics & Reporting System'. Necesito que en el Panel de Admin construyas una sección de métricas de alto impacto con un botón de exportación a PDF que parezca diseñado por una firma de consultoría de Silicon Valley. Sigue estos requisitos:
+
+1. Lógica de Data Intelligence:
+
+Implementa funciones para calcular: GMV (Volumen total transaccionado), CAC (Costo de adquisición de usuario - estimado), Churn Rate (Tasa de abandono) y Growth MoM (Crecimiento mes a mes).
+
+El sistema debe ser capaz de filtrar estos datos por: Últimas 24h, Última Semana y Último Mes.
+
+2. Visualización en Pantalla (Dashboard):
+
+Crea tarjetas de métricas (Widgets) con un diseño ultra-limpio, usando sombras suaves y tipografía Sans-Serif moderna.
+
+Incluye gráficos de líneas (puedes usar recharts o chart.js) que muestren la tendencia de crecimiento de usuarios y servicios.
+
+3. Motor de Exportación PDF (The Unicorn Report):
+
+Usa jspdf y html2canvas para generar un reporte PDF con estética 'Enterprise Whitepaper'.
+
+Header: Logo de ServiLink a la izquierda y fecha/rango del reporte a la derecha.
+
+Sección 1 (Resumen Ejecutivo): Una cuadrícula de 4 columnas con los números clave (Total Usuarios, Ingresos, Servicios, Verificaciones).
+
+Sección 2 (Gráficos de Tendencia): Incluye una versión simplificada de los gráficos en el PDF.
+
+Sección 3 (Operaciones): Desglose por roles (¿Cuántos trabajadores vs. cuántos clientes nuevos?).
+
+Footer: 'ServiLink Confidential - Business Intelligence Report'.
+
+4. Estética:
+
+El PDF debe ser limpio, con mucho espacio en blanco, acentos en el color de la marca (Azul Premium/Dark) y fuentes legibles. Que al enviarlo a un socio o inversionista, la calidad del documento venda la seriedad de la empresa."

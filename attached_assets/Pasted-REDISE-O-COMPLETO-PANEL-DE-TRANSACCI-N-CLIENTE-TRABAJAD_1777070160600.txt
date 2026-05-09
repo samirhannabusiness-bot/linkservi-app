@@ -1,0 +1,197 @@
+REDISEÑO COMPLETO — PANEL DE TRANSACCIÓN (CLIENTE ↔ TRABAJADOR)
+
+OBJETIVO:
+Crear una experiencia tipo app premium (estilo Uber / fintech) clara, segura y orientada a conversión, integrando pagos automáticos del banco (C2P + API NOTIFICACIÓN).
+
+---
+
+🎯 ESTRUCTURA VISUAL (OBLIGATORIO)
+
+Diseño tipo tarjeta compacta (mobile-first, NO muy larga)
+
+SECCIONES:
+
+1. HEADER DEL SERVICIO
+
+* Nombre del servicio
+* Nombre del trabajador + verificado
+* Rating ⭐
+* Estado actual (badge dinámico)
+
+---
+
+2. PROGRESO DEL SERVICIO (STEP BAR)
+
+Mostrar línea horizontal con estados:
+
+✔ Solicitud
+✔ Aceptado
+✔ Pago
+✔ Trabajo confirmado
+
+IMPORTANTE:
+
+* Estado activo con animación glow
+* Estilo futurista (neón sutil, limpio)
+
+---
+
+3. BLOQUE PRINCIPAL (CUANDO TERMINA EL TRABAJO)
+
+TÍTULO:
+"Esperando tu confirmación"
+
+SUBTEXTO:
+"El trabajador indicó que el trabajo fue finalizado"
+
+---
+
+4. CONTADOR (CRÍTICO)
+
+Mostrar contador regresivo:
+
+"Confirmación automática en: 25:00"
+
+REGLA:
+
+* Si el cliente NO hace nada → se libera pago automáticamente
+* Si cliente confirma → se libera inmediato
+* Si cliente reporta → se congela
+
+---
+
+5. BLOQUE DE SEGURIDAD (MUY IMPORTANTE PARA CONVERSIÓN)
+
+Mostrar SIEMPRE:
+
+🛡️ Pago protegido dentro de LinkServi
+
+✔ El dinero se libera solo cuando confirmas
+✔ Puedes reportar problemas antes de la confirmación
+
+SI ES PREMIUM:
+✔ +10 días de garantía sobre el servicio
+
+SI NO ES PREMIUM:
+Mostrar:
+"Mejora tu protección con garantía extendida"
+
+---
+
+6. MONTO
+
+Mostrar:
+
+Total a pagar:
+$XX USD
+≈ Bs. XXXX
+
+---
+
+7. BOTONES (CTA PRINCIPAL)
+
+BOTÓN 1 (VERDE):
+✔ Confirmar trabajo
+"Todo está correcto"
+
+BOTÓN 2 (ROJO):
+⚠ Reportar problema
+"No estoy conforme"
+
+---
+
+8. BLOQUE PREMIUM (SOFT SELL)
+
+Mostrar tarjeta pequeña:
+
+"¿Quieres más protección?"
+
+✔ 10 días de garantía
+✔ Soporte prioritario
+✔ Atención preferencial
+
+Botón:
+"Mejorar a Premium"
+
+---
+
+💥 LÓGICA DE NEGOCIO (OBLIGATORIO IMPLEMENTAR)
+
+1. ESCROW INTERNO:
+
+* El dinero NO se libera al pagar
+* Se mantiene retenido hasta confirmación
+
+2. CONTADOR:
+
+* Inicia cuando trabajador marca "finalizado"
+* 25 minutos
+* Auto liberación al terminar
+
+3. DISPUTA:
+
+* Si cliente reporta → estado "disputed"
+* Se congela pago
+
+---
+
+💳 INTEGRACIÓN BANCO (CRÍTICO)
+
+INTEGRAR:
+
+✔ API C2P
+✔ API NOTIFICACIÓN (WEBHOOK)
+
+FLUJO:
+
+1. Cliente realiza pago móvil
+2. Banco envía NOTIFICACIÓN (webhook)
+3. Backend valida:
+
+* referencia
+* monto exacto
+* teléfono
+* cédula
+
+4. Si todo coincide:
+
+→ status = payment_confirmed
+→ activar UI automáticamente
+→ NO pedir comprobante manual
+
+IMPORTANTE:
+
+* El monto debe validarse EXACTAMENTE contra el servicio
+* Rechazar pagos con monto incorrecto
+
+---
+
+🔐 SEGURIDAD
+
+* Validar firma del webhook del banco
+* Evitar pagos duplicados
+* Idempotencia en confirmación
+
+---
+
+🎨 DISEÑO
+
+* Oscuro (dark mode)
+* Efectos glow sutiles
+* Bordes redondeados
+* UI compacta tipo app real (NO página larga)
+* Botón sticky opcional
+
+---
+
+🚀 OBJETIVO FINAL
+
+Reducir miedo + aumentar confianza + forzar uso del pago dentro de la app
+
+Este módulo es crítico para conversión y retención.
+
+---
+
+NO SIMPLIFICAR ESTA LÓGICA.
+NO HACERLO GENÉRICO.
+DEBE SENTIRSE COMO UNA FINTECH REAL.

@@ -1,0 +1,73 @@
+Quiero que hagas una revisión completa (auditoría funcional y de experiencia de usuario) de mi app ServiLink para verificar que todo esté funcionando correctamente y alineado con el objetivo del producto.
+
+Necesito que analices y corrijas si es necesario lo siguiente:
+
+1. Flujo general del usuario (cliente):
+
+* ¿El proceso desde abrir la app hasta solicitar un servicio es claro, rápido y sin confusión?
+* ¿Se puede solicitar un servicio en pocos pasos (tipo Uber)?
+* ¿Los botones y acciones son intuitivos?
+
+2. Sistema de precios:
+
+* Verificar que NO se use precio por hora.
+* Confirmar que el sistema funcione con:
+
+  * Precio base
+  * Precio por servicio
+  * Oferta del cliente (subasta)
+* Validar que el cliente vea un precio estimado antes de confirmar.
+
+3. Sistema de pago protegido:
+
+* Verificar que el flujo funcione correctamente:
+
+  * Pago reservado
+  * Servicio en progreso
+  * Confirmación del cliente
+  * Liberación del pago
+* Confirmar que los estados del servicio estén claros:
+  (Pendiente, En progreso, Finalizado, Completado, En disputa)
+
+4. Sistema de solicitudes (tipo Uber):
+
+* Verificar que las solicitudes se envíen a trabajadores cercanos.
+* Confirmar que se puedan aceptar o rechazar fácilmente.
+* Validar que el sistema sea rápido y automático.
+
+5. Experiencia del trabajador:
+
+* ¿Recibe notificaciones claras?
+* ¿Puede aceptar/rechazar sin complicaciones?
+* ¿Entiende cuánto va a ganar?
+
+6. Sistema de confianza:
+
+* Verificar que se muestren:
+
+  * Calificaciones
+  * Nivel del trabajador
+  * Indicadores de confianza
+* Confirmar que esto sea visible antes de contratar.
+
+7. Sistema anti-fraude:
+
+* Validar que existan alertas claras sobre pagos falsos.
+* Confirmar que el chat quede registrado como evidencia.
+* Verificar que el proceso sea seguro para ambas partes.
+
+8. Interfaz y diseño:
+
+* Revisar que la app sea limpia, moderna y fácil de usar.
+* Confirmar que no haya elementos confusos o innecesarios.
+* Verificar que funcione bien en móvil.
+
+9. Rendimiento:
+
+* Verificar que la app cargue rápido.
+* Confirmar que no haya errores visibles o fallos.
+
+IMPORTANTE:
+Quiero que señales cualquier problema, inconsistencia o mejora necesaria, y que propongas soluciones claras para cada punto.
+
+El objetivo es asegurar que la app sea simple, confiable, rápida y lista para usuarios reales en Venezuela.

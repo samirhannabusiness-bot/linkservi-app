@@ -1,0 +1,153 @@
+FASE FINAL — INVISIBILIDAD TOTAL DEL ONBOARDING
+
+OBJETIVO:
+Eliminar cualquier sensación de configuración técnica. El usuario no debe sentir que está configurando nada.
+
+IMPORTANTE:
+
+* NO cambiar lógica de sincronización
+* NO tocar endpoints
+* NO romper FASE 2 ni FASE 3
+* SOLO mejorar percepción y experiencia
+
+---
+
+T001 — ELIMINAR PERCEPCIÓN DE LOGIN TÉCNICO
+
+Problema:
+El formulario con usuario/contraseña se siente técnico.
+
+Implementar:
+
+* ocultar campos por defecto
+* iniciar auto-detección inmediatamente al entrar al paso 2
+
+Mostrar:
+
+"Conectando con tu sistema..."
+
+Si falla:
+👉 mostrar botón: "Conectar manualmente"
+
+---
+
+T002 — ELIMINAR BOTÓN PRINCIPAL
+
+Problema:
+"Conectar y empezar" crea fricción.
+
+Implementar:
+
+* iniciar automáticamente el flujo al entrar
+* NO requerir clic inicial
+
+Solo usar botón si:
+👉 ocurre error
+
+---
+
+T003 — FLUJO AUTOMÁTICO VISUAL
+
+Reemplazar UI por:
+
+Estado 1:
+"Detectando tu sistema..."
+
+Estado 2:
+"Preparando tus productos..."
+
+Estado 3:
+"Verificando información..."
+
+Animado, sin interacción.
+
+---
+
+T004 — MENSAJE FINAL EMOCIONAL
+
+Reemplazar:
+
+"Todo listo"
+
+Por:
+
+👉 "Tu negocio ya está sincronizado 🚀"
+
+---
+
+T005 — REDUCIR TIEMPOS DE ESPERA
+
+* si allGood = true:
+  👉 avanzar rápido (1.5–2s)
+
+* si hay warning:
+  👉 mostrar 3–4s
+
+* si error:
+  👉 detener flujo y mostrar solución
+
+---
+
+T006 — DASHBOARD VIVO
+
+Al redirigir:
+
+Mostrar inmediatamente:
+
+* contador animado de productos
+* estado "Sincronizando..."
+* transición a "Activo"
+
+---
+
+T007 — OCULTAR COMPLEJIDAD TOTAL
+
+* NO mostrar tablas
+* NO mostrar mapping
+* NO mostrar configuración técnica
+
+Agregar botón pequeño:
+
+👉 "Configuración avanzada"
+
+---
+
+T008 — MODO FALLBACK INTELIGENTE
+
+Si falla auto-detección:
+
+Mostrar:
+
+"No pudimos conectar automáticamente."
+
+Opciones:
+
+* "Intentar nuevamente"
+* "Configurar manualmente"
+
+---
+
+RESULTADO:
+
+El usuario:
+
+* abre la app
+* escanea
+* espera unos segundos
+
+👉 y ya está funcionando
+
+SIN tocar nada.
+
+---
+
+ESTÁNDAR:
+
+Debe sentirse como:
+
+👉 conectar WhatsApp Web
+👉 abrir Instagram
+
+NO como:
+
+👉 configurar software técnico

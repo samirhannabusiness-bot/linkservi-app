@@ -1,0 +1,147 @@
+Necesito que hagas una revisión completa de la app y me ayudes a ordenar correctamente el modelo de marketplace, porque actualmente estoy confundido con cómo está funcionando.
+
+---
+
+Problemas actuales que necesito que analices y soluciones:
+
+1. Flujo de Co-host y Tiendas
+
+* No veo claramente dónde el co-host crea una tienda
+* No está claro quién es el dueño real de los productos
+* No entiendo si los productos pertenecen al co-host o a una tienda
+* Necesito que el flujo sea claro: el co-host gestiona, pero la tienda es el dueño
+
+---
+
+2. Propiedad de productos
+
+* Cada producto debe tener un dueño claro (una tienda)
+* Necesito que se vea explícitamente en la UI de quién es el producto
+* Asegurar que los productos NO pertenezcan directamente al co-host
+
+---
+
+3. Flujo de pagos (muy importante)
+
+Actualmente no tengo claro:
+
+* Cuando un cliente paga, ¿a quién pertenece ese dinero?
+* ¿Cómo se distribuye entre tienda, co-host y plataforma?
+
+Necesito que:
+
+* El pago vaya a la app (escrow)
+* Se retenga hasta que el cliente confirme entrega
+* Luego se reparta automáticamente:
+
+  * comisión plataforma
+  * comisión co-host
+  * resto para la tienda
+
+Y que esto sea visible y entendible en el sistema
+
+---
+
+4. Panel de Tienda
+
+Cada tienda debe tener claramente:
+
+* productos
+* ventas
+* ingresos acumulados
+* saldo disponible
+* botón de retiro (muy importante)
+
+El retiro debe usar los datos de pago del dueño de la tienda.
+
+---
+
+5. Panel de Co-host
+
+El co-host debe poder:
+
+* ver sus ganancias acumuladas por comisiones
+* tener un botón de “Retirar ganancias”
+* ver historial de sus comisiones
+
+Adicionalmente:
+
+* el co-host debe poder solicitar el retiro del dinero de la tienda usando los datos del dueño de la tienda
+* esto debe dejar claro a quién se le paga (dueño de la tienda, no al co-host)
+
+---
+
+6. Relación Co-host ↔ Tienda
+
+* El co-host debe poder crear y gestionar tiendas
+* Debe quedar claro para quién trabaja el co-host
+* El co-host NO es el dueño del dinero de la tienda
+
+---
+
+7. Visibilidad de tiendas (muy importante)
+
+* Las tiendas deben ser visibles para TODOS los usuarios de la app:
+
+  * clientes
+  * trabajadores
+  * co-hosts
+
+* Debe existir una vista donde se puedan explorar tiendas (tipo marketplace)
+
+---
+
+8. Vendedores dentro del marketplace
+
+* Los trabajadores también deben poder vender productos
+* Ya que están verificados, deben poder crear su propia tienda o perfil de venta
+* Esto permite que:
+
+  * trabajadores vendan productos
+  * tiendas externas vendan productos
+  * co-hosts gestionen ambos
+
+---
+
+9. Datos demo
+
+* Verifica si los datos demo están causando confusión
+* Asegúrate de que haya consistencia entre usuarios, tiendas y productos
+* Evitar que parezca que los productos no tienen dueño
+
+---
+
+10. Login / Registro
+
+* La pantalla debe mostrar claramente las 3 opciones:
+
+  * Cliente
+  * Trabajador
+  * Co-host
+* Debe ser claro desde el inicio cómo entra cada tipo de usuario
+
+---
+
+OBJETIVO FINAL
+
+Quiero que reorganices todo el flujo del marketplace para que sea claro, lógico y funcional:
+
+* Quién vende → tienda
+* Quién gestiona → co-host
+* Quién compra → cliente
+* Quién también puede vender → trabajadores verificados
+* Cómo fluye el dinero → sistema de escrow claro
+
+Y que todo esto se entienda fácilmente desde la interfaz.
+
+---
+
+IMPORTANTE
+
+Antes de hacer cambios grandes:
+
+1. Explícame cómo está funcionando actualmente el sistema paso a paso
+2. Luego propón los cambios necesarios
+3. Después implementamos
+
+No hagas cambios sin primero explicar la lógica actual.

@@ -1,0 +1,223 @@
+IMPLEMENTAR HARDENING FINAL PARA DISTRIBUCIÓN DEL LINKSERVI SYNC AGENT (NIVEL EMPRESA)
+
+OBJETIVO:
+Preparar el Sync Agent para distribución real a clientes finales, eliminando fricción, errores de instalación y alertas de seguridad.
+
+IMPORTANTE:
+NO modificar la lógica de sincronización existente
+NO tocar el endpoint /api/integrations/products/sync
+SOLO trabajar en capa de distribución, estabilidad y seguridad
+
+---
+
+T001 — CODE SIGNING (PREPARACIÓN)
+
+OBJETIVO:
+Dejar listo el sistema para firmar el .exe y el instalador cuando se tenga certificado
+
+IMPLEMENTAR:
+
+1. Crear script:
+   scripts/sign-windows.sh
+
+2. Soportar variables:
+   SIGN_CERT_PATH
+   SIGN_CERT_PASSWORD
+
+3. Usar signtool (si está disponible) o dejar placeholder documentado
+
+4. Flujo:
+
+* firmar linkservi-sync-agent.exe
+* firmar LinkServi-Sync-Agent-Setup.exe
+
+5. Si no hay certificado:
+
+* no fallar build
+* mostrar warning claro:
+  "⚠ Code signing no configurado — el ejecutable puede mostrar advertencias en Windows"
+
+---
+
+T002 — HEALTHCHECK AUTOMÁTICO POST-INSTALACIÓN
+
+OBJETIVO:
+Verificar que el agente funciona correctamente en la máquina del cliente
+
+IMPLEMENTAR:
+
+1. Al primer arranque:
+
+* verificar:
+
+  * acceso a http://127.0.0.1:7777
+  * permisos de escritura en carpeta logs
+  * carga de config.json
+
+2. Mostrar resultado en UI:
+
+✔ Sistema listo
+⚠ Problema detectado (explicado en lenguaje simple)
+
+3. Crear endpoint local:
+   /api/health
+
+Respuesta:
+
+{
+"ok": true,
+"checks": {
+"ui": true,
+"filesystem": true,
+"config": true
+}
+}
+
+---
+
+T003 — MODO PRODUCCIÓN (SILENCIOSO)
+
+OBJETIVO:
+Evitar comportamientos molestos en clientes
+
+IMPLEMENTAR:
+
+1. Flag:
+   --production
+
+2. En modo producción:
+
+* NO mostrar banner debug
+* NO logs en consola
+* SOLO logs en archivo
+* NO abrir navegador automáticamente si ya fue configurado
+
+---
+
+T004 — PROTECCIÓN DE CONFIGURACIÓN
+
+OBJETIVO:
+Evitar errores humanos del usuario
+
+IMPLEMENTAR:
+
+1. Validar config.json al iniciar:
+
+* apiKey no vacío
+* apiUrl válido
+* db configurada correctamente
+
+2. Si falla:
+
+* NO iniciar sync
+* mostrar error claro en UI:
+
+"Configuración incompleta. Verifica API Key o conexión a SAINT"
+
+---
+
+T005 — RECOVERY AUTOMÁTICO
+
+OBJETIVO:
+Sistema resiliente en clientes reales
+
+IMPLEMENTAR:
+
+1. Si falla conexión a DB:
+
+* reintentar con backoff exponencial
+
+2. Si falla conexión a LinkServi:
+
+* reintentar sin detener el proceso
+
+3. NO cerrar el agente por errores temporales
+
+---
+
+T006 — MEJORA DE LOGS (SOPORTE TÉCNICO)
+
+OBJETIVO:
+Facilitar soporte en campo
+
+IMPLEMENTAR:
+
+1. Agregar niveles:
+
+INFO
+WARN
+ERROR
+
+2. Formato claro:
+
+[2026-01-01 10:00:00] INFO Conectado a SAINT
+[2026-01-01 10:00:05] ERROR No se pudo conectar a la base de datos
+
+3. Endpoint local:
+   /api/logs
+
+para visualizar logs desde la UI
+
+---
+
+T007 — VERIFICACIÓN DE PUERTO
+
+OBJETIVO:
+Evitar conflictos en clientes
+
+IMPLEMENTAR:
+
+1. Detectar si 7777 está ocupado
+
+2. Si está ocupado:
+
+* usar siguiente disponible (7778, 7779…)
+
+3. Mostrar en UI:
+
+"Panel disponible en [http://127.0.0.1:PORT](http://127.0.0.1:PORT)"
+
+---
+
+T008 — EXPERIENCIA DE PRIMER USO (ULTRA SIMPLE)
+
+OBJETIVO:
+Que cualquier técnico pueda instalar sin errores
+
+IMPLEMENTAR:
+
+1. Pantalla inicial:
+
+PASO 1 — API Key
+PASO 2 — Conexión SAINT
+PASO 3 — Probar conexión
+PASO 4 — Activar sincronización
+
+2. Botón:
+
+"Probar todo"
+
+→ ejecuta:
+
+* test DB
+* test API
+* test sync (dry-run)
+
+---
+
+RESULTADO FINAL:
+
+Sync Agent listo para:
+
+✔ instalar en empresas reales
+✔ funcionar sin intervención constante
+✔ soportar errores comunes
+✔ reducir soporte técnico
+✔ aumentar confianza del cliente
+
+---
+
+NO CAMBIAR NADA DEL BACKEND
+NO CAMBIAR LÓGICA DE SYNC
+
+SOLO HARDENING DE PRODUCTO

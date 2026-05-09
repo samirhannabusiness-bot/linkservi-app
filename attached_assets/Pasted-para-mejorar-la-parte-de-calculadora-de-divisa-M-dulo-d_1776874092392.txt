@@ -1,0 +1,164 @@
+para mejorar la parte de calculadora de divisa 
+
+
+Módulo de tasas — BCV + Binance + Euro (experiencia premium integrada)
+
+---
+
+# OBJETIVO
+
+Transformar la sección de tasa BCV en un módulo avanzado de conversión con múltiples fuentes (BCV USD, Binance USDT, Euro BCV), manteniendo una experiencia fluida, moderna y coherente con el diseño actual.
+
+---
+
+# 1. SELECTOR DE TASA (TOGGLE PRINCIPAL)
+
+## Ubicación
+
+* parte superior de la card de tasa (junto al título)
+
+---
+
+## Opciones
+
+* 🇻🇪 BCV USD
+* 💱 Binance (USDT)
+* 🇪🇺 Euro BCV
+
+---
+
+## Comportamiento
+
+* cambiar entre modos sin recargar
+* transición suave (fade + slide 150–200ms)
+* mantener el valor ingresado en la calculadora
+
+---
+
+## Diseño
+
+* estilo pill / segmented control
+* estado activo con glow suave (cyan/violeta según tema)
+* hover con leve iluminación
+
+---
+
+# 2. CALCULADORA DINÁMICA
+
+## Base
+
+* una sola calculadora compartida
+* cambia la tasa dinámicamente según el modo seleccionado
+
+---
+
+## Inputs
+
+* campo principal en USD / USDT / EUR
+* conversión automática a Bs
+
+---
+
+## Comportamiento
+
+* recalcula en tiempo real al cambiar tasa o valor
+* mantiene valor al cambiar de modo
+
+---
+
+## Etiquetas dinámicas
+
+* BCV → USD
+* Binance → USDT
+* Euro → EUR
+
+---
+
+# 3. FUENTES DE DATOS (AUTOMÁTICO)
+
+## BCV
+
+* tasa oficial (USD + EUR)
+* refresh cada 5–10 minutos
+
+---
+
+## Binance
+
+* USDT/VES (P2P o market)
+* refresh cada 60 segundos
+
+---
+
+## UI
+
+mostrar siempre:
+
+* “Fuente: BCV” o “Fuente: Binance”
+* “Actualizado hace X min”
+
+---
+
+# 4. TRANSICIONES Y UX
+
+* cambio de modo con fade suave
+* números animados (count-up leve opcional)
+* skeleton mientras carga tasa
+* sin flicker
+
+---
+
+# 5. DISEÑO (MUY IMPORTANTE)
+
+## Estilo
+
+* glassmorphism consistente con la app
+* fondo con blur + transparencia
+* bordes suaves + glow ligero
+
+---
+
+## Identidad visual por modo
+
+* BCV → cyan
+* Binance → violeta
+* Euro → azul suave
+
+---
+
+## Elementos
+
+* icono/emoji pequeño por tipo
+* bandera de Venezuela sutil (no invasiva)
+* tipografía clara, números grandes
+
+---
+
+# 6. RESPONSIVE
+
+* en mobile:
+
+  * toggle scrollable o compacto
+  * calculadora centrada
+* evitar saturación visual
+
+---
+
+# 7. PERFORMANCE
+
+* cache de tasas en frontend
+* evitar llamadas innecesarias
+* fallback si API falla (mostrar último valor)
+
+---
+
+# 8. RESULTADO FINAL
+
+* módulo útil en el día a día
+* experiencia fluida y moderna
+* herramienta real para usuarios en Venezuela
+* aumento de retención (uso recurrente)
+
+---
+
+Prioridad: ALTA 🚀

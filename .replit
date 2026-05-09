@@ -1,0 +1,102 @@
+modules = ["nodejs-24", "python-3.11", "postgresql-16"]
+
+[deployment]
+router = "application"
+deploymentTarget = "autoscale"
+
+[deployment.postBuild]
+args = ["pnpm", "store", "prune"]
+env = { "CI" = "true" }
+
+[workflows]
+runButton = "Project"
+
+[agent]
+stack = "PNPM_WORKSPACE"
+expertMode = true
+integrations = ["resend:1.0.0"]
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 20000
+
+[[ports]]
+localPort = 5173
+externalPort = 6000
+
+[[ports]]
+localPort = 8000
+externalPort = 8000
+
+[[ports]]
+localPort = 8080
+externalPort = 8080
+
+[[ports]]
+localPort = 8081
+externalPort = 80
+
+[[ports]]
+localPort = 8082
+externalPort = 3003
+
+[[ports]]
+localPort = 8083
+externalPort = 3001
+
+[[ports]]
+localPort = 8084
+externalPort = 5173
+
+[[ports]]
+localPort = 8085
+externalPort = 8008
+
+[[ports]]
+localPort = 19558
+externalPort = 3000
+
+[[ports]]
+localPort = 19559
+externalPort = 3002
+
+[[ports]]
+localPort = 19560
+externalPort = 4200
+
+[[ports]]
+localPort = 19561
+externalPort = 5000
+
+[[ports]]
+localPort = 19562
+externalPort = 6800
+
+[nix]
+channel = "stable-25_05"
+packages = ["zip"]
+
+[userenv]
+
+[userenv.shared]
+VITE_GOOGLE_MAPS_API_KEY = "AIzaSyCUk4gxdWBl_w9DPd5C0CDGMgBrEsAWu1U"
+EMAIL_PASSWORD = "Samirhanna10."
+VITE_MAPBOX_TOKEN = "pk.eyJ1IjoibGlua3NlcnZpIiwiYSI6ImNtbzluZWtmMDBhazkycG9tajZmM3g1cmYifQ.OC2a6l1Bc3TX2o08bxvIww"
+BDV_API_URL = "https://bdvconciliacion.banvenez.com/getMovement"
+BDV_DESTINATION_PHONE = "04148301798"
+BDV_WEBHOOK_API_KEY = "linkservi-webhook-bdv-2026"
+BDV_COMMERCE_PHONE = "04148301798"
+BDV_C2P_BASE_URL = "https://bdvconciliacionqa.banvenez.com:444/BankMobilePaymentC2P/MultipleAccounts"
+VITE_FIREBASE_API_KEY = "project-798563754658"
+VITE_FIREBASE_PROJECT_ID = "project-798563754658"
+VITE_FIREBASE_APP_ID = "project-798563754658"
+FIREBASE_PROJECT_ID = "project-798563754658"
+VITE_FIREBASE_AUTH_DOMAIN = "tartus-digital.firebaseapp.com"
+VITE_FIREBASE_STORAGE_BUCKET = "tartus-digital.firebasestorage.app"
+VITE_FIREBASE_MESSAGING_SENDER_ID = "798563754658"
+VITE_FIREBASE_MEASUREMENT_ID = "G-XRTS49EBZJ"
+BDV_API_KEY = "235B39F6B91404BBD49A4A4303AF70C9"
+BDV_COMMERCE_RIF = "J-412521195"
+BDV_COMMERCE_NAME = "Productos Promoca"
+RESEND_API_KEY = "re_hihswSJr_7ViHKiZPXuGKvug1BFABY5V8o"
+RESEND_FROM_EMAIL = "soporte@linkservi.com"

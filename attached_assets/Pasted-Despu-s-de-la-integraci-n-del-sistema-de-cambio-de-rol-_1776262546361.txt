@@ -1,0 +1,68 @@
+Después de la integración del sistema de cambio de rol (switch Cliente ↔ Trabajador), la app presenta errores: algunos botones no responden o no ejecutan acciones.
+
+Necesito una revisión completa del sistema para detectar y corregir todos los problemas.
+
+OBJETIVO:
+Dejar la aplicación completamente funcional, estable y sin errores en todos los flujos.
+
+TAREAS:
+
+1. DEBUG GENERAL
+
+* Revisar consola (frontend y backend) en busca de errores
+* Detectar funciones que no se ejecutan o eventos que no disparan acciones
+* Verificar promesas, async/await y manejo de errores
+
+2. SWITCH DE ROLES
+
+* Validar que activeView cambia correctamente
+* Confirmar que las rutas cambian según el rol activo
+* Verificar que no haya conflictos entre role y secondaryRole
+
+3. BOTONES SIN ACCIÓN
+
+* Identificar todos los botones que no responden
+* Verificar onClick / handlers
+* Confirmar que las funciones estén conectadas correctamente
+* Revisar si hay condiciones que bloquean la ejecución (if, guards, etc.)
+
+4. AUTH Y PERMISOS
+
+* Validar que AuthGuard funciona correctamente con roles múltiples
+* Verificar que el usuario tenga acceso a las rutas correctas según activeView
+* Confirmar que no haya bloqueos incorrectos de navegación
+
+5. ESTADO GLOBAL
+
+* Revisar el contexto de autenticación
+* Validar que activeView se actualiza correctamente en toda la app
+* Evitar estados desincronizados
+
+6. UI / INTERACCIONES
+
+* Verificar que modales abren y cierran correctamente
+* Confirmar que dropdowns, botones y formularios funcionan
+* Revisar componentes afectados por el cambio de rol
+
+7. BACKEND
+
+* Validar endpoints relacionados con roles
+* Confirmar que las respuestas del backend son correctas
+* Revisar errores 4xx / 5xx
+
+8. FLUJO COMPLETO
+
+Probar:
+
+* Usuario cliente → cambiar a trabajador
+* Activar perfil trabajador
+* Navegar entre vistas
+* Ejecutar acciones en ambos modos
+
+9. MANEJO DE ERRORES
+
+* Agregar mensajes claros si algo falla
+* Evitar fallos silenciosos
+
+OBJETIVO FINAL:
+Que toda la app funcione correctamente después del switch de roles, sin botones rotos, sin errores de navegación y con una experiencia fluida y estable.

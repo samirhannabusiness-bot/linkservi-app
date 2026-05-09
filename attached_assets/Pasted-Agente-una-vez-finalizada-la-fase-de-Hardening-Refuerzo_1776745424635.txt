@@ -1,0 +1,35 @@
+Agente, una vez finalizada la fase de Hardening (Refuerzo de Seguridad), necesito que generes un documento técnico estructurado llamado 'LinkServi: Project Specifications & Architecture Blueprint'. Este documento se utilizará para una auditoría externa y debe estar redactado con un tono profesional y técnico.
+
+Por favor, detalla los siguientes puntos:
+
+1. Resumen Ejecutivo del Ecosistema:
+
+Define la aplicación como una Super-App Multimodal que integra: Marketplace Híbrido (Venta/Alquiler), Bolsa de Empleo con verificación de identidad, y Logística de Delivery On-Demand.
+
+2. Stack Tecnológico & Infraestructura:
+
+Detalla el uso de React (Frontend), Node.js/Express (Backend), TypeScript para tipado estricto, y Drizzle ORM con PostgreSQL.
+
+Menciona la implementación de Zustand para la gestión de estados y jsPDF para la generación dinámica de contratos legales.
+
+3. Lógica de Seguridad y Negocio (Core Logic):
+
+Módulo de Alquileres: Explica el sistema de validación de disponibilidad (prevención de doble reserva) y el flujo de depósitos de garantía.
+
+Seguridad Legal: Describe el sistema de 'Caja Negra' (almacenamiento de contratos en el servidor) y los metadatos capturados en el Sello Digital de Confianza.
+
+Verificación KYC: Detalla la integración del gate de identidad para transacciones críticas.
+
+4. Arquitectura de Base de Datos:
+
+Haz un resumen de las relaciones principales entre las tablas de Usuarios, Productos, Alquileres, Perfiles Laborales y Notificaciones.
+
+5. Flujos de Interconexión:
+
+Explica cómo se comunica el módulo de Chat con el sistema de Pagos (Escrow) y el de Logística (Delivery).
+
+6. Roadmap de Escalabilidad:
+
+Menciona que el sistema ya cuenta con optimización de filtrado en servidor y está preparado para manejar alta concurrencia de usuarios en tiempo real (Polling/Real-time updates).
+
+Genera este documento de forma concisa pero con terminología técnica avanzada. No incluyas fragmentos de código sensibles, solo la descripción de la arquitectura y la lógica

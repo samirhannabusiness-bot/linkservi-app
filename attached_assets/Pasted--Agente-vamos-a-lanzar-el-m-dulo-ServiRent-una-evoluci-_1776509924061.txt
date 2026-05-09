@@ -1,0 +1,39 @@
+"Agente, vamos a lanzar el módulo 'ServiRent', una evolución del Marketplace que permite a los usuarios alquilar objetos. Necesito que implementes este sistema con una lógica de Startup Unicornio, priorizando la seguridad y la monetización:
+
+1. Arquitectura del Producto (Venta vs Alquiler):
+
+Modifica el formulario de 'Publicar Producto' para incluir un selector (Switch): [Venta Directa / Alquiler].
+
+Si el usuario selecciona Alquiler, habilita campos obligatorios para:
+
+Tarifa por Día ($).
+
+Tarifa por Semana ($) (con sugerencia de descuento).
+
+Depósito de Seguridad/Garantía ($) (Este monto será retenido en Escrow por la app).
+
+2. Sistema de Ganancias y Escrow (Monetización):
+
+Implementa una Service Fee del 15% que la app retiene automáticamente de cada transacción de alquiler.
+
+Crea una lógica de Escrow: El pago del alquiler + el depósito de seguridad se retienen hasta que el dueño confirme que el objeto fue devuelto en buen estado. En ese momento, se libera el pago al dueño y se devuelve el depósito al cliente.
+
+3. Búsqueda Inteligente y Geofencing:
+
+El buscador del Market debe incluir ahora un filtro destacado de 'Solo Alquileres'.
+
+Implementa la Lógica de Anillos de Expansión: Prioriza objetos a <5km. Si no hay resultados, expande automáticamente a toda la ciudad y luego al estado, mostrando una etiqueta de distancia en la tarjeta (ej. 'A 800m de ti' o 'En Maturín Centro').
+
+4. Diseño y Marketing (UX Premium):
+
+Home Screen: Añade un banner minimalista y elegante que diga: '¿Lo necesitas solo por hoy? Ahorra alquilando a personas cerca de ti'.
+
+Tarjetas de Producto: Los objetos de alquiler deben tener un diseño distintivo (ej. un borde de color acento o un badge que diga 'RENTAL'). El precio debe mostrarse como '$10 / día'.
+
+Botón Central: Integra la opción de 'Alquilar algo' en el botón central de acción de la barra de navegación para darle máxima visibilidad.
+
+5. Contrato y Seguridad:
+
+Genera un 'Recibo Digital de Alquiler' automático en PDF que incluya los datos de KYC (Cédula/Nombre) de ambas partes para respaldo legal de la transacción.
+
+Misión: Crea una experiencia donde alquilar un taladro o una carpa sea tan fácil y seguro como pedir un Uber. El sistema debe ser robusto, visualmente impecable y estar listo para generar comisiones desde el primer día."

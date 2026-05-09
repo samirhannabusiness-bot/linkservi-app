@@ -1,0 +1,84 @@
+Quiero un análisis completo del valor y nivel de mi aplicación.
+
+No quiero un resumen básico. Necesito una evaluación profunda que describa exactamente qué es la app, qué tan robusta es y qué tan lista está para escalar.
+
+Analiza lo siguiente:
+
+1. DESCRIPCIÓN DEL PRODUCTO
+
+* Explica claramente qué hace la app
+* Qué problema resuelve
+* Qué tipo de plataforma es (marketplace, servicios, etc.)
+* Cómo interactúan los diferentes roles (cliente, trabajador, co-host, admin)
+
+2. FUNCIONALIDADES COMPLETAS
+   Haz una lista detallada de TODAS las funcionalidades actuales, incluyendo:
+
+* Servicios (contratación, flujo, estados)
+* Marketplace (tiendas, productos, compras)
+* Sistema de pagos
+* Sistema de balances
+* Retiros
+* Calificaciones
+* Paneles (admin, co-host, trabajador, cliente)
+* Notificaciones
+* Cualquier otra funcionalidad relevante
+
+3. NIVEL DE ROBUSTEZ
+
+* Qué tan sólida es la app actualmente
+* Si el sistema puede manejar usuarios reales
+* Qué partes están bien diseñadas
+* Qué partes son frágiles o incompletas
+
+4. ARQUITECTURA TÉCNICA
+
+* Tecnologías utilizadas (frontend, backend, base de datos)
+* Cómo está estructurado el sistema
+* Qué tan escalable es
+
+5. SEGURIDAD
+
+* Nivel de protección actual
+* Riesgos potenciales
+* Qué tan preparado está el sistema para manejar dinero real
+
+6. EXPERIENCIA DE USUARIO (UX/UI)
+
+* Qué tan intuitiva es la app
+* Flujo de usuario
+* Puntos fuertes y débiles
+
+7. ESTADO ACTUAL DEL PRODUCTO
+
+* ¿Está listo para lanzar?
+* ¿Es un MVP o algo más avanzado?
+* Qué le falta antes de escalar
+
+8. PUNTOS FUERTES
+
+* Lo mejor de la app
+* Diferenciadores clave
+
+9. PUNTOS DÉBILES
+
+* Problemas importantes
+* Riesgos
+* Cosas que podrían hacer fallar la app
+
+10. NIVEL GENERAL
+    Clasifica la app como:
+
+* Idea
+* MVP
+* Producto funcional
+* Producto listo para escalar
+
+IMPORTANTE:
+
+Sé completamente honesto, técnico y detallado.
+No suavices errores ni problemas.
+
+OBJETIVO FINAL:
+
+Entender el valor real de la aplicación, su nivel actual y su potencial, para poder tomar decisiones estratégicas.

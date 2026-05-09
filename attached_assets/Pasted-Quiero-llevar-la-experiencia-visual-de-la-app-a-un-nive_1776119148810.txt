@@ -1,0 +1,90 @@
+Quiero llevar la experiencia visual de la app a un nivel premium completo, enfocándome en dos cosas clave: la animación inicial (splash) y las transiciones entre pantallas.
+
+---
+
+1. Splash / Animación inicial del logo
+
+Objetivo:
+
+Crear una primera impresión impactante, moderna y sorprendente — algo que haga que el usuario diga “wow, quiero usar esta app”.
+
+---
+
+Requisitos:
+
+* Animación del logo elegante y fluida (no básica)
+* Estilo minimalista, tipo Apple / apps premium
+* Entrada con:
+
+  * scale suave (zoom ligero)
+  * fade-in progresivo
+  * ligero blur que se enfoca
+* Glow dinámico en tonos azul/cyan (efecto neon elegante, no exagerado)
+* Efecto “breathing” o pulso suave del logo
+* Partículas o luces muy sutiles alrededor (opcional, no recargado)
+
+---
+
+Texto:
+
+* “ServiLink” aparece después con animación suave (fade + slide)
+* Ligero resplandor
+
+---
+
+Transición final:
+
+* Fade-out suave hacia la app
+* Opcional: pequeño efecto de profundidad (scale out)
+
+---
+
+Duración:
+
+* 1.5 – 2 segundos máximo
+* Debe sentirse rápido y premium
+
+---
+
+2. Transiciones entre páginas (MUY IMPORTANTE)
+
+Objetivo:
+
+Eliminar completamente los cambios bruscos y lograr una sensación de fluidez tipo iPhone / apps de alta gama.
+
+---
+
+Requisitos:
+
+* Transiciones suaves entre pantallas:
+
+  * slide horizontal (tipo iOS)
+  * ligera escala (0.98 → 1)
+  * opacidad progresiva
+* Sensación de profundidad:
+
+  * la pantalla anterior se desplaza ligeramente hacia atrás
+  * opcional: blur sutil
+* Duración: 300–400ms
+* Easing personalizado (no linear)
+
+---
+
+UX:
+
+* Nada exagerado, todo debe sentirse natural
+* No debe afectar la velocidad de la app
+* Mantener consistencia en todas las rutas
+
+---
+
+Tecnología:
+
+* Usar Framer Motion (AnimatePresence + layout animations)
+* Integrar correctamente con React Router
+
+---
+
+Objetivo final:
+
+Que la app se sienta como un producto de alto nivel desde el primer segundo, con una experiencia fluida, elegante y profesional comparable a apps tipo Apple, fintech premium o productos de alto presupuesto.

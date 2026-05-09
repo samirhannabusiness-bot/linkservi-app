@@ -1,0 +1,152 @@
+NO estamos trabajando Bolsa de Empleo ni Rentals.
+
+IGNORA completamente esos módulos.
+
+---
+
+🎯 FOCO ACTUAL:
+
+REDISEÑO DEL PANEL DE TRANSACCIÓN
+(cliente ↔ trabajador)
+
+---
+
+IMPORTANTE:
+
+Todo lo que analizaste anteriormente (jobs, rentals, admin)
+NO es relevante para esta tarea.
+
+NO necesitamos revisar lo que ya existe.
+
+---
+
+💥 LO QUE VAMOS A HACER:
+
+REEMPLAZAR completamente la experiencia de pago actual
+por una experiencia tipo fintech (estilo Uber / banco).
+
+---
+
+📍 UBICACIÓN EXACTA:
+
+Pantalla donde:
+
+* Cliente paga servicio
+* Cliente ve estado del trabajo
+* Cliente confirma finalización
+
+(Ej: PaymentPanel / BookingDetail / pantalla de transacción)
+
+---
+
+🔥 OBJETIVO PRINCIPAL:
+
+Convertir esta pantalla en:
+
+✔ Sistema de confianza
+✔ Sistema de retención de dinero (escrow)
+✔ Sistema automático con API del banco
+✔ Sistema de confirmación con contador
+
+---
+
+⚠️ IMPORTANTE:
+
+NO es un ajuste.
+NO es una mejora pequeña.
+
+👉 Es un REDISEÑO COMPLETO.
+
+---
+
+🧠 NUEVO FLUJO (OBLIGATORIO)
+
+1. Cliente paga → (API banco)
+
+2. Webhook confirma → dinero retenido (NO liberado)
+
+3. Trabajador marca "terminado"
+
+4. Se activa contador de 25 minutos
+
+5. Cliente puede:
+
+   ✔ Confirmar → liberar dinero
+   ❌ Reportar → congelar (disputa)
+
+6. Si no hace nada → auto liberación
+
+---
+
+💳 INTEGRACIÓN OBLIGATORIA
+
+Implementar correctamente:
+
+✔ API C2P
+✔ API NOTIFICACIÓN (webhook)
+
+El pago debe confirmarse AUTOMÁTICAMENTE.
+
+Eliminar dependencia de comprobantes manuales.
+
+---
+
+🎨 UI (MUY IMPORTANTE)
+
+Diseño tipo:
+
+* App bancaria / fintech
+* Tarjeta compacta (NO larga)
+* Oscuro + glow sutil
+* Mobile-first
+
+---
+
+📊 ELEMENTOS OBLIGATORIOS EN UI
+
+* Barra de progreso:
+  Solicitud → Aceptado → Pago → Trabajo confirmado
+
+* Contador visible (25 min)
+
+* Monto claro
+
+* Bloque de confianza:
+  "Pago protegido dentro de LinkServi"
+
+* CTA claros:
+  ✔ Confirmar trabajo
+  ❌ Reportar problema
+
+---
+
+🛡️ GARANTÍA
+
+* Usuario normal:
+  pago protegido (escrow)
+
+* Usuario premium:
+  +10 días de garantía del servicio
+
+---
+
+🚫 NO HACER
+
+* NO tocar Jobs
+* NO tocar Rentals
+* NO rehacer APIs existentes innecesariamente
+* NO agregar complejidad visual
+
+---
+
+🚀 ESTO ES PRIORIDAD CRÍTICA
+
+Este módulo impacta directamente:
+
+* conversión
+* confianza
+* ingresos
+
+---
+
+PROCEDE CON EL REDISEÑO COMPLETO.

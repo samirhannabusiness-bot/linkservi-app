@@ -1,0 +1,179 @@
+IMPLEMENTAR: LINKSERVI INSTANT STORE (NIVEL ENTERPRISE)
+
+OBJETIVO:
+Permitir a empresas y cadenas cargar TODO su catálogo en segundos con una experiencia premium, automática y sin fricción.
+
+IMPORTANTE:
+Debe sentirse como una plataforma seria (tipo Shopify/Amazon), NO como un formulario técnico.
+
+---
+
+🧠 CONCEPTO CENTRAL:
+
+“No subes productos.
+Conectas tu negocio.”
+
+---
+
+🎯 UX PRINCIPAL
+
+Pantalla: Centro Empresarial
+
+Sección principal:
+
+Título:
+"Conecta tu catálogo en segundos"
+
+Subtítulo:
+"Importa y sincroniza tus productos automáticamente sin cambiar tu sistema"
+
+---
+
+🔘 ACCIÓN PRINCIPAL
+
+Botón grande:
+
+"⚡ Conectar catálogo"
+
+---
+
+📥 FORMAS DE CONEXIÓN (3 CAMINOS)
+
+1. URL del catálogo (JSON / CSV)
+2. Subir archivo (CSV / Excel)
+3. Google Sheets (opcional futuro)
+
+---
+
+📌 CAMPOS SIMPLES
+
+* URL del catálogo
+* API Key (opcional)
+* Upload file
+
+---
+
+⚡ BOTÓN:
+
+"Sincronizar ahora"
+
+---
+
+🔥 EXPERIENCIA DE SINCRONIZACIÓN (WOW)
+
+NO usar mensajes técnicos.
+
+Mostrar mensajes dinámicos:
+
+"Conectando con tu sistema..."
+"Detectando estructura de catálogo..."
+"Sincronizando productos en tiempo real..."
+"Optimizando imágenes..."
+"Activando tu tienda en LinkServi..."
+
+Barra de progreso animada con conteo real:
+
+"1,245 / 2,450 productos"
+
+---
+
+💥 RESULTADO FINAL
+
+Pantalla tipo dashboard:
+
+✅ Productos importados: 2,450
+🔄 Actualizados: 1,120
+⚠️ Errores: 7 (botón ver detalle)
+
+CTA PRINCIPAL:
+
+"Ver tu tienda en vivo →"
+
+Mostrar URL:
+linkservi.com/{slug}
+
+---
+
+🧠 BACKEND (LÓGICA)
+
+* Usar externalId para evitar duplicados
+* Upsert (crear/actualizar)
+* Detectar formato automáticamente (JSON / CSV)
+* Auto-mapper inteligente de campos:
+  name/title → nombre
+  price/cost → precio
+  stock/qty → inventario
+  image/photo → imagen
+
+---
+
+📊 TABLAS NUEVAS
+
+store_imports:
+
+* storeId
+* sourceUrl
+* apiKey (encriptada)
+* format
+* autoSync (boolean)
+* interval
+
+import_runs:
+
+* storeId
+* created
+* updated
+* errors
+* status
+* startedAt
+* finishedAt
+
+---
+
+🔄 AUTO-SYNC
+
+* Opción: activar sincronización automática
+* Intervalo configurable (ej: 15 min)
+* Reintento automático en errores
+
+---
+
+🧠 DIFERENCIAL
+
+Debe sentirse así:
+
+“El sistema se adapta a la empresa, no la empresa al sistema”
+
+---
+
+🎨 DISEÑO
+
+* Estilo oscuro elegante (fintech)
+* Animaciones suaves
+* Tarjetas limpias
+* Sin ruido visual
+* Experiencia mobile-first
+
+---
+
+🚫 IMPORTANTE
+
+* NO pedir demasiados datos
+* NO usar lenguaje técnico
+* NO mostrar complejidad
+
+---
+
+🎯 RESULTADO FINAL
+
+Una empresa debe poder:
+
+1. Pegar una URL o subir archivo
+2. Presionar un botón
+3. Ver su tienda lista en minutos
+
+---
+
+Esto no es un importador.
+
+Es una herramienta de ventas.

@@ -1,0 +1,123 @@
+FASE DE ESTABILIZACIÓN — BUGS + SESIÓN + INSTALACIÓN APP (PWA)
+
+OBJETIVO:
+Detectar y corregir bugs críticos de navegación, sesión y botón de instalación de app.
+
+IMPORTANTE:
+NO agregar nuevas funcionalidades.
+NO cambiar lógica de negocio.
+SOLO corregir, estabilizar y mejorar experiencia.
+
+---
+
+🔴 1. BUG CRÍTICO — CIERRE DE SESIÓN INESPERADO
+
+Problema:
+Al presionar algunos botones, el usuario es sacado de la sesión.
+
+INVESTIGAR:
+
+* refresh de página (window.location, redirects)
+* pérdida de token en localStorage/sessionStorage
+* errores 401 no manejados
+* problemas en auth-context / useAuth
+* race conditions en login / refresh
+
+IMPLEMENTAR:
+
+* persistencia segura del token
+* manejo global de errores 401 (no logout automático sin validación)
+* evitar reloads innecesarios
+* asegurar que navegación use router (no recarga completa)
+
+---
+
+🔴 2. BOTONES QUE ROMPEN NAVEGACIÓN
+
+INVESTIGAR:
+
+* botones con href incorrectos
+* rutas inexistentes (ej: /transport/driver previo bug)
+* navegación inconsistente (navigate vs window.location)
+
+IMPLEMENTAR:
+
+* usar navegación interna consistente (react-router)
+* validar que TODAS las rutas existen
+* evitar redirecciones rotas
+
+---
+
+🔴 3. BOTÓN "INSTALAR APP" (PWA) NO FUNCIONA
+
+Problema:
+El botón no hace nada al presionarlo.
+
+INVESTIGAR:
+
+* evento beforeinstallprompt no capturado
+* promptEvent no guardado
+* botón no ejecuta prompt()
+
+IMPLEMENTAR:
+
+* escuchar evento:
+
+window.addEventListener('beforeinstallprompt', (e) => {
+e.preventDefault()
+guardar evento en estado (deferredPrompt)
+})
+
+* al presionar botón:
+
+await deferredPrompt.prompt()
+
+* manejar respuesta:
+
+deferredPrompt.userChoice
+
+* ocultar botón si no está disponible
+
+---
+
+🔴 4. VALIDACIÓN PWA
+
+Verificar:
+
+* manifest.json correcto
+* service worker activo
+* app instalable en móvil y desktop
+* íconos correctos
+* display: standalone
+
+---
+
+🔴 5. LOGS Y ERRORES
+
+* revisar consola frontend
+* revisar logs backend
+* detectar errores silenciosos
+
+---
+
+🔴 6. PRUEBAS E2E
+
+Validar:
+
+* login → navegación → acciones → NO logout
+* cambiar roles → NO pierde sesión
+* activar conductor → flujo completo
+* instalar app → botón funcional
+
+---
+
+🎯 RESULTADO
+
+* app estable
+* sesión persistente
+* navegación sin errores
+* botón de instalación funcional
+
+---
+
+Esto es fase de estabilización crítica antes de escalar.

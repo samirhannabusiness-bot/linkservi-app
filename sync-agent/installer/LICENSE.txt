@@ -1,0 +1,29 @@
+LinkServi Sync Agent
+Versión 1.0.0
+
+Software propietario de LinkServi (linkservi.com).
+
+USO PERMITIDO:
+- Comerciantes y empresas registradas en la plataforma LinkServi
+- Sincronización de catálogos desde SAINT Administrativo hacia LinkServi
+- Instalación en computadoras propias del comercio o sus empleados
+
+ALCANCE Y LIMITACIONES:
+- Este software se entrega "tal cual" sin garantía explícita o implícita.
+- LinkServi no se responsabiliza por interrupciones, pérdidas de datos
+  o impacto operativo derivado del uso o mal uso del agente.
+- El usuario es responsable de mantener seguras sus credenciales (API Key,
+  contraseña de SAINT, etc.) y de configurar correctamente el firewall
+  local para permitir la conexión a SQL Server y a https://linkservi.com.
+
+PRIVACIDAD:
+- El agente solo envía a LinkServi los productos del catálogo SAINT
+  (SKU, nombre, precio, stock, descripción, categoría, imagen).
+- No se transmite información de clientes, ventas, ni datos personales.
+- Los logs locales se guardan en %LOCALAPPDATA%\LinkServiSyncAgent\logs y
+  no se transmiten automáticamente a LinkServi.
+
+SOPORTE:
+- soporte@linkservi.com
+
+Al continuar con la instalación aceptas estos términos.

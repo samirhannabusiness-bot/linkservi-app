@@ -1,0 +1,172 @@
+AUDITORÍA TÉCNICA COMPLETA DE LA APP (DIAGNÓSTICO TOTAL)
+
+OBJETIVO:
+Obtener un diagnóstico profundo, técnico y estructural de toda la aplicación LinkServi.
+
+IMPORTANTE:
+NO quiero un resumen general.
+NO quiero teoría.
+QUIERO un análisis real del sistema actual basado en el código.
+
+---
+
+🧠 ALCANCE TOTAL
+
+Analizar TODO el sistema:
+
+---
+
+🏗️ 1. ARQUITECTURA GENERAL
+
+* tipo de app (SPA, SSR, etc.)
+* cómo está estructurado el frontend y backend
+* flujo completo desde usuario → servidor → base de datos
+* cómo se comunican las capas
+
+---
+
+⚙️ 2. TECNOLOGÍAS USADAS
+
+* frontend (framework, librerías principales)
+* backend (framework, estructura de rutas)
+* base de datos (tipo, ORM, estructura)
+* herramientas adicionales (auth, storage, etc.)
+
+---
+
+🌐 3. INFRAESTRUCTURA
+
+* cómo se despliega la app
+* cómo se sirven las rutas (SPA routing vs server)
+* limitaciones actuales (ej: no hay 301 real)
+* posibles riesgos de escalabilidad
+
+---
+
+💳 4. SISTEMA DE PAGOS
+
+Analizar en detalle:
+
+* cómo funciona el flujo de pago
+* cómo se procesa el pago C2P
+* cómo se confirma una transacción
+* cómo se libera el dinero
+* cómo se manejan errores o fallos
+* seguridad del sistema
+
+---
+
+👥 5. SISTEMA DE ROLES
+
+* cliente
+* profesional (worker)
+* gestor (manager)
+* admin
+
+Explicar:
+
+* cómo se validan
+* dónde se controlan permisos
+* posibles fallas o riesgos
+
+---
+
+🧠 6. LÓGICA DE NEGOCIO
+
+* cómo se crea un servicio
+* cómo se contrata
+* cómo se completa
+* cómo se generan ingresos
+* cómo se manejan disputas
+
+---
+
+📦 7. MARKETPLACE / TIENDAS
+
+* cómo funcionan las tiendas
+* cómo se crean productos
+* cómo funciona el importador (Instant Store)
+* cómo se maneja stock y precios
+
+---
+
+📊 8. BASE DE DATOS
+
+* tablas principales
+* relaciones clave
+* riesgos (duplicados, inconsistencias)
+* calidad del diseño
+
+---
+
+🔍 9. SEO
+
+* cómo está implementado el SEO
+* sitemap
+* meta tags dinámicos
+* problemas actuales
+* qué está bien y qué está mal
+
+---
+
+🚀 10. PERFORMANCE
+
+* tiempos de carga
+* uso de API
+* posibles cuellos de botella
+* optimizaciones necesarias
+
+---
+
+🔐 11. SEGURIDAD
+
+* validación de inputs
+* autenticación
+* autorización
+* posibles vulnerabilidades
+
+---
+
+⚠️ 12. PROBLEMAS REALES
+
+Lista clara de:
+
+* bugs
+* código muerto
+* riesgos
+* malas prácticas
+
+---
+
+💥 13. FORTALEZAS
+
+* qué está bien hecho
+* qué es escalable
+* qué es diferencial
+
+---
+
+🎯 14. RECOMENDACIONES
+
+* mejoras prioritarias
+* mejoras técnicas
+* mejoras de producto
+
+---
+
+📌 FORMATO DE RESPUESTA
+
+Quiero:
+
+* claro
+* estructurado
+* directo
+* sin relleno
+
+---
+
+Esto es una auditoría completa del sistema.
+
+No es un resumen.
+
+Es un diagnóstico técnico real.

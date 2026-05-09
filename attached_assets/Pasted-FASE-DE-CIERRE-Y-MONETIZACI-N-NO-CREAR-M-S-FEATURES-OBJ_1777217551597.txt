@@ -1,0 +1,126 @@
+FASE DE CIERRE Y MONETIZACIÓN — NO CREAR MÁS FEATURES
+
+OBJETIVO:
+Dejar los sistemas actuales completamente funcionales, visibles y listos para generar dinero.
+
+IMPORTANTE:
+NO crear nuevas funcionalidades.
+SOLO completar e integrar lo que ya existe.
+
+---
+
+🧠 PRIORIDAD 1 — PAGO EN TRANSPORTE (CRÍTICO)
+
+Actualmente el transporte funciona pero no monetiza.
+
+IMPLEMENTAR:
+
+* Al completar un viaje:
+  → ejecutar pago automático usando el sistema C2P existente
+
+* Calcular comisión de LinkServi:
+  → configurable (ej: 15–20%)
+
+* Registrar en DB:
+  → total pagado
+  → comisión
+  → monto para conductor
+
+* Mostrar en UI:
+
+Cliente:
+"Pago realizado"
+
+Conductor:
+"Ingreso recibido"
+
+---
+
+🧠 PRIORIDAD 2 — RATING POST-VIAJE
+
+Después de completar el viaje:
+
+* Cliente califica conductor (1–5 estrellas + comentario)
+* Conductor califica cliente
+
+Guardar en DB.
+
+Mostrar promedio en perfil.
+
+---
+
+🧠 PRIORIDAD 3 — CHAT EN VIAJE
+
+Durante un ride activo:
+
+* habilitar chat en tiempo real
+* reutilizar sistema de chat existente
+
+---
+
+🧠 PRIORIDAD 4 — UX DE ROLES (CLARIDAD)
+
+Asegurar que:
+
+* ModeSwitch muestre correctamente:
+  Cliente / Profesional / Gestor / Conductor
+
+* Al cambiar modo:
+  → el sidebar se adapte correctamente
+
+* Mostrar indicador visible:
+  "Modo actual: X"
+
+---
+
+🧠 PRIORIDAD 5 — ONBOARDING BÁSICO
+
+Primer uso:
+
+Gestor:
+"Gestiona negocios y gana comisiones"
+
+Conductor:
+"Recibe viajes y genera ingresos"
+
+---
+
+🧠 PRIORIDAD 6 — IMPORTADOR AUTO-SYNC
+
+Ya existe estructura.
+
+IMPLEMENTAR:
+
+* cron job para autoSync
+* ejecutar importación periódica (intervalMin)
+
+---
+
+🧠 PRIORIDAD 7 — LIMPIEZA
+
+* remover logs innecesarios
+* resolver errores de TypeScript críticos
+* eliminar código duplicado si existe
+
+---
+
+🚫 PROHIBIDO
+
+* no agregar nuevos features
+* no modificar arquitectura
+* no cambiar estructuras base
+
+---
+
+🎯 RESULTADO FINAL
+
+Una app donde:
+
+* transporte genera dinero
+* usuarios confían (ratings + chat)
+* empresas pueden importar productos automáticamente
+* roles están claros y funcionales
+
+---
+
+Esto es una fase de cierre, no de construcción.

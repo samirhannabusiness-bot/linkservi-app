@@ -1,0 +1,33 @@
+Agente, como Director de Tecnología (CTO), requiero que realices una Auditoría Profunda y Completa de todo el ecosistema de LinkServi. Hay detalles lógicos y de flujo que se están pasando por alto y necesitamos que el core de la app sea impecable antes de escalar.
+
+Ejecuta estos 5 puntos de Auditoría y entrégame un reporte detallado al terminar:
+
+1. Auditoría de Integridad de Datos (Contratos y Alquileres):
+
+Verifica que en StoreChatPage y el generador de PDF, el objeto rentalRecord esté siempre vinculado correctamente al productId. No debe haber discrepancias entre lo que se habla en el chat y lo que dice el documento legal.
+
+Asegúrate de que las reglas de negocio impidan que un producto se marque como 'Alquilado' si ya tiene una reserva activa en esas mismas fechas (Lógica de Disponibilidad).
+
+2. Optimización del Flujo de Interconexión (Ecosistema):
+
+Revisa la lógica del Botón de Delivery. Si un usuario solicita delivery para un alquiler, ¿el transportista recibe toda la información del punto de recogida y entrega automáticamente? Audita el flujo de notificaciones entre las 3 partes (Dueño - Cliente - Delivery).
+
+Verifica que el Checkout Multimodal esté separando correctamente los fondos en la base de datos (lo que va para el trabajador, para el dueño de la máquina y la comisión de Tartus).
+
+3. Auditoría de Seguridad y Roles (KYC & Permisos):
+
+Revisa que un usuario no verificado (sin KYC aprobado por Gemini) tenga restricciones lógicas: No debería poder publicar alquileres de alto valor o postularse a trabajos destacados.
+
+Audita los permisos de los archivos en el Object Storage. El contrato PDF solo debe ser accesible para los involucrados en la transacción.
+
+4. UX/UI & Edge Cases (Casos Borde):
+
+Revisa qué sucede si un usuario cancela una solicitud de alquiler: ¿Se libera el producto? ¿Se notifica al dueño? ¿Se deshabilita el botón de descarga de contrato?
+
+Verifica que la barra inferior de entrada de texto en el chat (ChatInput) oculte o muestre los botones de 'Solicitar Compra' o 'Alquiler' basándose en el contexto real de la conversación, sin dejar 'botones fantasma'.
+
+5. Reporte de Puntos de Mejora:
+
+Al terminar el análisis, genera un listado de 'Gaps Detectados' y una propuesta de 'Optimización de Performance'. Quiero saber dónde el código podría romperse cuando tengamos 1.000 usuarios activos en Maturín.
+
+No implementes cambios todavía. Realiza la auditoría, ajusta la lógica de los archivos actuales y entrégame el diagnóstico detallado para el análisis del CEO."

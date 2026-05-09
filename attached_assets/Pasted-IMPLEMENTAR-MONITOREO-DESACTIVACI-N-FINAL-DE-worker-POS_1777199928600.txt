@@ -1,0 +1,144 @@
+IMPLEMENTAR: MONITOREO + DESACTIVACIÓN FINAL DE /worker (POST-MIGRACIÓN)
+
+OBJETIVO:
+Medir el tráfico residual de rutas legacy (/worker), evitar que se sigan generando y preparar su eliminación definitiva sin impacto.
+
+IMPORTANTE:
+NO romper usuarios actuales.
+NO eliminar rutas aún.
+Primero medir, luego eliminar.
+
+---
+
+🧠 CONTEXTO
+
+* /worker ya redirige a /professional en SPA
+* navegación interna ya está limpia
+* falta medir uso real y cortar definitivamente
+
+---
+
+🟢 FASE 1 — TRACKING DE TRÁFICO LEGACY
+
+1. Reemplazar console.warn por tracking real
+
+Donde existe:
+
+console.warn("[migration] /worker → /professional")
+
+Agregar:
+
+* evento analytics: "legacy_worker_redirect"
+* propiedades:
+  from_path
+  to_path
+  user_id (si existe)
+  timestamp
+
+---
+
+Opciones de implementación:
+
+* PostHog.capture(...)
+* GA4 event
+* o endpoint interno /api/logs
+
+---
+
+OBJETIVO:
+
+Saber cuántos usuarios siguen entrando por /worker
+
+---
+
+---
+
+🟡 FASE 2 — BLOQUEO DE GENERACIÓN NUEVA
+
+Buscar y asegurar:
+
+* emails
+* notificaciones push
+* deep links
+* mensajes automáticos
+
+Que TODOS usen:
+
+✔ /professional
+❌ NUNCA /worker
+
+---
+
+---
+
+🟠 FASE 3 — DASHBOARD INTERNO (OPCIONAL PERO PRO)
+
+Crear métrica simple:
+
+"Tráfico legacy /worker por día"
+
+Mostrar:
+
+* total accesos
+* usuarios únicos
+* tendencia
+
+---
+
+---
+
+🔴 FASE 4 — CRITERIO DE ELIMINACIÓN
+
+Cuando se cumpla:
+
+* < 5 accesos diarios
+* o 0 accesos por 7 días
+
+---
+
+ENTONCES:
+
+Eliminar completamente:
+
+* WorkerLegacyRedirect
+* rutas /worker/*
+* cualquier referencia restante
+
+---
+
+---
+
+⚠️ FASE 5 — LIMPIEZA FINAL
+
+Eliminar:
+
+* código legacy
+* logs temporales
+* flags de migración
+
+---
+
+---
+
+🚫 PROHIBIDO
+
+* eliminar /worker sin medir
+* dejar tracking permanente
+* permitir que nuevos links usen /worker
+
+---
+
+---
+
+🎯 RESULTADO FINAL
+
+* sistema limpio
+* sin deuda técnica
+* sin rutas duplicadas
+* medición real antes de eliminar
+
+---
+
+Esto no es limpieza.
+
+Es cierre profesional de migración.

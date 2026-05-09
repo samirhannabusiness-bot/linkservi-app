@@ -1,0 +1,263 @@
+Arquitectura completa — ServiRent (Airbnb-style) + ServiMarket estructurado
+
+---
+
+# OBJETIVO
+
+Separar correctamente los tipos de alquiler y mejorar el marketplace sin romper la funcionalidad actual, creando flujos tipo Airbnb para propiedades, vehículos y experiencias.
+
+---
+
+# PARTE 1 — ESTRUCTURA GLOBAL
+
+## Navegación principal
+
+Mantener:
+
+* 🛒 Productos
+* 🔧 Servicios
+* 🔑 Alquileres
+
+---
+
+# PARTE 2 — ALQUILERES (ServiRent)
+
+## Subcategorías obligatorias
+
+Dentro de “Alquileres” crear:
+
+* 🔧 Objetos / Herramientas (existente)
+* 🚗 Vehículos
+* 🏠 Propiedades
+* 🛥 Experiencias
+
+---
+
+## Campo nuevo en DB
+
+Agregar en rentals o listings:
+
+* rentalType: "tool" | "vehicle" | "property" | "experience"
+
+---
+
+## UI — Selector al publicar
+
+Paso 0 obligatorio:
+
+"¿Qué quieres alquilar?"
+
+* 🔧 Objeto
+* 🚗 Vehículo
+* 🏠 Propiedad
+* 🛥 Experiencia
+
+---
+
+## Formularios dinámicos
+
+### 🔧 Objeto (existente)
+
+* precio por día
+* depósito opcional
+
+---
+
+### 🚗 Vehículo
+
+* precio por día
+* depósito obligatorio
+* tipo de transmisión
+* requisitos (licencia)
+* ubicación entrega
+
+---
+
+### 🏠 Propiedad (tipo Airbnb)
+
+* precio por noche
+* número de huéspedes
+* habitaciones
+* baños
+* reglas de la casa
+* ubicación
+* calendario de disponibilidad (simple: fechas bloqueadas)
+
+---
+
+### 🛥 Experiencia
+
+* precio por hora
+* duración
+* capacidad
+* incluye (ej: capitán, guía)
+
+---
+
+## Disponibilidad
+
+Para:
+
+* propiedades
+* vehículos
+* experiencias
+
+Agregar:
+
+* availableDates o blockedDates (JSON)
+
+---
+
+## UI Marketplace — Alquileres
+
+### Vista principal
+
+Tabs:
+
+* Herramientas
+* Vehículos
+* Propiedades
+* Experiencias
+
+---
+
+### Cards por tipo
+
+#### Propiedades
+
+* imagen grande
+* precio / noche
+* ubicación
+* capacidad
+
+---
+
+#### Vehículos
+
+* imagen
+* precio / día
+* tipo
+* ubicación
+
+---
+
+#### Objetos
+
+(no cambiar)
+
+---
+
+## Panel del host — Mis alquileres
+
+Mostrar lista unificada con tipo:
+
+Ejemplo:
+
+🏠 Casa en Margarita — $80/noche — Disponible
+🚗 Corolla — $40/día — Ocupado
+🔧 Taladro — $5/día — Disponible
+
+---
+
+# PARTE 3 — MARKETPLACE PRODUCTOS (VENTA)
+
+## Campo adicional
+
+Agregar:
+
+* productType: "general" | "vehicle" | "property"
+
+---
+
+## Flujo de publicación
+
+Paso 0:
+
+"¿Qué quieres vender?"
+
+* 📦 Producto general
+* 🚗 Vehículo
+* 🏠 Propiedad
+
+---
+
+## Formularios
+
+### Producto general (existente)
+
+(no cambiar)
+
+---
+
+### Vehículo (venta)
+
+* precio
+* marca
+* modelo
+* año
+* kilometraje
+* condición
+
+---
+
+### Propiedad (venta)
+
+* precio
+* ubicación
+* metros cuadrados
+* habitaciones
+* baños
+* descripción
+
+---
+
+## UI Marketplace — Productos
+
+Tabs:
+
+* Productos
+* Vehículos
+* Propiedades
+
+---
+
+## Cards
+
+### Vehículos
+
+* foto
+* precio
+* modelo
+* año
+
+---
+
+### Propiedades
+
+* foto grande
+* precio
+* ubicación
+* características
+
+---
+
+# PARTE 4 — REGLAS IMPORTANTES
+
+* NO mezclar tipos en el mismo grid
+* Cada tipo tiene su propio filtro
+* Cada tipo tiene su propio formulario
+* Mantener compatibilidad con sistema actual
+
+---
+
+# RESULTADO
+
+* sistema tipo Airbnb integrado
+* marketplace organizado
+* mejor UX
+* mayor conversión
+* escalabilidad real
+
+---
+
+Prioridad: ALTA 🚀

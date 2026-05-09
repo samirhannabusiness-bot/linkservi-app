@@ -1,0 +1,214 @@
+IMPLEMENTAR: SISTEMA DE REGISTRO Y ACTIVACIÓN DE GESTORES (UNIFICADO)
+
+IMPORTANTE (ORDEN DE EJECUCIÓN):
+Implementar primero: invitación + roles[] + switch de modo. Luego expandimos.
+
+---
+
+OBJETIVO:
+Permitir que cualquier usuario de LinkServi (cliente) pueda convertirse en Gestor sin fricción, sin duplicar cuentas, y con un sistema escalable tipo Uber (modo usuario / modo gestor).
+
+IMPORTANTE:
+NO crear un sistema de registro separado.
+NO crear cuentas duplicadas.
+TODO debe funcionar dentro de una sola cuenta.
+
+---
+
+🧠 CONCEPTO CENTRAL
+
+“Un usuario, múltiples capacidades”
+
+Un usuario puede ser:
+
+* cliente
+* gestor
+* trabajador
+
+---
+
+🗄️ MODELO DE DATOS
+
+Modificar modelo de usuario:
+
+ANTES:
+role: "client"
+
+DESPUÉS:
+roles: string[]
+
+Ejemplo:
+["client"]
+["client", "gestor"]
+["client", "gestor", "worker"]
+
+---
+
+🔐 REGLAS DE ROLES
+
+* Todos los usuarios inician como "client"
+* El rol "gestor" se activa SOLO por:
+
+  1. Invitación
+  2. (Futuro) Postulación manual
+
+---
+
+📩 FLUJO DE INVITACIÓN (PRINCIPAL)
+
+1. Cliente envía invitación a correo
+2. Usuario recibe link único
+3. Si no tiene cuenta → se registra
+4. Si ya tiene cuenta → inicia sesión
+5. Acepta invitación
+
+EFECTO:
+
+* Se añade "gestor" a roles[]
+* Se vincula al negocio
+
+---
+
+🔗 RELACIÓN GESTOR - NEGOCIO
+
+Crear tabla:
+
+business_managers
+
+Campos:
+
+* id
+* businessId
+* userId
+* permissions (json)
+* commissionPercentage
+* status (active / removed)
+* createdAt
+
+---
+
+🔐 PERMISOS
+
+Guardar como JSON:
+
+{
+canChat: true,
+canManageOrders: true,
+canManageProducts: true,
+canManageServices: true
+}
+
+---
+
+🔄 MODO GESTOR (FRONTEND)
+
+Agregar switch global:
+
+* "Modo Cliente"
+* "Modo Gestor"
+
+Visible SOLO si usuario tiene rol gestor.
+
+---
+
+🖥️ EXPERIENCIA MODO GESTOR
+
+El usuario debe poder:
+
+* Ver negocios asignados
+* Cambiar entre negocios
+* Gestionar pedidos
+* Gestionar servicios
+* Responder clientes
+* Ver comisiones generadas
+
+---
+
+💰 COMISIONES
+
+* Mínimo obligatorio: 1.5%
+* Guardado en business_managers
+* Cliente puede aumentarlo
+* Propina separada
+
+---
+
+🚫 REGLA CRÍTICA
+
+El gestor NO puede:
+
+* Retirar dinero
+* Acceder a billetera del cliente
+* Modificar comisiones globales
+
+---
+
+❌ ELIMINACIÓN DE COHOST
+
+* Migrar datos a gestor
+* Remover referencias en UI
+* Mantener compatibilidad en DB si es necesario
+
+---
+
+🔓 FINALIZAR RELACIÓN
+
+Cliente puede:
+
+"Finalizar relación con gestor"
+
+Requiere:
+
+* motivo obligatorio
+
+EFECTO:
+
+* status → removed
+* pierde acceso inmediato
+* historial se conserva
+
+---
+
+📊 LOGS (OBLIGATORIO)
+
+Registrar:
+
+* acciones del gestor
+* cambios en productos
+* cambios en servicios
+* gestión de pedidos
+
+---
+
+🛡️ SEGURIDAD
+
+* Validar permisos en backend (NO solo frontend)
+* Middleware por acción
+* Auditoría completa
+
+---
+
+🎯 UX
+
+* Simple
+* Sin lenguaje técnico
+* Mobile-first
+* Flujo rápido
+
+---
+
+RESULTADO FINAL
+
+Un usuario puede:
+
+1. Registrarse una sola vez
+2. Ser cliente normal
+3. Activar modo gestor cuando sea invitado
+4. Manejar múltiples negocios
+5. Generar ingresos sin tocar dinero
+
+---
+
+Esto no es un sistema de roles.
+
+Es un sistema de crecimiento dentro de la plataforma.

@@ -1,0 +1,28 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api
+Disallow: /worker
+Disallow: /professional
+Disallow: /client/
+Disallow: /cohost/
+Disallow: /manager
+Disallow: /manager-invite/
+
+# Permitir bots de IA (Claude, GPT, etc.) — leen el contenido para responder
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+Sitemap: https://linkservi.com/sitemap.xml

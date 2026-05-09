@@ -1,0 +1,214 @@
+FASE FINAL — MEJORAS PARA PRODUCTO VENDIBLE (UX + SIMPLICIDAD + ACTIVACIÓN)
+
+OBJETIVO:
+Convertir el Sync Agent en un producto realmente fácil de usar (plug & play), reduciendo al mínimo la fricción técnica y permitiendo que cualquier negocio lo active sin ayuda.
+
+IMPORTANTE:
+
+* NO modificar la lógica de sincronización existente
+* NO tocar el endpoint /api/integrations/products/sync
+* NO romper funcionalidades actuales
+* SOLO mejorar experiencia, activación y facilidad de uso
+
+---
+
+T001 — ARREGLAR DESCARGA DEL INSTALADOR (CRÍTICO)
+
+Problema actual:
+El botón descarga apunta a una URL que da 404.
+
+Implementar:
+
+1. Copiar archivo:
+   dist/LinkServi-Sync-Agent-Setup-1.0.0.exe
+
+→ a:
+/public/downloads/
+
+2. Asegurar acceso público:
+   https://linkservi.com/downloads/LinkServi-Sync-Agent-Setup-1.0.0.exe
+
+3. Actualizar botón en IntegrationsPage.tsx:
+
+Reemplazar URL rota por:
+"/downloads/LinkServi-Sync-Agent-Setup-1.0.0.exe"
+
+---
+
+T002 — WIZARD SIMPLIFICADO (REDUCIR A 3 PASOS)
+
+Problema actual:
+El flujo tiene demasiados elementos para usuario no técnico.
+
+Reemplazar por:
+
+PASO 1:
+"Conecta tu cuenta LinkServi"
+
+* campo API Key
+* botón: Validar conexión
+
+PASO 2:
+"Conecta tu sistema"
+
+* autodetección si es posible
+* opción manual simple
+* botón: Probar conexión
+
+PASO 3:
+"Activar sincronización"
+
+* botón grande: ACTIVAR
+
+Eliminar pasos innecesarios o duplicados.
+
+---
+
+T003 — AUTO-DETECCIÓN BÁSICA DE BASE DE DATOS
+
+Implementar:
+
+* intentar detectar:
+
+  * localhost
+  * puerto 1433
+  * instancias comunes
+
+Si detecta:
+👉 autocompletar campos
+
+Si falla:
+👉 fallback manual con mensaje claro:
+
+"No se pudo detectar automáticamente. Puedes configurarlo manualmente."
+
+---
+
+T004 — BOTÓN PRINCIPAL (CTA CLARO)
+
+Agregar en UI:
+
+Botón grande:
+
+👉 "SINCRONIZAR AHORA"
+
+Y estado visible:
+
+* 🟢 Activo
+* 🟡 Sincronizando
+* 🔴 Error
+
+---
+
+T005 — DASHBOARD SIMPLE (QUITAR COMPLEJIDAD)
+
+Mostrar SOLO:
+
+* Estado del sistema
+* Última sincronización
+* Número de productos
+* Últimos errores (máx 3)
+
+OCULTAR:
+
+* logs técnicos completos
+* detalles internos
+
+---
+
+T006 — MENSAJES HUMANOS
+
+Reemplazar errores técnicos por mensajes claros:
+
+Ejemplos:
+
+"ECONNREFUSED"
+→ "No se pudo conectar al sistema. Verifica que esté encendido."
+
+"Invalid API Key"
+→ "La clave no es válida. Revisa e intenta nuevamente."
+
+---
+
+T007 — ACTIVACIÓN AUTOMÁTICA
+
+Implementar:
+
+Cuando todo esté válido:
+
+* API Key OK
+* DB OK
+
+👉 activar sincronización automáticamente
+
+Sin requerir acción adicional
+
+---
+
+T008 — EXPERIENCIA DE PRIMER USO
+
+Pantalla inicial:
+
+"Bienvenido a LinkServi Sync"
+
+Mostrar:
+
+1. Conecta tu cuenta
+2. Conecta tu sistema
+3. Listo 🚀
+
+Visual, simple, sin texto técnico
+
+---
+
+T009 — MODO SIMPLE (POR DEFECTO)
+
+Ocultar:
+
+* mapping
+* configuración avanzada
+* parámetros técnicos
+
+Agregar botón:
+
+"Configuración avanzada"
+
+---
+
+T010 — VALIDACIÓN COMPLETA ANTES DE ACTIVAR
+
+Antes de iniciar:
+
+Verificar:
+
+* API Key válida
+* conexión DB
+* lectura de productos
+
+Si todo OK:
+
+👉 iniciar automáticamente
+
+---
+
+RESULTADO ESPERADO:
+
+El usuario instala el programa y en menos de 2 minutos:
+
+* conecta
+* valida
+* queda sincronizando automáticamente
+
+Sin soporte técnico.
+
+---
+
+ESTÁNDAR:
+
+Debe sentirse como:
+
+👉 conectar WhatsApp Web
+
+NO como:
+
+👉 configurar un servidor

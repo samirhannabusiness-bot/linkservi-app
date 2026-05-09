@@ -1,0 +1,169 @@
+Optimización de conversión — Perfil de trabajador (ajustes finales)
+
+---
+
+# OBJETIVO
+
+Afinar la nueva pantalla para maximizar conversiones, reducir dudas del usuario y acelerar la decisión de contratación.
+
+NO cambiar la estructura base (ya optimizada), solo mejorar claridad, microcopy y comportamiento.
+
+---
+
+# 1. CTA PRINCIPAL (MEJORA CRÍTICA)
+
+## Actual
+
+"Contratar por $XX"
+
+---
+
+## Nuevo (requerido)
+
+👉 "Contratar ahora • $XX"
+
+---
+
+## Alternativa A/B (opcional test)
+
+👉 "Pagar $XX y confirmar"
+
+---
+
+## Objetivo
+
+* Reducir fricción mental
+* Hacer explícita la acción
+* Aumentar intención de compra
+
+---
+
+# 2. MICROCOPY DE CONFIANZA (DEBAJO DEL BOTÓN)
+
+Agregar texto pequeño debajo del CTA:
+
+👉 "Pago verificado automáticamente"
+
+---
+
+Opcional:
+
+👉 "Sin intermediarios • Confirmación inmediata"
+
+---
+
+## Objetivo
+
+* Generar confianza
+* Reducir miedo al pago
+* Aumentar tasa de conversión
+
+---
+
+# 3. SELECTOR DE SERVICIO (MEJORA UX)
+
+## Reglas
+
+* Un servicio debe estar preseleccionado por defecto
+* El servicio más popular o más barato debe ir primero
+* El cambio de servicio debe actualizar el precio en tiempo real
+
+---
+
+## Objetivo
+
+* Evitar decisiones vacías
+* Reducir fricción
+* Guiar al usuario
+
+---
+
+# 4. CLARIDAD DE PRECIO (IMPORTANTE)
+
+Agregar microtexto debajo del precio:
+
+Ejemplo:
+
+👉 "Incluye diagnóstico y visita"
+
+---
+
+## Objetivo
+
+* Evitar dudas
+* Justificar precio
+* Aumentar confianza
+
+---
+
+# 5. CTA SECUNDARIO (AJUSTE VISUAL)
+
+👉 "Solicitar cotización"
+
+---
+
+## Reglas
+
+* Reducir peso visual (menos contraste)
+* Tamaño menor que el botón principal
+* No competir con el CTA principal
+
+---
+
+## Objetivo
+
+* Mantener opción flexible
+* Sin distraer del flujo principal
+
+---
+
+# 6. VELOCIDAD DE DECISIÓN
+
+Asegurar que en la primera pantalla visible (sin scroll) el usuario vea:
+
+* Nombre
+* Rating
+* Precio
+* Selector de servicio
+* CTA principal
+
+---
+
+## Regla crítica
+
+👉 El usuario debe entender qué hacer en menos de 3 segundos
+
+---
+
+# 7. INDICADOR DE DISPONIBILIDAD
+
+Mantener o mejorar:
+
+👉 "Disponible ahora"
+
+---
+
+Opcional:
+
+* Verde si activo
+* Gris si no disponible
+
+---
+
+## Objetivo
+
+* Crear urgencia
+* Aumentar acción inmediata
+
+---
+
+# RESULTADO ESPERADO
+
+* Decisión más rápida
+* Menos dudas
+* Mayor conversión
+* UX tipo Uber / Airbnb refinada
+
+---
+
+Prioridad: ALTA 🚀

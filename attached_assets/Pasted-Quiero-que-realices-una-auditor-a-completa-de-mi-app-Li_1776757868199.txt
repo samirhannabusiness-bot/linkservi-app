@@ -1,0 +1,179 @@
+Quiero que realices una auditoría completa de mi app "LinkServi" y propongas una reorganización total del producto para que sea intuitivo, claro y listo para usuarios reales.
+
+Trabaja como:
+
+* CTO (arquitectura)
+* Product Designer (UX/UI)
+* Growth/Product Manager (negocio)
+
+NO hagas cambios aún.
+Primero analiza y luego propone.
+
+---
+
+# OBJETIVO
+
+Organizar TODA la app para que:
+
+* cualquier usuario entienda cómo usarla en segundos
+* cada acción esté donde corresponde
+* el flujo sea natural (tipo Uber / Airbnb)
+* el modelo de negocio esté claro y optimizado
+
+---
+
+# CONTEXTO DE LA APP
+
+La app tiene múltiples módulos:
+
+* servicios (cliente ↔ trabajador)
+* marketplace (tiendas)
+* alquiler (rentals con depósito/contrato)
+* bolsa de empleo (con video CV)
+* co-host (gestión y comisiones)
+
+---
+
+# FASE 1 — AUDITORÍA ACTUAL
+
+Analiza:
+
+## 1. Flujo de usuario real
+
+* ¿cómo entra el usuario?
+* ¿qué ve primero?
+* ¿qué pasos sigue?
+
+Detectar:
+
+* confusión
+* pasos innecesarios
+* decisiones difíciles
+
+---
+
+## 2. UX / Interfaz
+
+* ¿hay demasiadas opciones?
+* ¿botones claros?
+* ¿acciones en el lugar correcto?
+
+---
+
+## 3. Arquitectura del frontend
+
+* organización de páginas
+* navegación
+* consistencia
+
+---
+
+## 4. Lógica de negocio
+
+* ¿cómo gana dinero la app?
+* ¿está claro para el usuario?
+* ¿está bien integrado?
+
+---
+
+## 5. Problemas críticos
+
+Identificar:
+
+* puntos de fricción
+* UX confusa
+* duplicación de funcionalidades
+* flujos mal ubicados
+
+---
+
+# FASE 2 — PROPUESTA DE REORGANIZACIÓN
+
+Diseñar una estructura nueva clara:
+
+---
+
+## 1. ONBOARDING
+
+* cómo entra el usuario
+* qué ve primero
+* cuándo se registra
+
+---
+
+## 2. DASHBOARD PRINCIPAL
+
+* qué secciones tiene
+* cómo se organiza
+* qué ve cada tipo de usuario
+
+---
+
+## 3. FLUJOS PRINCIPALES
+
+Definir claramente:
+
+* cliente → servicio
+* trabajador → trabajo
+* tienda → venta
+* alquiler → reserva
+* empleo → contacto
+* co-host → gestión
+
+---
+
+## 4. UBICACIÓN DE FUNCIONES
+
+* qué va en chat
+* qué va en service page
+* qué va en dashboard
+
+---
+
+## 5. BOLSA DE EMPLEO
+
+* cómo se muestra
+* cómo se monetiza
+* cómo funciona el video CV
+
+---
+
+## 6. CO-HOST
+
+* cómo se activa
+* dónde aparece
+* cómo genera ingresos
+
+---
+
+## 7. MONETIZACIÓN
+
+* comisiones
+* premium
+* servicios pagos
+
+---
+
+# FASE 3 — RESULTADO FINAL
+
+Entregar:
+
+1. Estructura completa de la app (mapa)
+2. Flujo del usuario paso a paso
+3. Dashboard ideal
+4. Cómo se conectan todos los módulos
+5. Qué eliminar, mover o mejorar
+6. Recomendaciones UX concretas
+7. Qué harías si esto fuera una startup para escalar
+
+---
+
+# IMPORTANTE
+
+* NO escribas código
+* NO hagas cambios aún
+* SOLO análisis profundo + propuesta clara
+
+---
+
+Quiero una visión completa, como si fueras a lanzar esta app al mercado masivo.

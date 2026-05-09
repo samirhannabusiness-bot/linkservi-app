@@ -1,0 +1,152 @@
+IMPLEMENTAR: MIGRACIÓN CONTROLADA /worker → /professional (SIN ROMPER SISTEMA)
+
+OBJETIVO:
+Unificar completamente el naming hacia "Profesional" a nivel de URLs y SEO, manteniendo compatibilidad con enlaces existentes y evitando errores.
+
+IMPORTANTE:
+NO romper enlaces existentes.
+NO afectar usuarios actuales.
+Migración progresiva y segura.
+
+---
+
+🧠 CONTEXTO ACTUAL
+
+* Existe /worker (rutas activas y usadas)
+* Existe /professional (nuevo alias)
+* UI ya usa "Profesional"
+
+Problema:
+Inconsistencia en rutas → afecta SEO, branding y claridad.
+
+---
+
+🎯 OBJETIVO FINAL
+
+* /professional = ruta principal
+* /worker = solo compatibilidad temporal
+* SEO enfocado en "professional"
+
+---
+
+---
+
+🟢 FASE 1 — ESTABILIZACIÓN (INMEDIATO)
+
+1. Forzar uso de /professional en TODO el frontend:
+
+* navegación
+* botones
+* links internos
+* redirecciones del header
+
+NO usar más /worker en nuevas rutas.
+
+---
+
+2. Sitemap
+
+Actualizar sitemap.xml para incluir SOLO:
+
+✔ /professional
+❌ NO incluir /worker
+
+---
+
+3. Canonical URLs
+
+En todas las páginas de profesional:
+
+<link rel="canonical" href="https://linkservi.com/professional/...">
+
+---
+
+---
+
+🟡 FASE 2 — COMPATIBILIDAD (IMPORTANTE)
+
+Mantener /worker funcional pero:
+
+1. Agregar redirect suave (no inmediato global):
+
+* si usuario entra manualmente a /worker
+* permitir carga normal
+
+2. Pero para bots (Google):
+
+👉 servir canonical hacia /professional
+
+---
+
+---
+
+🟠 FASE 3 — PREPARAR MIGRACIÓN COMPLETA
+
+Cuando el sistema esté estable:
+
+1. Implementar redirect 301:
+
+/worker → /professional
+
+2. Incluir todas las subrutas:
+
+/worker/*
+→ /professional/*
+
+---
+
+3. Actualizar:
+
+* enlaces internos restantes
+* notificaciones
+* emails
+* deep links
+
+---
+
+---
+
+🔴 IMPORTANTE (SEO)
+
+* Google debe ver SOLO /professional como versión oficial
+* /worker no debe competir en indexación
+
+---
+
+---
+
+🧪 VALIDACIÓN
+
+Verificar:
+
+* navegación interna usa solo /professional
+* sitemap no contiene /worker
+* canonical correcto en páginas
+* /worker sigue funcionando (temporalmente)
+
+---
+
+---
+
+🚫 PROHIBIDO
+
+* eliminar /worker de golpe
+* romper enlaces existentes
+* dejar ambas rutas indexables
+
+---
+
+---
+
+🎯 RESULTADO FINAL
+
+* consistencia total de marca
+* mejora SEO
+* sin errores en producción
+* transición limpia para usuarios
+
+---
+
+Esto no es solo una redirección.
+
+Es una migración de identidad del producto.

@@ -1,0 +1,35 @@
+"Agente, basado en tu auditoría, procedemos con la Fase de Hardening (Refuerzo). No aceptaremos soluciones superficiales; cada corrección debe incluir validación en el servidor y consistencia en la base de datos.
+
+Ejecuta las siguientes correcciones prioritarias para que el sistema funcione a la perfección:
+
+1. Blindaje de Seguridad y Roles (Prioridad P0):
+
+Validación de Identidad: Restringe POST /admin/rentals. Solo el dueño real del producto (ownerId) o un administrador puede crear un registro de alquiler. Valida que el productId pertenezca al usuario que hace la petición.
+
+Gate de KYC Real: Cambia la lógica de verificación en la Bolsa de Empleo y en Alquileres. Ya no uses isActive; debe validar el estado real de user_verifications.status === 'approved'. Si no está aprobado por Gemini, bloquea transacciones de alto valor.
+
+2. Inteligencia de Disponibilidad (Cero Doble Booking):
+
+Validación de Fechas: Implementa un middleware en la creación de alquileres que realice un SELECT previo. Si existe un solapamiento de fechas para el mismo productId, rechaza la transacción con un error 409.
+
+Sincronización Automática: Cuando se confirme un alquiler, el sistema debe insertar automáticamente esas fechas en el array blockedDates de la tabla de productos. Si el alquiler se cancela, debe liberarlas.
+
+3. Trazabilidad Legal e Integridad (Caja Negra):
+
+Persistencia de Contratos: El PDF ya no puede vivir solo en el cliente. Al generarse, debe subirse automáticamente una copia al servidor (Object Storage) vinculada al ID del alquiler.
+
+Fix de Matching: Corrige la lógica en StoreChatPage. El banner y el contrato deben filtrarse estrictamente por productId Y clientId para evitar que se muestren contratos de otros clientes al mismo dueño.
+
+4. Interconexión y Notificaciones (Flujo Vivo):
+
+Activación de Alertas: Cada vez que se cree un alquiler, se cancele o se firme, inserta una entrada en notificationsTable para todas las partes (Dueño, Cliente y Admin).
+
+Vínculo de Logística: Crea el endpoint para que, si el cliente marcó 'Delivery', se genere una orden en la tabla de transporte con el estatus 'Pendiente de Asignación'.
+
+5. Limpieza de UI (Adiós Fantasmas):
+
+Implementa un estado isLoading real en el chat para que el botón 'Solicitar Compra' no parpadee mientras se valida si es un flujo de alquiler.
+
+Si un alquiler está cancelled, el botón de descarga de PDF debe desaparecer automáticamente.
+
+Profundiza en cualquier error oculto de performance que detectes al modificar estas rutas. Queremos que el código sea eficiente, escalable y, sobre todo, seguro para el usuario final."

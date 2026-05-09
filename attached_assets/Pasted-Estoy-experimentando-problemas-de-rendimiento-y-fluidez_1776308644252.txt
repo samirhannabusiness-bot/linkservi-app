@@ -1,0 +1,94 @@
+Estoy experimentando problemas de rendimiento y fluidez en la app, especialmente en:
+
+* Pantalla de carga inicial (splash)
+* Landing page (home)
+* Login
+
+Problemas detectados:
+
+* La app carga lenta al iniciar
+* Hay parpadeos (flicker) al renderizar
+* Algunas acciones no se sienten fluidas
+* Posibles re-renderizados innecesarios
+
+OBJETIVO:
+Optimizar completamente la app para que sea rápida, fluida y sin parpadeos, como una aplicación profesional en producción.
+
+TAREAS:
+
+1. RENDIMIENTO GENERAL
+
+* Analizar el tiempo de carga inicial (First Load)
+* Reducir JavaScript innecesario
+* Implementar lazy loading en páginas (React.lazy / dynamic import)
+* Dividir el bundle si es necesario
+
+2. RE-RENDERS INNECESARIOS
+
+* Detectar componentes que se renderizan múltiples veces sin necesidad
+* Usar:
+
+  * React.memo
+  * useMemo
+  * useCallback
+* Evitar estados globales que disparen renders innecesarios
+
+3. TANSTACK QUERY / DATA FETCHING
+
+* Verificar que no haya múltiples llamadas duplicadas
+* Ajustar:
+
+  * staleTime
+  * cacheTime
+* Evitar refetch innecesarios en cada render
+
+4. EFECTOS (useEffect)
+
+* Revisar dependencias incorrectas
+* Eliminar loops de render
+* Evitar efectos que se ejecutan más de lo necesario
+
+5. FLICKER (PARPADEOS)
+
+* Revisar:
+
+  * estados de loading mal manejados
+  * cambios bruscos de UI
+* Implementar:
+
+  * skeleton loaders en lugar de cambios bruscos
+  * mantener estado anterior mientras carga (keepPreviousData)
+
+6. SPLASH SCREEN
+
+* Optimizar para que no se quede más tiempo del necesario
+* Asegurar transición suave hacia la app
+
+7. LOGIN Y HOME
+
+* Evitar re-render completo al escribir en inputs
+* Optimizar formularios
+* Separar componentes pesados
+
+8. CSS / ANIMACIONES
+
+* Evitar animaciones pesadas
+* Usar transform y opacity (GPU friendly)
+* Eliminar estilos que causen reflow
+
+9. CONSOLE Y ERRORES
+
+* Revisar warnings de React
+* Eliminar logs innecesarios en producción
+
+10. VALIDACIÓN FINAL
+
+* La app debe:
+
+  * cargar rápido
+  * no parpadear
+  * responder instantáneamente
+  * sentirse fluida como app nativa
+
+OBJETIVO FINAL:
+Experiencia de usuario fluida, rápida y sin bugs visuales.

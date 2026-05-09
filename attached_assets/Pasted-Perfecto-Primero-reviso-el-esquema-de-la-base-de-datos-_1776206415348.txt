@@ -1,0 +1,106 @@
+Perfecto. Primero reviso el esquema de la base de datos y el código existente para entender qué cambiar sin romper nada:
+
+
+12 actions
+Tengo todo el contexto que necesito. Voy a implementar el sistema completo de planes. Déjame crear el plan de trabajo:
+
+
+15 actions
+Tengo todo claro. Implemento el sistema completo — empezando por la base de datos, luego el backend, luego el frontend en paralelo:
+
+Paso 1: Esquema de DB
+
+
+6 actions
+Aplico la migración de DB y creo los archivos del backend y frontend en paralelo:
+
+
+2 actions
+DB aplicada. Ahora creo el backend de planes y la página frontend en paralelo:
+
+
+3 actions
+Registro el router y actualizo las comisiones en product-orders en paralelo:
+
+
+3 actions
+Actualizo la lógica de comisiones en product-orders.ts para usar las tasas dinámicas:
+
+
+2 actions
+Ahora actualizo la sección de cálculo de comisiones en product-orders.ts:
+
+
+2 actions
+Ahora creo la página del plan y actualizo la navegación en paralelo:
+
+
+2 actions
+Actualizo la navegación, el dashboard y el App.tsx en paralelo:
+
+
+3 actions
+Agrego la ruta en App.tsx y actualizo el dashboard con el badge de plan:
+
+
+8 actions
+Actualizo el dashboard con el badge de plan y reinicio el servidor:
+
+
+2 actions
+Ahora actualizo el dashboard con el badge del plan y agrego la sección admin:
+
+
+2 actions
+Todo compilando limpio. Ahora agrego el badge de plan al dashboard y la sección admin para aprobar solicitudes:
+
+
+7 actions
+Ahora agrego el badge de plan al header del dashboard y el banner de upgrade para usuarios free:
+
+
+4 actions
+Todo limpio. Ahora agrego la sección de planes al panel admin:
+
+
+5 actions
+Registro la ruta y enlace admin, luego verifico todo:
+
+
+7 actions
+Agrego el link al sidebar admin:
+
+
+6 actions
+Verifico los logs y el endpoint admin para asegurar que devuelve los campos correctos:
+
+
+6 actions
+El backend tiene exactamente los campos que la UI necesita. Verifico el endpoint de estado del plan para co-host:
+
+
+2 actions
+Todo encaja perfectamente. Tomo un screenshot para verificar la vista:
+
+
+4 actions
+El splash aparece por ser una sesión nueva del navegador (comportamiento esperado). Todo compila sin errores y el servidor corre limpio. Aquí está el resumen completo de lo que quedó terminado en esta sesión:
+
+Sistema de Planes Co-host — completado al 100%
+
+Lo que se implementó:
+
+Frontend — /cohost/plan
+
+La ruta /cohost/plan ya está registrada en el router (faltaba esto al comprimir)
+El dashboard del co-host ahora muestra un badge "⭐ Premium" con la corona dorada junto al saludo, y el porcentaje de comisión activo en la esquina
+Para usuarios en plan Free, aparece un banner llamativo que dice "Activa Premium — gana hasta 10%" con link directo a la página del plan
+Si hay una solicitud pendiente de revisión, se muestra ese estado en el dashboard en lugar del banner
+Panel Admin — /admin/cohost-plans
+
+Página completa con estadísticas (pendientes / aprobadas / rechazadas)
+Filtros por estado con contador de pendientes en badge
+Vista de cada solicitud con: nombre del co-host, email, plan actual, monto, duración, método de pago, referencia de transacción, enlace al comprobante
+Formulario de nota opcional para el co-host
+Botones de Aprobar y Rechazar con estado de carga individual
+Link "Planes Co-host" con ícono corona añadido al sidebar admin

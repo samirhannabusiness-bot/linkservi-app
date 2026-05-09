@@ -1,0 +1,108 @@
+Quiero ajustar el modelo actual de productos para que funcione como un marketplace profesional basado en tiendas gestionadas por co-hosts, manteniendo el sistema de pagos actual (escrow).
+
+---
+
+FLUJO DE PAGO
+
+* El cliente paga el producto usando los mismos métodos de pago actuales de la app
+* El dinero queda retenido en la plataforma (escrow)
+* El co-host gestiona la entrega del producto
+* Cuando el cliente marca “Producto recibido”, el sistema libera el dinero automáticamente
+
+Distribución del pago:
+
+* Comisión de la app (plataforma)
+* Comisión del co-host
+* El resto se acredita como saldo de la tienda
+
+---
+
+MODELO DE TIENDAS
+
+Se debe crear una entidad “Store” (tienda/proveedor)
+
+Cada tienda debe tener:
+
+* nombre
+* datos del dueño
+* datos de retiro/pago
+* coHostId (quién la gestiona)
+
+Los productos deben pertenecer a la tienda, no al co-host directamente.
+
+---
+
+PRODUCTOS
+
+Cada producto debe estar asociado a una tienda:
+
+* product.storeId
+
+El co-host solo los crea y administra.
+
+---
+
+PANEL DE TIENDA (MUY IMPORTANTE)
+
+Cada tienda debe tener su propio panel con:
+
+* cantidad de productos
+* ventas realizadas
+* ingresos acumulados
+* pedidos por estado
+* inventario básico
+* saldo disponible
+
+Botón clave:
+“Solicitar retiro”
+
+* usa los datos de pago guardados
+* permite retirar el saldo disponible (ya descontadas comisiones)
+
+---
+
+PANEL DE CO-HOST
+
+El co-host debe poder:
+
+* crear y gestionar tiendas
+* subir productos a cada tienda
+* gestionar pedidos
+* ver sus ganancias (comisión por gestión)
+
+---
+
+PANEL ADMIN
+
+Debe existir un panel separado para:
+
+* gestión de pagos de tiendas
+* control de retiros
+* monitoreo de ventas
+* configuración de comisiones
+
+---
+
+MODELO DE GANANCIAS
+
+* Plataforma: 10% por venta (configurable)
+* Co-host: 5%–10% por gestión
+* Tienda: recibe el restante
+
+---
+
+IMPORTANTE
+
+* Mantener el sistema actual de pagos (escrow)
+* El dinero solo se libera cuando el cliente confirma “producto recibido”
+* No implementar logística avanzada en esta fase
+
+---
+
+OBJETIVO
+
+Tener un marketplace donde:
+
+* Las tiendas venden productos
+* Los co-hosts gestionan operaciones
+* La plataforma procesa pagos y monetiza automáticamente

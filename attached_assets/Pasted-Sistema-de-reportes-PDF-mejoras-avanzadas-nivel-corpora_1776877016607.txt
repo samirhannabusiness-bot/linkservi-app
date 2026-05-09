@@ -1,0 +1,170 @@
+Sistema de reportes PDF — mejoras avanzadas (nivel corporativo)
+
+---
+
+# OBJETIVO
+
+Elevar el sistema de reportes PDF a un estándar empresarial, mejorando branding, rendimiento y gestión histórica de reportes.
+
+---
+
+# 1. LOGO Y BRANDING
+
+## Implementación
+
+* reemplazar header de texto por:
+
+  * logo real de la plataforma
+  * nombre de la empresa
+
+---
+
+## Ubicación
+
+* parte superior izquierda del PDF
+
+---
+
+## Detalles
+
+* tamaño equilibrado (no dominante)
+* mantener margen limpio
+* acompañar con título del reporte
+
+---
+
+## Resultado
+
+* mayor profesionalismo
+* identidad de marca clara
+* apariencia tipo Stripe / Amazon
+
+---
+
+# 2. FORMATO DE MONEDA PROFESIONAL
+
+## Implementación
+
+formatear todos los valores numéricos:
+
+---
+
+## USD
+
+* formato:
+  $1,234.50
+
+---
+
+## Bolívares
+
+* formato:
+  Bs 123.456,00
+
+---
+
+## Reglas
+
+* separadores correctos
+* siempre 2 decimales
+* consistencia en todo el documento
+
+---
+
+## Resultado
+
+* lectura más clara
+* apariencia corporativa
+* evita confusión en cifras
+
+---
+
+# 3. GENERACIÓN ASÍNCRONA (BACKGROUND)
+
+## Cuándo aplicar
+
+* cuando el PDF sea grande
+* cuando incluya muchos registros
+
+---
+
+## Comportamiento
+
+* al generar:
+  → mostrar estado: “Procesando reporte...”
+* generar PDF en segundo plano
+* notificar cuando esté listo
+
+---
+
+## Opcional
+
+* barra de progreso o loader
+
+---
+
+## Resultado
+
+* mejor rendimiento
+* evita bloqueos en UI
+* experiencia fluida
+
+---
+
+# 4. HISTORIAL DE REPORTES
+
+## Implementación
+
+guardar cada reporte generado con:
+
+* fecha
+* rango seleccionado
+* usuario que lo generó
+* rol
+* enlace al archivo
+
+---
+
+## UI
+
+crear sección:
+
+👉 “Reportes generados”
+
+---
+
+## Acciones
+
+* descargar nuevamente
+* ver detalles
+* eliminar (opcional)
+
+---
+
+## Resultado
+
+* acceso rápido a reportes anteriores
+* mayor control
+* nivel empresarial real
+
+---
+
+# CONSIDERACIONES
+
+* mantener seguridad por roles
+* no almacenar datos sensibles sin control
+* optimizar almacenamiento de archivos
+* mantener consistencia visual con el dashboard
+
+---
+
+# RESULTADO FINAL
+
+* sistema de reportes completo
+* experiencia profesional
+* mejor rendimiento
+* control histórico de información
+
+---
+
+Prioridad: MEDIA 🚀

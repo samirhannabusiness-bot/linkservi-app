@@ -1,0 +1,35 @@
+Agente, el CEO ha decidido que el sistema de Alquileres pase de ser una herramienta administrativa a un pilar central del Marketplace público. Debes integrar la lógica de alquiler en todo el ecosistema (Client, Worker, Guest) con un enfoque de UI/UX Premium.
+
+Tareas a ejecutar en paralelo:
+
+1. Evolución del Schema y Publicación (Backend/Forms):
+
+Modifica el ProductForm.tsx para que cualquier usuario pueda marcar un producto como "Disponible para Alquiler".
+
+Añade campos obligatorios si es Alquiler: pricePerDay (Tarifa diaria) y securityDeposit (Depósito de garantía).
+
+Asegúrate de que estos datos se guarden en la tabla products y se reflejen en los endpoints de la API.
+
+2. UI Senior en el Marketplace (Visuals):
+
+Etiquetas Dinámicas: En las tarjetas de producto (ProductCard), si el producto es de alquiler, muestra el precio con el formato: $XX / día. Añade un badge elegante que diga "ALQUILER".
+
+Filtros Inteligentes: En la SearchPage y Landing, añade un selector de tipo de transacción: [ Todos | Compras | Alquileres ].
+
+3. Landing Page & Public Access (Marketing/SEO):
+
+Haz que la sección de Alquileres sea visible para usuarios no registrados. Queremos que LinkServi sea la vitrina de alquileres #1 de Maturín.
+
+El botón flotante (FAB) de la Landing debe llevar directamente a la categoría de alquileres filtrada.
+
+4. Flujo de Conversión (UX/Logística):
+
+En la vista de producto, si es un alquiler, cambia el botón principal 'Comprar ahora' por 'Reservar Alquiler'.
+
+Este botón debe iniciar el chat con el dueño, inyectando automáticamente un mensaje de sistema: "Hola, estoy interesado en alquilar este producto del [Fecha Inicio] al [Fecha Fin]".
+
+5. Integración con el Motor de Contratos (Cierre de Venta):
+
+Conecta este flujo público con el generador de Contratos PDF que creamos. Al concretar el pago del alquiler en el chat, el sistema debe habilitar la descarga del contrato legal para ambas partes, no solo para el admin.
+
+Objetivo: Que alquilar una herramienta o un equipo en LinkServi sea tan fácil y profesional como reservar un hotel en una plataforma internacional."

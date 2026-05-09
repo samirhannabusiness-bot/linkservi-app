@@ -1,0 +1,9 @@
+export { default as workersRouter } from "./workers";
+export { default as bookingsRouter } from "./bookings";
+export { default as urgentRouter } from "./urgent";
+export { default as chatRouter } from "./chat";
+export { default as reviewsRouter } from "./reviews";
+export { default as warrantiesRouter } from "./warranties";
+export { default as workerServicesRouter } from "./worker-services";
+export { default as servicePhotosRouter } from "./service-photos";
+export { default as clientRatingsRouter } from "./client-ratings";

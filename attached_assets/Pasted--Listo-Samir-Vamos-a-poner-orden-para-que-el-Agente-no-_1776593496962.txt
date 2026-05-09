@@ -1,0 +1,38 @@
+¡Listo, Samir! Vamos a poner orden para que el Agente no se confunda y te deje la app funcionando como una plataforma profesional de nivel internacional.
+
+Este texto resume todo lo que hemos hablado: el pago de suscripción, los perfiles con foto, la separación de roles y el botón en la Home.
+
+Copia y pega esto tal cual:
+
+📝 INSTRUCCIONES DE ACTUALIZACIÓN: SERVILINK PRO
+"Agente, vamos a consolidar los cambios finales para la Bolsa de Empleo (Contrataciones fijas) y la navegación de la App. Sigue estos puntos con precisión:
+
+1. Navegación y Acceso Público (UI/UX)
+Renombrar: Cambia 'Busco Empleo' por 'Buscar Personal' en toda la app.
+
+Acceso en Home: Agrega un botón principal en la pantalla de inicio que diga 'Buscar Personal'. Debe llevar a la ruta /jobs (o /empleos).
+
+Ruta Pública: Haz que la lista de candidatos en /jobs sea pública. Un visitante debe poder ver fotos de perfil, nombres y oficios sin estar logueado.
+
+Muro de Registro: Solo si el usuario quiere ver el CV completo o contactar al trabajador, la app debe pedirle registrarse como 'Empresa/Contratante'.
+
+2. Perfil del Trabajador (Hoja de Vida)
+Datos Obligatorios: En la sección de 'Mi Perfil' del trabajador, añade campos para: Nombre, Apellido, Cédula de Identidad y Años de Experiencia.
+
+Foto de Perfil: Es obligatorio que el trabajador pueda subir su foto de perfil. No queremos iconos genéricos en la bolsa de empleo.
+
+Independencia de Roles: Un usuario que se registre como 'Empresa' para buscar personal NO debe ser obligado a llenar una hoja de vida de trabajador.
+
+3. Flujo de Pago Manual (Suscripciones)
+Eliminar 'Fondos Insuficientes': Quita la validación automática de la billetera interna para las suscripciones.
+
+Modal de Pago: Al dar clic en 'Suscribirse' (Destacado $1 o Premium $2), abre un modal que muestre mis Datos de Pago Móvil / Transferencia.
+
+Reporte de Pago: Añade un campo en ese modal para que el usuario pegue el Número de Referencia o suba el Capture del Pago.
+
+Aprobación Admin: La suscripción debe quedar en estado 'Pendiente' hasta que yo la apruebe manualmente desde el panel de administración.
+
+4. Configuración Técnica Final
+Email SMTP: Usa los datos de Namecheap ya creados (info@linkservi.com) para enviar los correos de bienvenida y confirmación de suscripción.
+
+Google Auth: Asegúrate de que linkservi.com esté correctamente autorizado en Google Cloud Console para evitar el error de dominio no autorizado."

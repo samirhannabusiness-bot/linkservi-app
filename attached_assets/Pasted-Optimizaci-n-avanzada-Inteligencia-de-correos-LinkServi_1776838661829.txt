@@ -1,0 +1,351 @@
+Optimización avanzada — Inteligencia de correos LinkServi (Nivel Elite)
+
+---
+
+# OBJETIVO
+
+Convertir el sistema de correos en un motor de optimización continua mediante funnel de métricas, A/B testing y segmentación.
+
+---
+
+# CAMBIOS
+
+## 1. Funnel de email
+
+Construir visualización y métricas del flujo completo:
+
+sent → opened → clicked
+
+---
+
+### Implementación
+
+* usar tabla email_events existente
+* agrupar por emailType
+
+---
+
+### Métricas por tipo de correo:
+
+* total enviados (sent)
+* tasa de apertura (opened / sent)
+* tasa de clic (clicked / opened)
+
+---
+
+### UI (Admin)
+
+Mostrar panel:
+
+"Performance de correos"
+
+Ejemplo:
+
+Compra confirmada:
+
+* enviados: 120
+* abiertos: 80 (66%)
+* clics: 40 (50%)
+
+---
+
+## 2. A/B Testing
+
+Permitir probar variantes de correos.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Optimización final — Infraestructura de correos LinkServi (Nivel Pro)
+
+---
+
+# OBJETIVO
+
+Fortalecer el sistema de correos con control de carga, persistencia y visualización en admin.
+
+---
+
+# CAMBIOS
+
+## 1. Límite de cola (Queue Guard)
+
+Evitar crecimiento descontrolado de la cola en picos de tráfico.
+
+---
+
+### Implementación
+
+* definir límite:
+  MAX_QUEUE_SIZE = 100
+
+---
+
+### Lógica
+
+* si queueDepth ≥ MAX_QUEUE_SIZE:
+
+  opciones:
+
+  a) rechazar nuevos emails (loggear "QUEUE FULL")
+  b) o descartar los más antiguos (FIFO controlado)
+
+---
+
+### Logs
+
+* "QUEUE FULL — email dropped"
+* incluir trackingId y emailType
+
+---
+
+## 2. Persistencia de cola (Futuro-ready)
+
+Evitar pérdida de emails si el servidor se reinicia.
+
+---
+
+### Implementación
+
+* crear tabla:
+  email_queue
+
+---
+
+### Campos:
+
+* id
+* payload (JSON del email)
+* status: pending | processing | failed
+* attempts
+* createdAt
+
+---
+
+### Flujo
+
+* al agregar email → guardar en DB
+* worker lee pendientes al iniciar
+* procesar y actualizar estado
+
+---
+
+### Beneficio
+
+* recuperación automática tras reinicio
+* cero pérdida de correos
+
+---
+
+## 3. Dashboard de email (Admin)
+
+Visualizar métricas del sistema en tiempo real.
+
+---
+
+### Endpoint existente:
+
+/api/admin/email-stats
+
+---
+
+### UI (Admin panel)
+
+Crear sección:
+
+"📊 Correos"
+
+---
+
+### Mostrar:
+
+* total enviados
+* abiertos
+* clics
+* fallidos
+
+---
+
+### Métricas clave:
+
+* tasa de apertura (%)
+* tasa de clic (%)
+* tasa de fallo (%)
+
+---
+
+### Extras:
+
+* gráficos por tipo de email
+* últimos errores registrados
+* top emails más efectivos
+
+---
+
+# RESULTADO
+
+* control total del sistema
+* prevención de sobrecarga
+* resiliencia ante reinicios
+* visibilidad para optimización
+
+---
+
+Prioridad: MEDIA 🚀
+
+
+
+
+
+Optimización UX avanzada — Separación Productos vs Alquileres (Nivel Pro)
+
+---
+
+# OBJETIVO
+
+Refinar la experiencia del usuario aumentando claridad, personalización y conversión en ambos flujos.
+
+---
+
+# CAMBIOS
+
+## 1. Recordar última selección (Persistencia UX)
+
+Guardar la última pestaña seleccionada por el usuario.
+
+---
+
+### Implementación
+
+* usar localStorage o sesión
+* key: store_last_tab
+
+---
+
+### Lógica
+
+* al cambiar entre:
+
+  * "Productos"
+  * "Alquileres"
+
+→ guardar selección
+
+---
+
+* al cargar StorePage:
+
+→ leer valor guardado
+→ abrir automáticamente esa pestaña
+
+---
+
+### Beneficio
+
+* experiencia personalizada
+* menos fricción
+* navegación más natural
+
+---
+
+## 2. Filtros específicos por tipo
+
+Separar completamente los filtros entre venta y alquiler.
+
+---
+
+### Productos (venta)
+
+Mostrar:
+
+* precio total
+* categoría
+* condición (nuevo/usado)
+
+---
+
+### Alquileres
+
+Mostrar:
+
+* precio por día
+* duración (días)
+* disponibilidad (fechas)
+
+---
+
+### Importante
+
+* no reutilizar filtros entre tipos
+* adaptar UI según listingType
+
+---
+
+### Beneficio
+
+* mayor claridad
+* filtros relevantes
+* mejor conversión
+
+---
+
+## 3. Copy específico por flujo
+
+Usar mensajes distintos según el tipo de operación.
+
+---
+
+### Productos
+
+Botón principal:
+
+"🛡 Comprar con protección"
+
+---
+
+### Alquileres
+
+Botón principal:
+
+"🔑 Reserva ahora"
+
+---
+
+### Otros ajustes
+
+* headers y títulos adaptados al flujo
+* mensajes de confianza contextualizados
+
+---
+
+### Beneficio
+
+* refuerza intención del usuario
+* mejora tasa de acción
+* experiencia más profesional
+
+---
+
+# RESULTADO
+
+* UX personalizada
+* menor fricción
+* mayor tasa de conversión
+* marketplace más claro y efectivo
+
+---
+
+Prioridad: MEDIA 🚀

@@ -1,0 +1,130 @@
+FASE DE ESTABILIZACIÓN FINAL — SESIÓN, NAVEGACIÓN Y UX
+
+OBJETIVO:
+Corregir problemas críticos que afectan la experiencia del usuario:
+
+* cierres de sesión inesperados
+* botones que fallan o redirigen mal
+* instalación de app (PWA) que no funciona
+
+IMPORTANTE:
+NO tocar backend de negocio (transporte, pagos, etc.)
+NO agregar nuevas funcionalidades
+SOLO corregir estabilidad y experiencia
+
+---
+
+🔴 1. CIERRE DE SESIÓN INESPERADO (CRÍTICO)
+
+PROBLEMA:
+El usuario es expulsado de la sesión al interactuar con botones o navegar.
+
+INVESTIGAR:
+
+* uso de window.location en lugar de router
+* pérdida de token en localStorage
+* errores 401 que fuerzan logout
+* problemas en auth-context (estado no persistente)
+* race conditions en login o refresco
+
+IMPLEMENTAR:
+
+* asegurar persistencia del token en localStorage
+* restaurar sesión al cargar la app (/auth/me)
+* manejar errores 401 sin logout automático
+* evitar recargas completas de página
+* navegación SOLO con react-router
+
+---
+
+🔴 2. NAVEGACIÓN Y BOTONES ROTOS
+
+PROBLEMA:
+Algunos botones:
+
+* no hacen nada
+* llevan a rutas inexistentes
+* rompen la navegación
+
+INVESTIGAR:
+
+* rutas inexistentes
+* uso incorrecto de href
+* uso inconsistente de navigate vs window.location
+
+IMPLEMENTAR:
+
+* validar TODAS las rutas del proyecto
+* reemplazar navegación incorrecta por router interno
+* asegurar que ningún botón apunte a rutas inexistentes
+* corregir rutas legacy
+
+---
+
+🔴 3. INSTALACIÓN DE APP (PWA) NO FUNCIONA
+
+PROBLEMA:
+Botón "Instalar app" no hace nada.
+
+IMPLEMENTAR:
+
+* capturar evento beforeinstallprompt:
+
+window.addEventListener('beforeinstallprompt', (e) => {
+e.preventDefault()
+guardar en estado (deferredPrompt)
+})
+
+* al hacer click:
+
+await deferredPrompt.prompt()
+
+* manejar resultado:
+
+deferredPrompt.userChoice
+
+* ocultar botón si no está disponible
+
+---
+
+🔴 4. VALIDACIÓN PWA
+
+Verificar:
+
+* manifest.json correcto
+* service worker activo
+* display: standalone
+* iconos válidos
+* instalación funcional en móvil y desktop
+
+---
+
+🔴 5. ERRORES EN CONSOLA
+
+* revisar console errors frontend
+* eliminar errores silenciosos
+* logs solo en desarrollo
+
+---
+
+🔴 6. PRUEBAS E2E (OBLIGATORIO)
+
+Validar:
+
+* login → navegar → NO pierde sesión
+* cambiar roles → NO logout
+* botones → siempre funcionan
+* instalar app → funciona correctamente
+
+---
+
+🎯 RESULTADO
+
+* sesión estable
+* navegación sin errores
+* experiencia fluida
+* instalación funcional
+
+---
+
+Esto es una fase crítica de estabilización antes de escalar usuarios.

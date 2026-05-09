@@ -1,0 +1,74 @@
+De acuerdo. Voy a combinar todo: agrupar las pestañas de solicitudes en 3, y mejorar los botones y CTAs para que sean más claros y cómodos al tacto — sin cambiar ninguna funcionalidad. Primero reviso las páginas clave:
+
+
+16 actions
+Tengo todo claro. Implemento tres mejoras en paralelo:
+
+BookingsListPage → 3 tabs claras + botones de acción más grandes
+WorkerProfilePage → CTA de solicitud más prominente
+
+2 actions
+Ahora tengo toda la información. Hago los cambios en paralelo:
+
+
+2 actions
+Ahora actualizo la lógica del componente principal y los contadores:
+
+
+2 actions
+Actualizo el EmptyState para que funcione con las 3 nuevas pestañas (ya no hay pestaña "Todas"):
+
+
+2 actions
+Ahora actualizo el componente principal con la nueva lógica de tabs y filtrado:
+
+
+2 actions
+Ahora actualizo el HTML de las pestañas en el componente, y los botones de acción:
+
+
+4 actions
+Ahora mejoro los botones de acción dentro de las tarjetas de reserva para que sean más grandes y cómodos:
+
+
+2 actions
+Ahora mejoro el CTA del perfil del trabajador en paralelo y verifico que la llamada al EmptyState sea correcta:
+
+
+2 actions
+Verifico que ChevronRight esté importado en el perfil del trabajador, y chequeo los logs rápido:
+
+
+3 actions
+ChevronRight falta en los imports de la página del trabajador. Lo añado:
+
+
+2 actions
+Todos los cambios aplicados via HMR. Lanzo el test de validación:
+
+
+4 actions
+Los tres flujos pasaron. Aquí el resumen de lo que cambió:
+
+Lo que se mejoró
+1. Solicitudes: 9 pestañas → 3 grupos claros
+
+Antes el usuario veía: Todas · Pendientes · Por pagar · Verificando pago · Pago confirmado · En Progreso · Por confirmar · Completadas · Canceladas
+
+Ahora ve un selector limpio estilo píldora con solo:
+
+En curso — todo lo activo (espera, pago, en proceso)
+Por confirmar — cuando el profesional dice que terminó
+Historial — completados y cancelados
+Si hay algo urgente, un número rojo aparece sobre la pestaña correspondiente.
+
+2. Botones de acción más grandes y claros
+
+"Confirmar que está listo" ahora ocupa todo el ancho de la tarjeta y tiene sombra verde
+"Dejar una reseña" más cómodo al tacto
+"Chat" con icono más grande y zona de toque mayor
+3. CTA del perfil del trabajador más prominente
+
+Botón principal "Solicitar servicio" ancho completo, más alto, con sombra y flecha → el usuario sabe exactamente dónde presionar
+Botón "Lo necesito urgente" queda debajo en estilo secundario (discreto, con borde rojo) — visible pero sin competir con la acción principal
+Cuando el trabajador no está disponible, en vez de no mostrar nada, aparece un mensaje claro: "Este profesional no está atendiendo en este momento"

@@ -1,0 +1,69 @@
+Quiero que desarrolles una aplicación tipo marketplace de servicios bajo demanda, similar al modelo de Uber, pero enfocada en servicios profesionales y técnicos.
+
+🎯 OBJETIVO PRINCIPAL
+
+Crear una app moderna donde los usuarios puedan solicitar servicios y los trabajadores puedan aceptar trabajos cercanos en tiempo real.
+
+👥 TIPOS DE USUARIOS (3 ROLES)
+
+La aplicación debe tener tres accesos completamente separados:
+
+Usuario (Cliente)
+Trabajador (Proveedor de servicios)
+Administrador (Panel de control)
+📱 FUNCIONALIDADES DEL USUARIO (CLIENTE)
+Registro e inicio de sesión
+Perfil de usuario
+Buscar servicios por categoría:
+Albañiles
+Carpinteros
+Técnicos
+Mecánicos
+Profesores
+Diseñadores
+Servicios domésticos
+Geolocalización (ver trabajadores cercanos en mapa)
+Solicitar servicio en tiempo real
+Ver precio estimado
+Chat con el trabajador
+Seguimiento del trabajador en vivo (tipo Uber)
+Sistema de pagos (tarjeta, efectivo, etc.)
+Calificar y dejar reseñas
+🛠️ FUNCIONALIDADES DEL TRABAJADOR
+Registro con verificación (documentos, experiencia, etc.)
+Perfil profesional (foto, descripción, habilidades)
+Activar / desactivar disponibilidad
+Recibir solicitudes cercanas
+Aceptar o rechazar trabajos
+Navegación hacia el cliente
+Chat con el cliente
+Historial de trabajos
+Ganancias y estadísticas
+Sistema de calificaciones
+🧑‍💻 PANEL ADMINISTRADOR
+Dashboard general (usuarios, trabajadores, ingresos)
+Gestión de usuarios y trabajadores
+Aprobación/verificación de trabajadores
+Control de categorías de servicios
+Gestión de pagos y comisiones
+Moderación de reseñas
+Soporte y reportes
+Configuración general de la app
+⚙️ CARACTERÍSTICAS TÉCNICAS
+App moderna (UI/UX tipo Uber, limpia y profesional)
+Responsive (móvil y web)
+Sistema en tiempo real (WebSockets o similar)
+Base de datos escalable
+API bien estructurada
+Autenticación segura (JWT o similar)
+Integración con mapas (Google Maps o similar)
+🎨 DISEÑO
+Interfaz moderna y minimalista
+Experiencia fluida y rápida
+Animaciones suaves
+Colores profesionales (tipo startup tecnológica)
+🚀 EXTRA (MUY IMPORTANTE)
+Arquitectura escalable desde el inicio
+Código limpio y modular
+Preparado para monetización (comisiones por servicio)
+Posibilidad de expansión a otros países

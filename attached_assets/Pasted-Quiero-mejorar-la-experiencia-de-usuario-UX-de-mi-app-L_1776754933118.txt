@@ -1,0 +1,132 @@
+Quiero mejorar la experiencia de usuario (UX) de mi app "LinkServi" sin cambiar la lógica de negocio existente.
+
+IMPORTANTE:
+
+* NO romper funcionalidades actuales
+* NO cambiar lógica backend (estados, pagos, transacciones)
+* SOLO reorganizar dónde ocurren las acciones en el frontend
+* Mantener compatibilidad con el sistema actual
+
+---
+
+# PROBLEMA ACTUAL
+
+Actualmente:
+
+* El chat contiene acciones críticas (ej: aceptar pago, acciones del servicio)
+* Esto genera confusión y mala experiencia
+* El flujo es correcto a nivel backend, pero mal organizado visualmente
+
+---
+
+# OBJETIVO
+
+Separar claramente:
+
+1. Chat = solo comunicación
+2. Pantalla de servicio = todas las acciones importantes
+
+---
+
+# TAREAS
+
+## 1. LIMPIAR CHAT
+
+* Eliminar botones críticos del chat:
+
+  * aceptar pago
+  * iniciar trabajo
+  * completar servicio
+
+* El chat debe quedar SOLO para:
+
+  * mensajes
+  * negociación
+  * comunicación
+
+---
+
+## 2. CREAR / MEJORAR "SERVICE PAGE"
+
+Pantalla dedicada para cada servicio (booking / order)
+
+Debe mostrar:
+
+* estado actual del servicio
+* precio acordado
+* trabajador asignado
+* cliente
+* historial de estados
+
+---
+
+## 3. CENTRALIZAR ACCIONES POR ESTADO
+
+Dependiendo del estado del servicio, mostrar UN solo botón principal:
+
+Ejemplo:
+
+* status = "accepted"
+  → botón: "Realizar pago"
+
+* status = "payment_verified"
+  → botón: "Iniciar trabajo"
+
+* status = "started"
+  → mensaje: "Trabajo en progreso"
+
+* status = "finished"
+  → botón: "Confirmar / Disputar"
+
+---
+
+## 4. DISEÑO TIPO TIMELINE
+
+Agregar sección visual tipo progreso:
+
+✔ Solicitud creada
+✔ Trabajador aceptó
+⏳ Esperando pago
+⏳ En proceso
+✔ Finalizado
+
+---
+
+## 5. NAVEGACIÓN CLARA
+
+* Desde chat → botón: "Ver servicio"
+* Desde dashboard → acceso directo al servicio
+
+---
+
+## 6. REUTILIZAR LÓGICA EXISTENTE
+
+* Usar los mismos endpoints actuales
+* No duplicar lógica
+* Solo mover dónde se ejecutan las acciones
+
+---
+
+## 7. MEJORAS UX
+
+* Botones grandes y claros
+* Texto simple:
+
+  * "Pagar"
+  * "Iniciar trabajo"
+  * "Confirmar servicio"
+* Evitar múltiples opciones confusas
+
+---
+
+# ENTREGA FINAL
+
+1. Qué archivos fueron modificados
+2. Cómo quedó el flujo nuevo
+3. Qué elementos se movieron del chat a la pantalla de servicio
+4. Confirmar que la lógica backend no cambió
+5. Screens o descripción clara del nuevo UI
+
+---
+
+Quiero un resultado limpio, intuitivo y listo para usuarios reales (incluso personas mayores).

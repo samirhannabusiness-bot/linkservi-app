@@ -1,0 +1,164 @@
+IMPLEMENTAR: SISTEMA DE NIVELES Y GAMIFICACIÓN DE GESTORES (LINKSERVI)
+
+OBJETIVO:
+Motivar a los gestores a generar ventas y contenido constante mediante un sistema de niveles, recompensas y reconocimiento visual tipo Duolingo/Uber.
+
+IMPORTANTE:
+Debe ser simple, claro y altamente motivador.
+NO debe ser complejo ni confuso.
+
+---
+
+🧠 CONCEPTO CENTRAL
+
+“Mientras más vendes, más subes de nivel y más ganas”
+
+---
+
+🏅 SISTEMA DE NIVELES
+
+Niveles:
+
+* 🟤 Bronce
+* ⚪ Plata
+* 🟡 Oro
+* 💎 Platino
+* 🔥 Elite
+
+---
+
+📊 CÓMO SUBEN DE NIVEL
+
+Basado en:
+
+* dinero generado
+* ventas realizadas
+* contenido creado
+
+Ejemplo:
+
+Bronce → 0 - 100$
+Plata → 100 - 500$
+Oro → 500 - 1500$
+Platino → 1500 - 5000$
+Elite → 5000+
+
+---
+
+💰 MÉTRICAS PRINCIPALES
+
+Mostrar siempre:
+
+* dinero generado
+* ventas totales
+* comisión ganada
+* ranking
+
+---
+
+🔥 BONUS POR CONTENIDO
+
+Recompensar:
+
+* videos con ventas
+* videos con engagement
+
+Ejemplo:
+
+* +$ extra por video viral
+* +boost en ranking
+
+---
+
+🏆 RANKING GLOBAL
+
+Lista:
+
+“Top Gestores del Mes”
+
+Mostrar:
+
+* foto
+* nombre
+* nivel
+* dinero generado
+
+---
+
+🎯 RECOMPENSAS
+
+Ejemplos:
+
+* mayor visibilidad en el feed
+* badge especial
+* acceso a más clientes
+* prioridad en asignaciones
+
+---
+
+💥 PERFIL DEL GESTOR
+
+Mostrar:
+
+* nivel actual
+* progreso al siguiente nivel
+* ingresos generados
+* badge visual
+
+---
+
+📈 BARRA DE PROGRESO
+
+Ejemplo:
+
+“Te faltan $120 para subir a Oro”
+
+---
+
+🎮 MICRO-LOGROS
+
+Ejemplos:
+
+* “Primera venta”
+* “10 ventas completadas”
+* “Primer video viral”
+
+---
+
+📱 UX
+
+* visual
+* motivador
+* tipo juego
+* fácil de entender
+
+---
+
+🚫 PROHIBIDO
+
+* métricas complicadas
+* reglas confusas
+* exceso de números técnicos
+
+---
+
+💡 DIFERENCIAL
+
+Los gestores deben sentir:
+
+“No estoy trabajando… estoy subiendo de nivel”
+
+---
+
+🎯 RESULTADO FINAL
+
+* gestores activos todos los días
+* más contenido generado
+* más ventas
+* más retención
+
+---
+
+Esto no es gamificación.
+
+Es un sistema de motivación basado en dinero real.

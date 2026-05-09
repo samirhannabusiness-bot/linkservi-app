@@ -1,0 +1,214 @@
+Quiero implementar la reorganización completa de mi app "LinkServi" basada en una auditoría previa.
+
+Trabaja paso a paso.
+NO rompas funcionalidades existentes.
+Implementa en fases.
+
+---
+
+# FASE 1 — SIMPLIFICAR ENTRADA
+
+## OBJETIVO
+
+Reducir confusión inicial
+
+---
+
+## CAMBIOS
+
+1. Modificar la landing principal:
+
+Mostrar SOLO:
+
+* "¿Qué necesitas hoy?"
+
+Opciones claras:
+
+* Pedir un servicio
+* Ganar dinero
+* Comprar o alquilar
+* Buscar trabajador
+
+Eliminar exceso de botones actuales.
+
+---
+
+# FASE 2 — HABILITAR EXPLORACIÓN SIN REGISTRO
+
+## OBJETIVO
+
+Permitir ver contenido antes de registrarse
+
+---
+
+Permitir sin login:
+
+* ver trabajadores
+* ver perfiles
+* ver tiendas
+* ver productos
+* ver bolsa de empleo
+
+---
+
+Bloquear solo:
+
+* contactar
+* pagar
+* aceptar trabajos
+
+Mostrar login solo en ese momento.
+
+---
+
+# FASE 3 — REGISTRO SIMPLE
+
+## OBJETIVO
+
+Reducir fricción
+
+---
+
+Eliminar selección compleja de roles.
+
+Nuevo registro:
+
+* email
+* contraseña
+* nombre
+
+Después:
+
+Pregunta simple:
+
+"¿Qué quieres hacer?"
+
+* contratar
+* trabajar
+* vender
+
+(NO incluir co-host aquí)
+
+---
+
+# FASE 4 — UNIFICAR CHAT
+
+## OBJETIVO
+
+Eliminar confusión
+
+---
+
+Crear:
+
+/mensajes
+
+Con tabs:
+
+* Servicios
+* Tienda
+* Empleo
+
+---
+
+Eliminar:
+
+* chats duplicados
+* rutas múltiples de chat
+
+---
+
+# FASE 5 — DASHBOARD UNIFICADO
+
+## OBJETIVO
+
+Una sola entrada clara
+
+---
+
+Crear dashboard con:
+
+* botón principal: "Solicitar servicio"
+
+Cards:
+
+* Servicios
+* Ganar dinero
+* Mi negocio
+* Alquiler
+* Empleo
+* Gestionar equipo
+
+---
+
+Eliminar dashboards separados innecesarios.
+
+---
+
+# FASE 6 — SIMPLIFICAR ROLES
+
+## OBJETIVO
+
+Usuario flexible
+
+---
+
+NO usar roles rígidos.
+
+Implementar:
+
+usuario puede ser:
+
+* cliente
+* trabajador
+* vendedor
+* co-host
+
+según acciones.
+
+---
+
+# FASE 7 — MEJORAR BOLSA DE EMPLEO
+
+## OBJETIVO
+
+Aprovechar video CV
+
+---
+
+* mostrar video en lista
+* destacar thumbnail
+* permitir ver sin login
+* cobrar por contacto
+
+---
+
+# FASE 8 — RENOMBRAR CO-HOST
+
+## OBJETIVO
+
+Lenguaje claro
+
+---
+
+Reemplazar:
+
+"Co-anfitrión"
+
+por:
+
+"Gestionar equipo"
+
+---
+
+# ENTREGA
+
+1. Qué se modificó en cada fase
+2. Qué archivos cambiaron
+3. Confirmar que nada se rompió
+4. Qué falta para terminar
+
+---
+
+Implementar fase por fase.
+Detenerse después de cada fase para validación.

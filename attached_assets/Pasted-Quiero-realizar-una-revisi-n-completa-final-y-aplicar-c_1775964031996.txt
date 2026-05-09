@@ -1,0 +1,174 @@
+Quiero realizar una revisión completa final y aplicar correcciones e integraciones necesarias en mi app ServiLink (marketplace de servicios tipo Uber para Venezuela).
+
+El objetivo es asegurar que la app funcione perfectamente, sea confiable, y esté lista para usuarios reales.
+
+---
+
+1. Corrección del sistema de verificación de trabajadores (CRÍTICO)
+
+Actualmente la sección donde los trabajadores deben subir documentos no funciona correctamente.
+
+Necesito:
+
+* Verificar que el botón o enlace de “Verificación de identidad” navegue correctamente.
+* Asegurar que la pantalla cargue sin errores.
+* Implementar formulario funcional para subir documentos (imagen o PDF).
+* Mostrar estado del proceso:
+
+  * Pendiente
+  * En revisión
+  * Aprobado
+  * Rechazado
+* Confirmar que los archivos se guardan correctamente en el backend.
+* Permitir al administrador ver los documentos y aprobar o rechazar con notas.
+
+---
+
+2. Validación del flujo completo del servicio (tipo Uber)
+
+Verificar que el flujo funcione sin errores:
+
+* Cliente crea servicio (precio fijo o subasta)
+* Trabajador acepta
+* Trabajador inicia trabajo
+* Trabajador marca como finalizado
+* Cliente confirma servicio
+* Servicio pasa a completado
+
+Estados obligatorios:
+
+* Pendiente
+* Aceptado
+* En progreso
+* Finalizado (esperando confirmación)
+* Completado
+* En disputa
+
+---
+
+3. Sistema de precios (adaptado a Venezuela)
+
+Confirmar que:
+
+* NO exista ningún precio por hora
+* Se use:
+
+  * Precio base
+  * Precio por servicio
+  * Oferta del cliente (subasta)
+* Mostrar precio estimado antes de confirmar
+
+---
+
+4. Sistema de pago protegido
+
+Validar que:
+
+* El pago NO se libere automáticamente
+* El cliente tenga control total para confirmar
+* Exista botón:
+
+  * “Confirmar servicio completado”
+  * “Reportar problema”
+* Registrar correctamente cada acción
+
+---
+
+5. Integración de notificaciones push (GRATIS)
+
+Integrar:
+
+* Firebase Cloud Messaging
+
+Notificar:
+
+* Nuevas solicitudes
+* Aceptaciones
+* Finalización
+* Confirmación de pago
+* Mensajes
+
+---
+
+6. Sistema de notificación al administrador vía WhatsApp (SIN API paga)
+
+Integrar usando el número: 584163869939
+
+* Generar enlaces dinámicos con wa.me
+* Activar en:
+
+  * Subida de comprobantes
+  * Servicios completados
+  * Disputas
+
+El mensaje debe incluir:
+
+* ID del servicio
+* Cliente
+* Trabajador
+* Monto
+* Estado
+
+---
+
+7. Sistema de comisión automática
+
+* Aplicar comisión por servicio (ej: 10%)
+* Mostrar:
+
+  * Total
+  * Comisión
+  * Ganancia del trabajador
+* Registrar en historial
+
+---
+
+8. Sistema de referidos
+
+* Código único por usuario
+* Bonificación por invitar
+* Sección “Invitar y ganar”
+
+---
+
+9. Mejoras de experiencia de usuario (UX)
+
+* Botones claros y visibles:
+
+  * Aceptar
+  * Iniciar
+  * Finalizar
+  * Confirmar
+* Flujo simple tipo Uber
+* Interfaz limpia y sin confusión
+
+---
+
+10. Sistema anti-fraude
+
+* Confirmación manual de pagos
+* Alertas contra comprobantes falsos
+* Chat como evidencia
+* Registro de disputas
+
+---
+
+11. Rendimiento y errores
+
+* Verificar que la app cargue rápido
+* Corregir errores visibles
+* Asegurar estabilidad general
+
+---
+
+IMPORTANTE:
+
+* Usar herramientas gratuitas (OpenStreetMap, Supabase, Firebase)
+* No integrar APIs pagas en esta etapa
+* Priorizar funcionalidad, claridad y confianza
+
+---
+
+OBJETIVO FINAL:
+
+Una app estable, segura, simple y lista para usuarios reales en Venezuela, con flujo completo funcional y sin errores críticos.

@@ -1,0 +1,104 @@
+Vamos a construir la siguiente fase del producto enfocada en validar el modelo de negocio completo (co-host + productos + geolocalización básica), manteniendo la implementación simple y escalable.
+
+---
+
+Objetivo:
+
+Tener una versión funcional y visualmente sólida tipo marketplace local (servicios + productos), sin implementar aún toda la complejidad de un e-commerce completo.
+
+---
+
+FASE 1 — Sistema de co-host (versión profesional)
+
+* Añadir rol “cohost”
+
+* Relación: workers.managedBy → cohost
+
+* Panel del co-host con:
+
+  * trabajadores gestionados
+  * solicitudes activas y completadas
+  * ingresos estimados
+
+* Permisos:
+
+  * crear/editar trabajadores
+  * gestionar bookings
+  * aceptar/rechazar solicitudes
+
+* Mostrar en UI:
+  “Gestionado por [co-host]”
+
+---
+
+FASE 2 — Base de productos (simple pero real)
+
+1. Crear tabla products:
+
+* id
+* name
+* description
+* priceUsd
+* image
+* category
+* coHostId
+* latitude
+* longitude
+* isActive
+
+---
+
+2. Panel co-host:
+
+* sección “Mis productos”
+* crear/editar productos (precio en USD)
+
+---
+
+3. Vista de usuario:
+
+* nueva pestaña “Tienda”
+* listado simple de productos
+
+---
+
+4. Integración BCV:
+
+* usar tasa existente
+* mostrar:
+  precioBs = priceUsd × tasaBCV
+* no guardar Bs en DB
+
+---
+
+FASE 3 — Geolocalización básica
+
+* al listar productos:
+
+  * ordenar por cercanía usando latitude/longitude
+* mostrar productos más cercanos primero
+* no implementar mapas complejos aún
+
+---
+
+FASE 4 — Solicitud de producto (simple)
+
+* botón “Solicitar producto”
+* genera una orden básica
+* reutilizar sistema de bookings o crear tabla simple
+
+---
+
+IMPORTANTE — NO incluir aún:
+
+* carrito de compras
+* inventario
+* múltiples proveedores
+* logística (delivery)
+* optimización inteligente
+
+---
+
+Objetivo final:
+
+Simular un marketplace local tipo Amazon + servicios, donde los productos y servicios aparecen según cercanía, gestionados por co-hosts, listo para mostrar a inversionistas sin añadir complejidad innecesaria.

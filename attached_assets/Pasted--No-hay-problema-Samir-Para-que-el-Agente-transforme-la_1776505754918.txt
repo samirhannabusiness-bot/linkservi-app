@@ -1,0 +1,23 @@
+¡No hay problema, Samir! Para que el Agente transforme la app en ese "Unicornio de un billón de dólares" y deje todo en su lugar con la psicología de marketing correcta, pásale este texto.
+
+Es una "Directiva de Diseño de Élite". Pégalo tal cual en el chat de Replit:
+
+"Agente, vamos a llevar ServiLink al siguiente nivel. Quiero que el diseño deje de verse como un proyecto y empiece a verse como una Startup Unicornio (nivel Apple/Google). Aplica estas directivas de diseño y psicología de marketing en TODA la aplicación:
+
+Consistencia de Marca (Tartus Aesthetic): Usa una paleta Dark Mode Premium. El fondo debe ser un negro profundo o gris casi negro, con tarjetas en un tono ligeramente más claro para crear profundidad (Glassmorphism sutil).
+
+Regla de Espaciado (Layout Pro): Nada debe verse saturado. Implementa un sistema de espaciado amplio. Usa la 'Regla del 8' (márgenes y paddings de 8, 16, 24 o 32px) para que la interfaz 'respire'.
+
+Tipografía y Jerarquía: Usa una fuente Sans-Serif moderna. Los títulos deben ser audaces y claros; los textos secundarios deben tener un color más tenue (ej. text-gray-400) para guiar el ojo del usuario hacia lo importante.
+
+Botones y Call to Action (CTA): Solo el botón principal de cada pantalla debe tener el color de acento brillante. Usa bordes muy redondeados (rounded-2xl o 3xl). Aplica micro-interacciones: cada botón debe tener una transición suave al pasar el cursor o tocarlo.
+
+Psicología de Marketing:
+
+Fricción Cero: Haz que los procesos (como contratar o registrarse) tengan los mínimos clics posibles.
+
+Prueba Social: Asegúrate de que las insignias de 'Verificado' y las estrellas de calificación resalten con elegancia.
+
+Escaneabilidad: Un usuario debe entender qué hace cada pantalla en menos de 2 segundos.
+
+Misión: Audita cada archivo de la interfaz (Home, Dashboard, Market, Verificación) y rediseña los componentes que se vean genéricos para que parezcan creados por un equipo de diseño de Silicon Valley. Menos es más: busca el minimalismo absoluto pero funcional."

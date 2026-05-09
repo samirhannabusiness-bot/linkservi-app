@@ -1,0 +1,219 @@
+IMPLEMENTAR: LINKSERVI STREAM (SOCIAL COMMERCE ENGINE)
+
+OBJETIVO:
+Crear un sistema de contenido tipo TikTok integrado con el marketplace de LinkServi, donde cada video genere ventas directas de productos y servicios dentro de la app.
+
+IMPORTANTE:
+NO es una red social.
+Es una máquina de conversión.
+
+---
+
+🧠 CONCEPTO CENTRAL
+
+“No ver videos… comprar desde el video”
+
+Cada video debe estar vinculado obligatoriamente a:
+
+* un producto
+* un servicio
+* o un trabajador
+
+SIN EXCEPCIONES.
+
+---
+
+📱 NUEVA SECCIÓN
+
+Nombre:
+"Explorar"
+
+Ubicación:
+Tab principal (visible en navegación inferior)
+
+---
+
+🎥 FEED PRINCIPAL
+
+* Scroll vertical tipo TikTok
+* Autoplay
+* Swipe hacia arriba
+* Sin distracciones
+
+---
+
+🧲 OVERLAY DE CONVERSIÓN (CRÍTICO)
+
+Sobre cada video mostrar:
+
+* Nombre del producto/servicio
+* Precio (si aplica)
+* Ubicación (opcional)
+* Botón grande:
+
+👉 "Comprar ahora"
+👉 "Contratar ahora"
+
+---
+
+⚡ ACCIÓN INMEDIATA
+
+Al tocar el botón:
+
+* abrir modal de compra
+* o ir directo a pago rápido (C2P)
+
+SIN salir del flujo
+
+---
+
+👤 PANEL DE GESTOR (CREADOR)
+
+Sección:
+"Crear contenido"
+
+---
+
+🎬 SUBIDA DE VIDEO
+
+Campos:
+
+* Video (obligatorio)
+* Seleccionar producto / servicio (obligatorio)
+* Descripción corta
+* Categoría automática
+
+---
+
+🚫 REGLA CRÍTICA
+
+NO permitir subir video sin vincular producto o servicio.
+
+---
+
+💰 SISTEMA DE INCENTIVOS
+
+Gestor gana:
+
+* 1.5% base (ya existente)
+* * bonus por ventas generadas desde video
+
+---
+
+📊 TRACKING (OBLIGATORIO)
+
+Por cada video medir:
+
+* visualizaciones
+* clics
+* conversiones
+* dinero generado
+
+---
+
+🧠 ALGORITMO (FASE 1 - SIMPLE)
+
+Ordenar feed por:
+
+1. ubicación del usuario
+2. categoría
+3. ventas generadas
+4. engagement (secundario)
+
+NO implementar IA compleja aún.
+
+---
+
+💥 PANEL ADMIN (CLAVE)
+
+Nueva sección:
+"Contenido"
+
+Admin puede:
+
+* ver todos los videos
+* ver cuánto dinero genera cada uno
+* destacar videos (featured)
+* descargar videos con watermark LinkServi
+* bloquear contenido
+
+---
+
+📤 VIRALIDAD
+
+Botón compartir:
+
+* WhatsApp (principal)
+* copiar link
+
+Link debe abrir directamente el video en la app o web.
+
+---
+
+💣 EXPERIENCIA DE USUARIO
+
+Debe sentirse:
+
+* rápido
+* adictivo
+* fluido
+* sin fricción
+
+---
+
+🚫 PROHIBIDO
+
+* videos sin objetivo comercial
+* contenido vacío
+* pasos extra antes de pagar
+
+---
+
+🎯 UX COPY
+
+NO usar lenguaje técnico
+
+Ejemplos:
+
+❌ "Ver producto"
+✔ "Comprar ahora"
+
+❌ "Abrir servicio"
+✔ "Contratar ahora"
+
+---
+
+🔥 DIFERENCIAL CLAVE
+
+Esto NO es entretenimiento.
+
+Es:
+
+"contenido que vende en tiempo real"
+
+---
+
+📈 RESULTADO ESPERADO
+
+* usuarios compran sin salir del video
+* gestores crean contenido constante
+* crecimiento orgánico por shares
+* aumento de conversiones
+
+---
+
+FASE DE IMPLEMENTACIÓN
+
+1. Feed básico funcional
+2. Subida de video con vínculo obligatorio
+3. Botón de compra dentro del video
+4. Tracking de ventas
+5. Panel admin simple
+
+---
+
+Esto no es un feature.
+
+Es un motor de crecimiento viral + ventas.
+
+---

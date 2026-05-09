@@ -1,0 +1,34 @@
+# Version control
+.git
+.gitignore
+
+# Node modules — reinstalled inside the image
+node_modules
+**/node_modules
+
+# Build outputs — rebuilt inside the image
+**/dist
+artifacts/servilink/dist
+
+# Replit / editor files
+.replit
+replit.nix
+.local
+.upm
+.cache
+
+# Attached assets (screenshots, test images — not needed in production)
+attached_assets
+
+# Development logs and temp files
+*.log
+*.lock.bak
+tmp/
+
+# Environment files (secrets are injected via Cloud Run env vars)
+.env
+.env.*
+
+# Test files
+**/*.test.ts
+**/*.spec.ts

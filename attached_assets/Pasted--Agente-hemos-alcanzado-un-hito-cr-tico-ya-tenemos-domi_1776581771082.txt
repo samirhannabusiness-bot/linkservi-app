@@ -1,0 +1,41 @@
+"Agente, hemos alcanzado un hito crítico: ya tenemos dominio oficial (linkservi.com) y estamos configurando Google Search Console. Para pasar a la fase de lanzamiento, necesito una Auditoría Integral de 360 grados y una reorganización total de la arquitectura de la app.
+
+Realiza las siguientes tareas y entrégame el reporte detallado:
+
+1. Mapa de Rutas y Funcionalidades (Arquitectura):
+Haz un desglose de todas las rutas de la app (/admin, /jobs, /rentals, /market, etc.) y explica exactamente:
+
+Qué hace cada vista.
+
+Quién tiene acceso (Roles: Admin, Trabajador, Cliente, Empresa).
+
+Verifica que no existan rutas 'huérfanas' o botones que no lleven a ningún lado.
+
+2. Auditoría de los 3 Pilares de Negocio:
+Revisa y confirma que la lógica de funcionamiento sea 100% coherente con nuestro modelo:
+
+Bolsa de Empleo: Suscripciones de $1 (Trabajador) y $2 (Empresa) vinculadas a la billetera interna.
+
+ServiRent (Alquileres): Sistema de depósito en garantía (Escrow) con comisión del 15% para la app.
+
+Servicios: Flujo de contratación y el nuevo sistema de Garantía de 15 días vinculado al trabajador original.
+
+3. Limpieza de Errores y "Debug" Profundo:
+
+Revisa el código en busca de errores que impidan que los botones de 'Verificar Identidad' o 'Quitar Verificación' funcionen en la base de datos de Firebase.
+
+Asegura que las imágenes de los documentos se borren realmente al revocar una cuenta.
+
+Optimiza las consultas para que la app cargue rápido ahora que usaremos el dominio oficial.
+
+4. Propuesta de Orden Visual (UX/UI):
+Basado en nuestra idea de 'Super App', sugéreme cómo organizar la Web para que el usuario no se sienta perdido. Quiero que todo se vea ordenado:
+
+¿Cómo mejorar el menú de navegación?
+
+¿Cómo presentar los tres pilares en la Landing Page para que se entienda el flujo de 'Busco Empleo' vs 'Contratar Personal'?
+
+5. Preparación para Producción:
+Verifica que las variables de entorno, los headers de seguridad y la conexión con el dominio linkservi.com estén optimizados.
+
+Misión: Entrégame un manual de funcionamiento de lo que has construido hasta hoy. Necesito entender mi app al 100% para poder lanzarla al mercado masivo."

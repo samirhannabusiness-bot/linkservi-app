@@ -1,0 +1,176 @@
+IMPLEMENTAR: LINKSERVI INSTANT STORE (V1 REAL - IMPORTACIÓN CSV/XLSX)
+
+OBJETIVO:
+Convertir el importador actual (solo UI) en una funcionalidad real que permita a negocios cargar productos masivamente en segundos.
+
+IMPORTANTE:
+Enfocarse SOLO en CSV/XLSX en esta versión.
+NO implementar URL ni Google Sheets todavía.
+
+---
+
+🧠 ALCANCE V1
+
+Fuente soportada:
+
+✔ Archivo CSV / XLSX
+
+Deshabilitar en UI:
+
+* URL catálogo → "Próximamente"
+* Google Sheets → "Próximamente"
+
+---
+
+🗄️ BACKEND
+
+Crear:
+
+📁 artifacts/api-server/src/routes/imports.ts
+
+Endpoints:
+
+1. GET /api/imports/my-stores
+
+* devuelve tiendas del usuario (cohost/seller)
+
+2. POST /api/imports/run
+
+Body:
+{
+storeId,
+file
+}
+
+Proceso:
+
+* parsear archivo CSV/XLSX
+
+* mapear columnas:
+  name
+  price
+  stock
+  category
+  imageUrl (opcional)
+
+* validar:
+  nombre obligatorio
+  precio válido
+
+* crear o actualizar productos
+
+* usar externalId si existe para evitar duplicados
+
+3. GET /api/imports/runs/:runId
+
+* devolver progreso:
+  total
+  procesados
+  creados
+  actualizados
+  errores
+
+---
+
+📊 BASE DE DATOS
+
+Crear tabla:
+
+import_runs
+
+Campos:
+
+* id
+* storeId
+* status (pending, running, completed, failed)
+* total
+* created
+* updated
+* errors
+* createdAt
+
+---
+
+🧠 PROCESAMIENTO
+
+* ejecutar en background (no bloquear request)
+* permitir polling desde frontend
+
+---
+
+🖥️ FRONTEND
+
+En EnterpriseImportPage:
+
+✔ activar pestaña CSV/XLSX
+❌ deshabilitar URL y Sheets (con label "Próximamente")
+
+---
+
+📤 FLUJO
+
+1. usuario sube archivo
+2. click "Conectar catálogo"
+3. inicia importación
+4. mostrar progreso:
+
+   * barra
+   * estados
+5. mostrar resultado final
+
+---
+
+💥 RESULTADO FINAL (CRÍTICO)
+
+Mostrar:
+
+"Tu tienda está en vivo"
+
+* resumen:
+
+- productos creados
+- productos actualizados
+- errores
+
+---
+
+🧭 DISCOVERY (IMPORTANTE)
+
+Agregar botón en panel:
+
+"Importar productos en masa"
+
+Ubicación:
+
+* dashboard de tienda
+* lista de productos vacía
+
+---
+
+🎯 UX
+
+* simple
+* rápido
+* sin pasos innecesarios
+
+---
+
+🚫 PROHIBIDO
+
+* múltiples fuentes en esta versión
+* lógica compleja
+* validaciones excesivas
+
+---
+
+🎯 RESULTADO FINAL
+
+Un negocio puede:
+
+subir un archivo → tener su tienda lista en minutos
+
+---
+
+Esto no es un feature.
+
+Es la puerta de entrada para empresas grandes.

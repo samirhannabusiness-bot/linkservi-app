@@ -1,0 +1,29 @@
+{
+  "_comment": "Config local — NO commitear con credenciales reales. Para conectarse a SAINT real cambia db.type a 'sqlserver' y completa host/user/password/database. db.type='mock' es sólo para dev/smoke-test.",
+  "apiUrl": "http://localhost:8080",
+  "apiKey": "saint-persistent-key-XYZ123",
+  "intervalMin": 15,
+  "db": {
+    "type": "mock",
+    "host": "no-existe.local",
+    "port": 1433,
+    "user": "sa",
+    "password": "",
+    "database": "SAINT_DB",
+    "options": {
+      "encrypt": false,
+      "trustServerCertificate": true
+    }
+  },
+  "mapping": {
+    "table": "productos",
+    "sku": "codigo",
+    "name": "descripcion",
+    "price": "precio",
+    "stock": "existencia"
+  },
+  "logging": {
+    "level": "info",
+    "file": "./logs/sync-agent.log"
+  }
+}

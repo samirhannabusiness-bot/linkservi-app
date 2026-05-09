@@ -1,0 +1,192 @@
+Socket.io — mejoras críticas de producción (seguridad, resiliencia y escalabilidad)
+
+---
+
+# OBJETIVO
+
+Fortalecer la implementación actual de WebSockets (Socket.io) para garantizar seguridad, estabilidad en condiciones reales (conexión inestable) y preparación para escalabilidad.
+
+---
+
+# 1. AUTENTICACIÓN DEL SOCKET (CRÍTICO)
+
+## Problema
+
+Actualmente el socket puede aceptar conexiones sin validar correctamente al usuario.
+
+---
+
+## Implementación requerida
+
+* validar JWT en la conexión del socket (handshake)
+
+---
+
+## Backend
+
+* leer token desde:
+
+  * auth.token (si se envía en el cliente)
+  * o cookie (sl_token)
+
+---
+
+## Lógica
+
+* verificar JWT con JWT_SECRET
+* si es inválido:
+
+  * rechazar conexión (`next(new Error("Unauthorized"))`)
+
+---
+
+## Resultado
+
+* solo usuarios autenticados pueden conectarse
+* evita accesos indebidos
+
+---
+
+# 2. MANEJO DE RECONEXIÓN
+
+## Problema
+
+si el usuario pierde conexión:
+
+* deja de recibir mensajes
+* no se vuelve a unir automáticamente
+
+---
+
+## Implementación requerida
+
+### Frontend
+
+* habilitar auto-reconnect de Socket.io (por defecto true)
+* manejar evento:
+
+```js
+socket.on("connect", () => {
+  // re-join rooms
+})
+```
+
+---
+
+## Lógica
+
+* al reconectar:
+
+  * volver a emitir evento para unirse a la room correspondiente:
+
+    * booking:{id}
+    * store:{storeId}:{buyerId}
+    * job:{convId}
+
+---
+
+## Resultado
+
+* conexión resiliente
+* experiencia continua
+
+---
+
+# 3. MENSAJES PERDIDOS (HISTORIAL)
+
+## Problema
+
+si el usuario entra tarde o pierde conexión:
+
+* no ve mensajes enviados antes
+
+---
+
+## Implementación requerida
+
+### Frontend
+
+* al montar el chat:
+
+  * hacer fetch inicial de mensajes desde API
+
+---
+
+### Backend
+
+* mantener endpoint existente:
+
+  * GET mensajes por conversación
+
+---
+
+## Regla
+
+👉 el socket es SOLO para tiempo real
+👉 la fuente de verdad es la base de datos
+
+---
+
+## Resultado
+
+* no se pierden mensajes
+* consistencia total
+
+---
+
+# 4. ESCALABILIDAD FUTURA (REDIS ADAPTER)
+
+## Problema
+
+actualmente Socket.io funciona en una sola instancia
+
+---
+
+## Riesgo
+
+cuando escales a múltiples servidores:
+
+* los eventos no se sincronizan entre instancias
+
+---
+
+## Implementación futura
+
+* usar:
+
+👉 @socket.io/redis-adapter
+
+---
+
+## Requisitos
+
+* Redis server
+* pub/sub entre instancias
+
+---
+
+## Resultado
+
+* sockets distribuidos
+* escalabilidad horizontal
+
+---
+
+# CONSIDERACIONES
+
+* no romper la implementación actual
+* mantener compatibilidad con rooms existentes
+* priorizar seguridad y estabilidad
+
+---
+
+# RESULTADO FINAL
+
+* sistema de chat seguro
+* reconexión automática
+* mensajes consistentes
+* preparado para escalar
+
+---
+
+Prioridad: ALTA 🚀

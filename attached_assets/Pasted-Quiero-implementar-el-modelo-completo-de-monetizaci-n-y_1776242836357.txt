@@ -1,0 +1,150 @@
+Quiero implementar el modelo completo de monetización y roles de ServiLink basado en un sistema escalable con clientes, trabajadores, vendedores y hosts.
+
+Este cambio es estructural (backend + frontend + lógica de negocio), así que hazlo de forma ordenada y sin romper lo existente.
+
+🔹 1. ROLES DEL SISTEMA
+
+Crear y usar estos roles claramente separados:
+
+customer → cliente que contrata servicios o compra productos
+worker → trabajador que presta servicios
+seller → vendedor del marketplace (dueño de tienda)
+host → gestor que gana comisiones por operaciones
+
+IMPORTANTE:
+
+Un usuario puede tener más de un rol (multi-role), pero cada rol tiene lógica independiente
+NO mezclar seller con host
+🔹 2. MODELO DE COMISIONES
+🛠 SERVICIOS
+
+Cuando se paga un servicio:
+
+Comisión total: 20%
+
+Distribución:
+
+12% → plataforma
+8% → host (si existe)
+80% → trabajador
+
+Si NO hay host:
+
+20% → plataforma
+80% → trabajador
+🏪 PRODUCTOS (MARKETPLACE)
+
+Cuando se vende un producto:
+
+Comisión total: 10%
+
+Distribución:
+
+7% → plataforma
+3% → host (si gestiona esa tienda)
+90% → vendedor (seller)
+
+Si NO hay host:
+
+10% → plataforma
+90% → vendedor
+
+IMPORTANTE:
+
+El seller NUNCA gana comisión (solo vende)
+🔹 3. RELACIÓN HOST
+
+Implementar relación opcional:
+
+Un worker puede tener hostId
+Una store puede tener hostId
+
+Esto define si el host gana comisión o no.
+
+🔹 4. CAMBIOS EN BACKEND
+
+Actualizar:
+
+Servicios:
+cálculo de comisión dinámica
+guardar:
+platformFee
+hostFee
+workerEarnings
+Productos:
+guardar:
+platformFee
+hostFee
+sellerEarnings
+Base de datos:
+
+Agregar campos si no existen:
+
+hostId (en workers, stores, orders)
+platformFee
+hostFee
+netAmount (lo que recibe el usuario)
+🔹 5. DASHBOARDS
+HOST:
+
+Crear dashboard con:
+
+total generado
+comisión ganada
+trabajadores asociados
+tiendas asociadas
+SELLER:
+ventas totales
+comisión pagada
+ingresos netos
+WORKER:
+ingresos
+servicios realizados
+🔹 6. REGISTRO (MUY IMPORTANTE)
+
+Separar en 4 opciones:
+
+Busco servicios → customer
+Ofrezco servicios → worker
+Quiero vender productos → seller
+Quiero gestionar y ganar comisiones → host
+
+UI:
+
+destacar opción host (más llamativa)
+🔹 7. PLANES HOST (ESCALADO 🔥)
+
+Crear sistema de niveles:
+
+Bronze
+comisión: 5%
+límite: 5 trabajadores
+Silver
+comisión: 7%
+límite: 15 trabajadores
+Gold
+comisión: 10%
+ilimitado
+
+Esto reemplaza el 8% fijo según el plan.
+
+🔹 8. REGLAS IMPORTANTES
+No mostrar comisiones al cliente (solo total)
+Validar que nadie gane doble comisión
+Si no hay host → todo va a la plataforma
+Evitar cálculos duplicados
+🔹 9. OBJETIVO
+
+Convertir ServiLink en:
+
+plataforma de servicios tipo Uber
+marketplace tipo MercadoLibre
+sistema de crecimiento tipo afiliados (hosts)
+
+Todo integrado en un solo sistema escalable.
+
+🔥 IMPORTANTE
+
+Haz esto modular, limpio y escalable.
+
+No romper funcionalidades actuales.

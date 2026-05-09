@@ -1,0 +1,107 @@
+Quiero que apliques mejoras sobre la FASE 2 ya implementada (transacciones) en mi proyecto "LinkServi".
+
+NO rompas funcionalidades existentes.
+NO cambies la lógica de negocio principal.
+EXPLICA cada cambio y muestra código antes/después.
+
+---
+
+# OBJETIVO
+
+Hacer las operaciones críticas:
+
+* idempotentes (no se ejecutan dos veces por error)
+* seguras por estado (state validation)
+* trazables (logging claro)
+
+---
+
+# 1. IDEMPOTENCIA (CRÍTICO)
+
+Para las siguientes operaciones:
+
+* POST /bookings/:id/complete
+* POST /product-orders/:id/confirm-delivery
+* PUT /admin/rentals/:id/status (cuando sea cancel)
+
+Haz lo siguiente:
+
+ANTES de ejecutar la transacción:
+
+1. Leer el estado actual del registro
+2. Si ya está en estado final, retornar sin ejecutar lógica
+
+Ejemplo:
+
+const booking = await db.select().from(bookings).where(...).limit(1);
+
+if (booking.status === "completed") {
+return res.json({ message: "Booking already completed" });
+}
+
+---
+
+# 2. VALIDACIÓN DE ESTADO (STATE MACHINE BÁSICA)
+
+Antes de cambiar estados, valida transiciones válidas:
+
+Ejemplos:
+
+* confirm-delivery SOLO si status === "dispatched"
+* complete booking SOLO si status === "finished"
+* cancel rental SOLO si status !== "cancelled"
+
+Si no cumple:
+
+return res.status(400).json({
+message: "Invalid state transition"
+});
+
+---
+
+# 3. LOGGING PROFESIONAL
+
+Usa Pino (ya configurado):
+
+Agregar logs en:
+
+ANTES de la transacción:
+logger.info("Starting transaction", { operation: "confirm-delivery", id })
+
+DESPUÉS de éxito:
+logger.info("Transaction success", { operation: "...", id })
+
+EN error:
+logger.error("Transaction failed", { operation: "...", error })
+
+---
+
+# 4. PROTEGER CONTRA DOBLE EJECUCIÓN CONCURRENTE (EXTRA PRO)
+
+Dentro de la transacción:
+
+* Releer el registro usando "FOR UPDATE" si es posible con Drizzle
+* Validar nuevamente el estado dentro de la transacción
+
+---
+
+# 5. MANTENER BUENAS PRÁCTICAS
+
+* NO meter llamadas externas dentro de la transacción
+* NO meter notificaciones dentro de la transacción
+* Mantener operaciones mínimas dentro del bloque
+
+---
+
+# ENTREGA FINAL
+
+1. Lista de endpoints mejorados
+2. Código antes/después (resumido)
+3. Confirmación de idempotencia
+4. Confirmación de validación de estados
+5. Logs agregados
+6. Riesgos (si hay)
+
+---
+
+Quiero código limpio, seguro y preparado para producción real.

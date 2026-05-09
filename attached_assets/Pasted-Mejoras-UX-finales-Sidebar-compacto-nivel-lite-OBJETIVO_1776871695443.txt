@@ -1,0 +1,136 @@
+Mejoras UX finales — Sidebar compacto (nivel élite)
+
+---
+
+# OBJETIVO
+
+Elevar la experiencia del sidebar compacto a nivel premium con interacciones más inteligentes, fluidas y profesionales.
+
+---
+
+# 1. EXPAND ON HOVER (DESKTOP)
+
+## Comportamiento
+
+Cuando el sidebar esté en modo compacto:
+
+* hover sobre el sidebar →
+  → expandir temporalmente a tamaño completo
+* al salir el cursor →
+  → volver a modo compacto
+
+---
+
+## Condiciones
+
+* solo en desktop (no en mobile)
+* no afectar el estado persistente (no guardar este cambio)
+* mantener animación suave existente
+
+---
+
+## Resultado
+
+* acceso rápido sin clic
+* experiencia tipo Slack / Notion
+
+---
+
+# 2. TOOLTIP PERSONALIZADO
+
+## Reemplazar
+
+* eliminar uso de `title` nativo
+
+---
+
+## Implementar
+
+* tooltip propio con estilo consistente con la app
+
+---
+
+## Diseño
+
+* fondo oscuro (rgba o glass)
+* texto blanco
+* borde suave
+* pequeño fade-in (100–150ms)
+* posición lateral al icono
+
+---
+
+## Resultado
+
+* UI más profesional
+* coherencia visual
+
+---
+
+# 3. TRANSICIONES MEJORADAS
+
+## Ajustes
+
+* duración: 200ms → 220ms
+* easing: suavizar (ease-in-out mejorado o cubic-bezier refinado)
+
+---
+
+## Aplicar a
+
+* ancho del sidebar
+* aparición de texto
+* hover de items
+
+---
+
+## Resultado
+
+* sensación más fluida
+* menos “corte” visual
+
+---
+
+# 4. AUTO-COMPACT EN MOBILE
+
+## Comportamiento
+
+En pantallas pequeñas:
+
+* sidebar inicia siempre en modo compacto
+* evitar ocupar demasiado espacio
+
+---
+
+## Opcional
+
+* botón flotante para expandir temporalmente
+
+---
+
+## Resultado
+
+* mejor experiencia móvil
+* interfaz más limpia
+
+---
+
+# 5. DETALLES FINALES
+
+* mantener accesibilidad (aria-labels en iconos)
+* evitar renders innecesarios
+* no romper estado persistente actual
+* mantener compatibilidad con SidebarContext existente
+
+---
+
+# RESULTADO FINAL
+
+* sidebar inteligente
+* interacción fluida
+* UX nivel producto premium
+* sensación de app moderna y cuidada
+
+---
+
+Prioridad: MEDIA 🚀

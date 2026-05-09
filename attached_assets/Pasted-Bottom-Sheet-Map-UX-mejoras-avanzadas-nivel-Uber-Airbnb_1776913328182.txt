@@ -1,0 +1,136 @@
+Bottom Sheet + Map UX — mejoras avanzadas (nivel Uber / Airbnb)
+
+---
+
+# OBJETIVO
+
+Optimizar la interacción entre el mapa y el bottom sheet para lograr una experiencia fluida, táctil y de alto nivel, alineada con estándares de aplicaciones como Uber y Airbnb.
+
+---
+
+# 1. SNAP LEVELS (ALTURAS DINÁMICAS)
+
+## Implementación requerida
+
+El bottom sheet debe soportar 3 niveles de altura:
+
+* 30% → vista compacta (preview)
+* 60% → vista media (info principal)
+* 90% → vista completa (detalle)
+
+---
+
+## Comportamiento
+
+* permitir arrastrar (drag) entre niveles
+* animación suave (spring / easing natural)
+* mantener estado actual al interactuar
+
+---
+
+## Resultado
+
+* navegación más fluida
+* mejor uso del espacio en mobile
+* experiencia tipo Uber
+
+---
+
+# 2. SWIPE DOWN PARA CERRAR
+
+## Implementación requerida
+
+* detectar gesto de swipe hacia abajo
+* si supera cierto threshold → cerrar bottom sheet
+
+---
+
+## Comportamiento
+
+* gesto natural (touch-friendly)
+* animación de cierre suave (slide down + fade)
+
+---
+
+## Resultado
+
+* interacción intuitiva
+* elimina necesidad de botón cerrar
+
+---
+
+# 3. HIGHLIGHT DEL MARKER ACTIVO
+
+## Implementación requerida
+
+Cuando un producto/worker es seleccionado:
+
+* el marker correspondiente debe:
+
+  * escalar (1 → 1.15 o 1.2)
+  * cambiar color (ej: primario o highlight)
+  * aumentar sombra o glow
+
+---
+
+## Lógica
+
+* comparar selectedId con id del marker
+* aplicar clase activa solo al seleccionado
+
+---
+
+## Resultado
+
+* feedback visual claro
+* mejora orientación del usuario en el mapa
+
+---
+
+# 4. MULTI-CARDS (SWIPE ENTRE ITEMS)
+
+## Implementación requerida
+
+Permitir navegación horizontal entre productos/servicios sin cerrar el bottom sheet:
+
+* swipe izquierda/derecha
+* o carrusel horizontal
+
+---
+
+## Comportamiento
+
+* al cambiar card:
+
+  * actualizar selectedId
+  * centrar mapa con flyTo
+  * actualizar highlight del marker
+
+---
+
+## Resultado
+
+* exploración continua
+* UX tipo Airbnb
+* mayor engagement
+
+---
+
+# CONSIDERACIONES
+
+* mobile-first
+* evitar re-renders innecesarios
+* mantener sincronización mapa ↔ UI
+* usar animaciones suaves (no bruscas)
+
+---
+
+# RESULTADO FINAL
+
+* interacción fluida y moderna
+* experiencia premium tipo app líder
+* mayor retención y conversión
+
+---
+
+Prioridad: MEDIA 🚀

@@ -1,0 +1,165 @@
+AJUSTES UX + BRANDING: LINKSERVI INSTANT STORE (NIVEL ENTERPRISE)
+
+OBJETIVO:
+Transformar el importador actual en una experiencia premium tipo empresa (Amazon / Shopify), enfocada en impacto visual, claridad y conversión.
+
+IMPORTANTE:
+NO modificar lógica backend existente.
+SOLO mejorar UI, naming y experiencia.
+
+---
+
+🧠 CAMBIO DE CONCEPTO
+
+ANTES:
+"Importador / Sync / CSV"
+
+DESPUÉS:
+"LinkServi Instant Store"
+
+El usuario NO debe sentir que está importando datos.
+Debe sentir que está activando su negocio.
+
+---
+
+🏢 RENOMBRAR SECCIÓN
+
+ANTES:
+/enterprise/import
+
+DESPUÉS:
+"Centro Empresarial" → "Catálogo"
+
+---
+
+🎯 HEADER PRINCIPAL
+
+Título:
+"Conecta tu catálogo en segundos"
+
+Subtítulo:
+"Activa tu tienda en LinkServi sin cambiar tu sistema"
+
+---
+
+🔘 BOTÓN PRINCIPAL
+
+ANTES:
+"Importar"
+
+DESPUÉS:
+"⚡ Conectar catálogo"
+
+---
+
+👁️ PREVISUALIZACIÓN (NUEVO - CRÍTICO)
+
+Antes de ejecutar importación:
+
+Mostrar preview visual de 3–6 productos:
+
+* imagen
+* nombre
+* precio
+
+Título:
+"Así se verán tus productos en LinkServi"
+
+Esto genera confianza inmediata.
+
+---
+
+🔄 EXPERIENCIA DE SINCRONIZACIÓN
+
+Reemplazar mensajes técnicos por mensajes emocionales:
+
+"Conectando con tu sistema..."
+"Detectando estructura de catálogo..."
+"Sincronizando productos en tiempo real..."
+"Optimizando imágenes..."
+"Activando tu tienda en LinkServi..."
+
+Agregar animación fluida + barra de progreso + contador real
+
+---
+
+💥 PANTALLA FINAL (MUY IMPORTANTE)
+
+Reemplazar resultado técnico por impacto emocional:
+
+Título grande:
+"Tu tienda está en vivo"
+
+Subtexto:
+"Tu catálogo ya está disponible para miles de clientes"
+
+Tarjetas:
+
+✅ Productos agregados
+🔄 Productos actualizados
+⚠️ Errores (con botón ver detalle)
+
+---
+
+🚀 CTA FINAL
+
+Botón principal grande:
+
+"Ver mi tienda"
+
+Debajo mostrar:
+
+linkservi.com/{slug}
+
+---
+
+🟢 ESTADO DEL SISTEMA (EXTRA PRO)
+
+Mostrar indicadores:
+
+🟢 Sincronización activa
+🟢 Inventario actualizado
+🟢 Sistema estable
+
+---
+
+🎨 DISEÑO
+
+* Dark mode elegante (fintech)
+* Espacios amplios
+* Tipografía clara
+* Animaciones suaves
+* Nada recargado
+
+---
+
+📱 MOBILE FIRST
+
+Todo debe verse perfecto en móvil:
+
+* botones grandes
+* pasos claros
+* sin scroll innecesario
+
+---
+
+🚫 PROHIBIDO
+
+* lenguaje técnico (CSV, JSON visible al usuario)
+* pantallas saturadas
+* pasos complejos
+
+---
+
+🎯 RESULTADO FINAL
+
+Una empresa debe sentir:
+
+"No estoy subiendo productos...
+Estoy activando mi negocio en otra plataforma"
+
+---
+
+Esto no es una herramienta.
+
+Es una experiencia de activación empresarial.

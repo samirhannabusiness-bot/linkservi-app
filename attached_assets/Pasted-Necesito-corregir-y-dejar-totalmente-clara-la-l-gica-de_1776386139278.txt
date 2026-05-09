@@ -1,0 +1,108 @@
+Necesito corregir y dejar totalmente clara la lógica de roles entre VENDEDOR (seller) y HOST (cohost).
+
+OBJETIVO:
+Separar completamente ambos roles a nivel de negocio, backend y frontend.
+
+REGLAS CLAVE (OBLIGATORIO):
+
+1. VENDEDOR (seller)
+
+* Un usuario registrado como seller es SOLO vendedor.
+* NO es host ni debe tener funcionalidades de host.
+
+SU FUNCIÓN:
+
+* Crear y gestionar SU PROPIA tienda
+* Vender productos
+* Recibir pagos por ventas
+
+IMPORTANTE:
+
+* El vendedor NO gana comisiones
+* El vendedor PAGA comisión a la plataforma (ServiLink)
+* Ejemplo:
+
+  * Venta $100
+  * Comisión 10% → ServiLink gana $10
+  * Vendedor recibe $90
+
+2. HOST (cohost)
+
+* Un usuario registrado como cohost es SOLO host
+* NO es vendedor directo (a menos que se implemente explícitamente en el futuro)
+
+SU FUNCIÓN:
+
+* Gestionar tiendas de otros
+* Gestionar trabajadores (servicios)
+* Reclutar y administrar red
+
+IMPORTANTE:
+
+* El host SÍ gana comisión
+* Gana por:
+
+  * ventas de tiendas que gestiona
+  * servicios realizados por trabajadores en su red
+
+3. UI / FRONTEND
+
+* En todo el sistema:
+
+❌ NO usar la palabra "host" para vendedores
+❌ NO mezclar términos
+
+✔ Seller → mostrar siempre "Vendedor"
+✔ Cohost → mostrar siempre "Host" o "Gestor"
+
+4. PANEL DE VENDEDOR
+
+* Debe decir claramente:
+
+"Panel de Vendedor"
+
+* NO debe decir:
+
+  * host
+  * cohost
+  * gestor
+
+5. PERMISOS
+
+Separar completamente accesos:
+
+SELLER:
+
+* tiendas propias
+* productos
+* pedidos
+* ganancias por ventas
+
+COHOST:
+
+* red de trabajadores
+* comisiones
+* analíticas de red
+* gestión de tiendas de terceros
+
+6. BACKEND
+
+* Revisar endpoints:
+
+  * asegurar que seller no acceda a lógica de cohost
+  * asegurar que cohost no use lógica de seller como propia tienda (si no corresponde)
+
+7. OBJETIVO FINAL
+
+Eliminar completamente cualquier confusión entre:
+
+* quien VENDE (seller)
+* quien GESTIONA y GANA COMISIONES (cohost)
+
+Cada rol debe tener:
+
+* lógica clara
+* ingresos claros
+* interfaz clara
+
+Esto es fundamental para el modelo de negocio.

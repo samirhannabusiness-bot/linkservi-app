@@ -1,0 +1,72 @@
+Quiero mejorar mi app tipo marketplace de servicios (ServiLink), estilo Uber, enfocada en Venezuela. Necesito que implementes las siguientes funcionalidades clave para llevarla a nivel profesional, priorizando confianza, rapidez y facilidad de uso:
+
+1. Geolocalización en tiempo real:
+
+* Integrar mapa (tipo Uber) donde el cliente pueda ver trabajadores cercanos.
+* Mostrar distancia y disponibilidad en tiempo real.
+* Botón de “Solicitar servicio ahora” directamente desde el mapa.
+
+2. Sistema de confianza y reputación:
+
+* Perfil completo del trabajador con:
+
+  * Número de trabajos realizados
+  * Calificación promedio
+  * Porcentaje de cumplimiento
+* Sistema de niveles (Nuevo, Verificado, Top trabajador).
+* Insignia de verificado para usuarios aprobados.
+
+3. Sistema de pagos seguro (adaptado a Venezuela):
+
+* Métodos: Pago Móvil, Zelle, efectivo y Binance.
+* Implementar sistema tipo “escrow” donde el dinero se retiene hasta que el servicio sea completado correctamente.
+* Historial de pagos claro para cliente y trabajador.
+* Balance interno (wallet) para cada usuario.
+
+4. Protección contra estafas:
+
+* Confirmación obligatoria del pago antes de liberar el servicio.
+* Sistema de disputas en caso de problemas.
+* Registro de chat como evidencia.
+* Alertas de seguridad para evitar pagos falsos o comprobantes manipulados (muy común en Venezuela).
+
+5. Flujo ultra simple tipo Uber:
+
+* Reducir pasos:
+
+  1. Ver trabajadores cercanos
+  2. Solicitar servicio
+  3. Aceptación
+  4. Finalización
+* Interfaz rápida, clara y sin fricción.
+
+6. Notificaciones en tiempo real (push):
+
+* Notificar:
+
+  * Nuevas solicitudes
+  * Servicios aceptados
+  * Pagos confirmados
+* Notificaciones tipo app móvil (no solo dentro de la plataforma).
+
+7. Sistema de retención y crecimiento:
+
+* Programa de referidos (invita y gana dinero).
+* Bonificaciones por completar servicios.
+* Sistema de ranking para trabajadores más activos.
+
+8. Función de “Servicio urgente”:
+
+* Opción para solicitar trabajadores inmediatos (tipo Uber).
+* Precio dinámico más alto.
+* Mayor comisión para la plataforma.
+
+IMPORTANTE:
+La app está pensada para Venezuela, por lo que la prioridad es:
+
+* Seguridad en pagos (evitar estafas comunes)
+* Métodos de pago locales
+* Rapidez en conseguir trabajadores
+* Confianza entre usuarios
+
+Quiero que el resultado final sea una app moderna, rápida, segura y escalable, con experiencia similar a Uber pero enfocada en servicios locales.

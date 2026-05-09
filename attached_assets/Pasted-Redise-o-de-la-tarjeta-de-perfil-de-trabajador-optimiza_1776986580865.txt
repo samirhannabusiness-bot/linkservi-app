@@ -1,0 +1,156 @@
+Rediseño de la tarjeta de perfil de trabajador — optimización de conversión
+
+---
+
+# OBJETIVO
+
+Transformar la pantalla actual (larga y abrumadora) en una experiencia clara, rápida y orientada a conversión.
+
+El usuario debe poder contratar sin hacer scroll.
+
+---
+
+# PROBLEMA ACTUAL
+
+* Demasiada información visible al mismo tiempo
+* Múltiples secciones compitiendo por atención
+* Botón de contratación pierde protagonismo
+* Flujo diseñado como “perfil informativo” en lugar de “pantalla de decisión”
+
+---
+
+# OBJETIVO UX
+
+* Reducir fricción
+* Priorizar acción principal
+* Guiar al usuario a contratar en menos de 5 segundos
+
+---
+
+# NUEVA ESTRUCTURA (OBLIGATORIA)
+
+---
+
+## 🔝 BLOQUE SUPERIOR (VISIBLE SIN SCROLL)
+
+Mantener SOLO:
+
+* Foto del trabajador
+* Nombre
+* Rating ⭐ (ej: 4.9)
+* Estado: “Disponible ahora”
+* Precio base: “Desde $X”
+
+---
+
+## 🟡 SELECTOR DE SERVICIO (IMPORTANTE)
+
+Reemplazar lista actual por selector:
+
+Ejemplo:
+
+* Reparación ($25)
+* Mantenimiento ($20)
+* Instalación ($70)
+
+---
+
+Comportamiento:
+
+* El usuario selecciona un servicio
+* El precio se actualiza dinámicamente
+
+---
+
+## 🟢 CTA PRINCIPAL (STICKY)
+
+Botón fijo (visible siempre):
+
+👉 “Contratar por $XX”
+
+---
+
+## 🟡 CTA SECUNDARIO
+
+👉 “Solicitar cotización”
+
+---
+
+Eliminar:
+
+❌ “Lo necesito urgente” como botón independiente
+(Incluir como opción dentro del flujo)
+
+---
+
+# REUBICACIÓN DE SECCIONES
+
+---
+
+## 🔵 ESTADÍSTICAS
+
+Mover a:
+
+👉 sección colapsable: “Ver detalles”
+
+Reducir a lo mínimo:
+
+* rating
+* verificado
+
+---
+
+## 🟣 SERVICIOS DISPONIBLES
+
+* Convertir en selector (no lista con múltiples botones)
+* Eliminar botones individuales “Contratar”
+
+---
+
+## 🟠 FOTOS DEL TRABAJO
+
+Mover debajo del CTA principal
+
+---
+
+## ⚫ RESEÑAS
+
+Mostrar:
+
+* rating promedio
+* máximo 2 reseñas
+
+Agregar botón:
+
+👉 “Ver todas”
+
+---
+
+## 🟤 SEGURIDAD Y OTROS BLOQUES
+
+Mover al final o eliminar del flujo principal
+
+---
+
+# REGLAS CLAVE
+
+---
+
+1. El usuario debe poder contratar sin hacer scroll
+2. Solo una acción principal visible
+3. Reducir elementos visuales innecesarios
+4. Evitar múltiples botones compitiendo
+5. Mantener diseño limpio, enfocado en decisión
+
+---
+
+# RESULTADO ESPERADO
+
+* Pantalla más corta
+* Mayor claridad
+* Mayor conversión
+* Flujo tipo Uber / Airbnb
+
+---
+
+Prioridad: CRÍTICA 🚨

@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>LinkServi · Sync Agent</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="hdr">
+    <div class="brand">
+      <div class="logo">LS</div>
+      <div>
+        <div class="title">LinkServi · Sync Agent</div>
+        <div class="sub" id="versionLabel">v—</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="health-chip" id="healthChip" data-state="unknown" title="Estado del sistema">
+        <span class="dot"></span>
+        <span class="label">Sistema…</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ╔═══════════════════════════════════════════════════════════════════╗
+         ║  PANTALLA 1 · BIENVENIDA (primer uso)                              ║
+         ║  Se muestra solo cuando NO hay apiKey configurada todavía.         ║
+         ╚═══════════════════════════════════════════════════════════════════╝ -->
+    <section class="welcome hidden" id="welcomeScreen">
+      <div class="welcome-hero">
+        <div class="welcome-logo">LS</div>
+        <h1>Bienvenido a LinkServi Sync</h1>
+        <p>Conecta tu sistema y mantén tu catálogo siempre al día. Solo 3 pasos.</p>
+      </div>
+      <ol class="welcome-steps">
+        <li>
+          <div class="welcome-step-num">1</div>
+          <div class="welcome-step-title">Conecta tu cuenta</div>
+          <div class="welcome-step-desc">Pega la clave que aparece en tu panel LinkServi.</div>
+        </li>
+        <li>
+          <div class="welcome-step-num">2</div>
+          <div class="welcome-step-title">Conecta tu sistema</div>
+          <div class="welcome-step-desc">Detectamos tu base de datos automáticamente.</div>
+        </li>
+        <li>
+          <div class="welcome-step-num">3</div>
+          <div class="welcome-step-title">Listo 🚀</div>
+          <div class="welcome-step-desc">Tu catálogo se sincroniza solo cada 15 minutos.</div>
+        </li>
+      </ol>
+      <button id="btnStartWizard" class="btn btn-cta">Empezar configuración</button>
+    </section>
+
+    <!-- ╔═══════════════════════════════════════════════════════════════════╗
+         ║  PANTALLA 2 · WIZARD DE 3 PASOS                                    ║
+         ║  Visible mientras la configuración no esté completa y validada.    ║
+         ╚═══════════════════════════════════════════════════════════════════╝ -->
+    <section class="wizard hidden" id="wizardCard">
+      <div class="wizard-progress">
+        <div class="wizard-progress-step" data-step="1"><span>1</span> Cuenta</div>
+        <div class="wizard-progress-bar" data-step="1-2"></div>
+        <div class="wizard-progress-step" data-step="2"><span>2</span> Sistema</div>
+        <div class="wizard-progress-bar" data-step="2-3"></div>
+        <div class="wizard-progress-step" data-step="3"><span>3</span> Activar</div>
+      </div>
+
+      <!-- ── Paso 1 · Conectar cuenta LinkServi ─────────────────────────── -->
+      <div class="wizard-pane" id="wizPane1">
+        <h2>Conecta tu cuenta LinkServi</h2>
+        <p class="wizard-help">Usa el código que aparece en LinkServi → Integraciones → "Conectar mi sistema". Es lo más rápido y seguro.</p>
+
+        <label class="wizard-field">
+          <span>Código de conexión (8 caracteres)</span>
+          <input id="wizPairCode" type="text" maxlength="8" placeholder="Ej: K7P2H9MQ" autocomplete="off"
+                 style="font-family:monospace;font-size:22px;letter-spacing:6px;text-transform:uppercase;text-align:center" />
+        </label>
+        <div class="wizard-actions">
+          <button id="btnWizPair" class="btn btn-primary">Conectar con código</button>
+        </div>
+
+        <details class="wizard-advanced">
+          <summary>¿No tienes código? Usar clave manual o cambiar URL</summary>
+          <label class="wizard-field" style="margin-top:10px">
+            <span>Clave de tu cuenta (manual)</span>
+            <input id="wizApiKey" type="password" placeholder="Pega aquí tu clave" autocomplete="off" />
+          </label>
+          <label class="wizard-field" style="margin-top:10px">
+            <span>URL de LinkServi</span>
+            <input id="wizApiUrl" type="url" placeholder="https://linkservi.com" />
+          </label>
+          <div class="wizard-actions" style="margin-top:8px">
+            <button id="btnWizValidate" class="btn btn-secondary">Validar clave manual</button>
+          </div>
+        </details>
+
+        <div id="wizMsg1" class="wizard-msg hidden"></div>
+      </div>
+
+      <!-- ── Paso 2 · Onboarding INVISIBLE (FASE FINAL) ─────────────────────
+           4 vistas mutuamente excluyentes dentro del mismo pane:
+             - autoView: banner animado, sin inputs (estado por defecto)
+             - passwordView: solo pide la contraseña (después de detectar host)
+             - fallbackView: error + reintentar / configurar manualmente
+             - manualView: form completo (sólo si el usuario lo elige) -->
+      <div class="wizard-pane hidden" id="wizPane2">
+
+        <!-- Vista 1 · AUTO — sólo banner. Sin inputs, sin botones. -->
+        <div id="step2View_auto">
+          <div class="auto-hero">
+            <div class="auto-hero-spinner"></div>
+            <h2 id="autoHeroTitle">Conectando con tu sistema…</h2>
+            <p class="wizard-help">Esto sólo toma unos segundos. No tienes que hacer nada.</p>
+          </div>
+          <div class="auto-progress" id="autoProgress">
+            <div class="auto-step" data-step="detect">
+              <span class="auto-dot"></span>
+              <span class="auto-label">Detectando tu sistema…</span>
+            </div>
+            <div class="auto-step" data-step="prepare">
+              <span class="auto-dot"></span>
+              <span class="auto-label">Preparando tus productos…</span>
+            </div>
+            <div class="auto-step" data-step="verify">
+              <span class="auto-dot"></span>
+              <span class="auto-label">Verificando información…</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vista 2 · PASSWORD — sólo se muestra si la auto-detección
+             encontró el servidor pero necesitamos la contraseña para entrar.
+             Un único input (pwd). Usuario "sa" implícito. Enter envía. -->
+        <div id="step2View_password" class="hidden">
+          <div class="auto-hero">
+            <div class="auto-hero-icon">🔐</div>
+            <h2>Ya casi…</h2>
+            <p class="wizard-help">Sólo necesitamos tu contraseña para terminar.</p>
+          </div>
+          <div class="single-cred">
+            <label class="wizard-field">
+              <span>Contraseña</span>
+              <input id="simplePassword" type="password" placeholder="contraseña" autocomplete="off" />
+            </label>
+            <button id="btnPasswordContinue" class="btn btn-cta btn-cta-wide">Continuar</button>
+          </div>
+          <button id="btnGoManualFromPwd" class="btn-link">Configuración avanzada</button>
+        </div>
+
+        <!-- Vista 3 · FALLBACK — error suave con dos opciones claras. -->
+        <div id="step2View_fallback" class="hidden">
+          <div class="fallback-hero">
+            <div class="fallback-icon">⚠️</div>
+            <h2>No pudimos conectar automáticamente</h2>
+            <p class="wizard-help" id="fallbackDetail">Vamos a intentarlo de otra forma.</p>
+          </div>
+          <div class="fallback-actions">
+            <button id="btnRetryAuto" class="btn btn-cta btn-cta-wide">Intentar nuevamente</button>
+            <button id="btnGoManual" class="btn btn-secondary btn-cta-wide">Configurar manualmente</button>
+          </div>
+        </div>
+
+        <!-- Vista 4 · MANUAL — sólo si el usuario lo eligió desde fallback. -->
+        <div id="step2View_manual" class="hidden">
+          <h2>Configuración manual</h2>
+          <p class="wizard-help">Llena los datos de tu base de datos y conectaremos.</p>
+          <div class="simple-creds">
+            <label class="wizard-field">
+              <span>Usuario</span>
+              <input id="simpleUser" type="text" placeholder="sa" value="sa" autocomplete="off" />
+            </label>
+            <label class="wizard-field">
+              <span>Contraseña</span>
+              <input id="simplePasswordManual" type="password" placeholder="contraseña SQL Server" autocomplete="off" />
+            </label>
+          </div>
+          <details class="wizard-advanced" id="simpleAdvanced">
+            <summary>Configuración avanzada</summary>
+            <p class="wizard-help" style="margin-top:8px">
+              Solo si necesitas forzar valores específicos. Deja en blanco para que el agente los detecte automáticamente.
+            </p>
+            <div class="row">
+              <label class="wizard-field">
+                <span>Servidor</span>
+                <input id="advHost" type="text" placeholder="(automático — ej: localhost)" />
+              </label>
+              <label class="wizard-field">
+                <span>Puerto</span>
+                <input id="advPort" type="number" placeholder="(automático — 1433)" min="1" max="65535" />
+              </label>
+            </div>
+            <label class="wizard-field">
+              <span>Base de datos</span>
+              <input id="advDatabase" type="text" placeholder="(automático)" />
+            </label>
+            <label class="wizard-field">
+              <span>Tabla de productos</span>
+              <input id="advTable" type="text" placeholder="(automático — ej: productos)" />
+            </label>
+            <div class="mapping-grid">
+              <label class="wizard-field">
+                <span>Columna código (SKU)</span>
+                <input id="advSku" type="text" placeholder="(automático)" />
+              </label>
+              <label class="wizard-field">
+                <span>Columna nombre</span>
+                <input id="advName" type="text" placeholder="(automático)" />
+              </label>
+              <label class="wizard-field">
+                <span>Columna precio</span>
+                <input id="advPrice" type="text" placeholder="(automático)" />
+              </label>
+              <label class="wizard-field">
+                <span>Columna stock</span>
+                <input id="advStock" type="text" placeholder="(automático)" />
+              </label>
+            </div>
+          </details>
+          <div class="wizard-actions">
+            <button id="btnSimpleConnect" class="btn btn-cta btn-cta-wide">Conectar</button>
+          </div>
+        </div>
+
+        <div id="wizMsg2" class="wizard-msg hidden"></div>
+      </div>
+
+      <!-- ── Paso 3 · Pantalla de éxito (FASE 3) ──────────────────────────
+           Sin checklist técnico. Solo: productos detectados + mensaje de
+           sincronización automática. Auto-redirige al dashboard en 2.5s.
+           Si dry-run reporta filas con datos inválidos (allGood=false), se
+           muestra una advertencia no bloqueante en lugar de mentir. -->
+      <div class="wizard-pane hidden" id="wizPane3">
+        <div class="success-hero">
+          <div class="success-icon">✓</div>
+          <h2>¡Listo!</h2>
+          <ul class="simple-checks">
+            <li>✔ Productos detectados: <strong id="simpleProductCount">—</strong></li>
+            <li>✔ Todo listo para sincronizar</li>
+          </ul>
+          <p class="data-warning hidden" id="dataWarning"></p>
+          <p class="big-success">Tu negocio ya está sincronizado 🚀</p>
+        </div>
+        <div id="wizMsg3" class="wizard-msg hidden"></div>
+      </div>
+    </section>
+
+    <!-- ╔═══════════════════════════════════════════════════════════════════╗
+         ║  PANTALLA 3 · DASHBOARD SIMPLE (operación normal)                  ║
+         ╚═══════════════════════════════════════════════════════════════════╝ -->
+    <section class="dashboard hidden" id="dashboardCard">
+
+      <!-- Status hero: chip gigante tricolor -->
+      <div class="status-hero" id="statusHero" data-state="unknown">
+        <div class="status-hero-icon"><div class="dot"></div></div>
+        <div class="status-hero-body">
+          <div class="status-hero-title" id="statusHeroTitle">Verificando…</div>
+          <div class="status-hero-sub" id="statusHeroSub">Comprobando conexión con tu sistema.</div>
+        </div>
+      </div>
+
+      <!-- 4 KPIs -->
+      <div class="kpis">
+        <div class="kpi">
+          <div class="kpi-label">Estado</div>
+          <div class="kpi-value" id="kpiState">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Última sincronización</div>
+          <div class="kpi-value" id="kpiLastSync">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Productos sincronizados</div>
+          <div class="kpi-value" id="kpiProducts">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Próxima sincronización</div>
+          <div class="kpi-value" id="kpiNextRun">—</div>
+        </div>
+      </div>
+
+      <!-- CTA grande -->
+      <div class="cta-row">
+        <button id="btnSyncNow" class="btn btn-cta-big">
+          <span class="cta-icon">⚡</span>
+          <span class="cta-label">SINCRONIZAR AHORA</span>
+        </button>
+      </div>
+
+      <!-- Últimos errores (máx 3, oculto si no hay) -->
+      <div class="errors-box hidden" id="errorsBox">
+        <h3>Últimos errores</h3>
+        <ul id="errorsList"></ul>
+      </div>
+    </section>
+
+    <!-- ╔═══════════════════════════════════════════════════════════════════╗
+         ║  CONFIGURACIÓN AVANZADA (oculta por defecto)                       ║
+         ║  Mapping de columnas, frecuencia, logs técnicos completos.         ║
+         ╚═══════════════════════════════════════════════════════════════════╝ -->
+    <details class="advanced hidden" id="advancedCard">
+      <summary>⚙️ Configuración avanzada</summary>
+      <div class="advanced-body">
+        <form id="configForm" class="config-form" autocomplete="off">
+
+          <fieldset>
+            <legend>Cuenta LinkServi</legend>
+            <label>URL del servidor
+              <input name="apiUrl" type="url" placeholder="https://linkservi.com" required />
+            </label>
+            <label>Clave de la cuenta (API Key)
+              <input name="apiKey" type="password" placeholder="(sin cambios)" autocomplete="off" />
+              <small>Déjala vacía para conservar la actual.</small>
+            </label>
+            <label>Frecuencia de sincronización
+              <select name="intervalMin">
+                <option value="5">Cada 5 min</option>
+                <option value="15">Cada 15 min</option>
+                <option value="30">Cada 30 min</option>
+                <option value="60">Cada 60 min</option>
+              </select>
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Base de datos</legend>
+            <label>Motor
+              <select name="db.type">
+                <option value="sqlserver">SQL Server</option>
+                <option value="firebird" disabled>Firebird (próximamente)</option>
+                <option value="mock">Mock (sólo desarrollo)</option>
+              </select>
+            </label>
+            <div class="row">
+              <label>Servidor
+                <input name="db.host" type="text" placeholder="localhost" />
+              </label>
+              <label>Puerto
+                <input name="db.port" type="number" min="1" max="65535" placeholder="1433" />
+              </label>
+            </div>
+            <div class="row">
+              <label>Usuario
+                <input name="db.user" type="text" placeholder="sa" />
+              </label>
+              <label>Contraseña
+                <input name="db.password" type="password" placeholder="(sin cambios)" autocomplete="off" />
+              </label>
+            </div>
+            <label>Base de datos
+              <input name="db.database" type="text" placeholder="SAINT_DB" />
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Mapping de columnas</legend>
+            <small class="hint">Adapta el agente al esquema real de tu instalación. Solo letras, números y _.</small>
+            <label>Tabla
+              <input name="mapping.table" type="text" placeholder="productos" />
+            </label>
+            <div class="row">
+              <label>Código (SKU)
+                <input name="mapping.sku" type="text" placeholder="codigo" />
+              </label>
+              <label>Nombre
+                <input name="mapping.name" type="text" placeholder="descripcion" />
+              </label>
+            </div>
+            <div class="row">
+              <label>Precio
+                <input name="mapping.price" type="text" placeholder="precio" />
+              </label>
+              <label>Existencia
+                <input name="mapping.stock" type="text" placeholder="existencia" />
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Guardar configuración</button>
+            <span id="configMsg" class="config-msg"></span>
+          </div>
+        </form>
+
+        <details class="logs-toggle">
+          <summary>📋 Ver eventos técnicos</summary>
+          <div id="logList" class="logs"></div>
+        </details>
+      </div>
+    </details>
+  </main>
+
+  <footer class="ftr">
+    Sync Agent corre localmente en tu computadora · solo accesible desde 127.0.0.1
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

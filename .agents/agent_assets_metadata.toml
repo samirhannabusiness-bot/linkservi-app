@@ -1,0 +1,38 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "Z_02z9ArDd1Bdvj-Qp3RR"
+uri = "file://attached_assets/LinkServi-Tecnologia-Inversionistas.pdf"
+type = "pdf"
+title = "LinkServi - Tecnología para Inversionistas"
+
+[[outputs]]
+id = "7IjqzZUD4DpXPl-n2mdKn"
+uri = "file://attached_assets/Auditoria-Tecnica-LinkServi.md"
+type = "text"
+title = "Auditoría Técnica Completa - LinkServi"
+
+[[outputs]]
+id = "1lSa-GIAirXdvwzAKB1Fz"
+uri = "file://attached_assets/Auditoria-Tecnica-LinkServi.pdf"
+type = "pdf"
+title = "Auditoría Técnica LinkServi (PDF)"
+
+[[outputs]]
+id = "Nyp46RDZuMCIjYcwh_GlF"
+uri = "file://sync-agent/dist/LinkServi-Sync-Agent-Manual-Tecnico.pdf"
+type = "pdf"
+title = "Manual Técnico - LinkServi Sync Agent (PDF)"
+
+[[outputs]]
+id = "4FGNE_d75JETlnemAXAls"
+uri = "file://sync-agent/dist/manual-linkservi.pdf"
+type = "pdf"
+title = "Manual LinkServi Sync Agent (corporativo, v3 limpio)"
+
+[[outputs]]
+id = "59_GWn04rtFgZUC-1YBc-"
+uri = "file://attached_assets/manuales/LinkServi-Sync-Agent-Manual.pdf"
+type = "pdf"
+title = "LinkServi Sync Agent — Manual de Usuario"

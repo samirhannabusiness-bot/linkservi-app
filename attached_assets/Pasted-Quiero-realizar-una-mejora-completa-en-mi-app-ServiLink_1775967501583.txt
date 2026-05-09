@@ -1,0 +1,124 @@
+Quiero realizar una mejora completa en mi app ServiLink enfocada en dos áreas críticas: monetización (comisiones) y experiencia móvil (diseño responsive/PWA).
+
+---
+
+1. Sistema de comisión de la plataforma (CRÍTICO)
+
+Actualmente los servicios se completan correctamente, pero falta aplicar la comisión de la plataforma.
+
+Implementar lo siguiente:
+
+* Aplicar una comisión del 10% sobre el monto total del servicio (totalAmount)
+
+Cálculo:
+
+* commission = totalAmount * 0.10
+* workerEarnings = totalAmount - commission
+
+Aplicación:
+
+* Cuando el servicio pasa a estado "completed":
+
+  * NO asignar el 100% al trabajador
+  * Solo agregar workerEarnings al saldo del trabajador
+
+Registro en base de datos:
+
+* Guardar:
+
+  * totalAmount
+  * commission
+  * workerEarnings
+
+Visualización:
+
+* En el detalle del servicio mostrar:
+
+  * Total del servicio
+  * Comisión de la plataforma
+  * Ganancia del trabajador
+
+Panel de administrador:
+
+* Mostrar métricas:
+
+  * Total de comisiones generadas
+  * Ingresos por día / semana / mes
+
+Importante:
+
+* La comisión SOLO se aplica cuando el cliente confirma el servicio (estado completed)
+* No aplicar comisión en servicios cancelados o en disputa
+
+---
+
+2. Corrección de diseño móvil (PWA / responsive)
+
+Actualmente en dispositivos móviles algunos botones y elementos quedan fuera de la pantalla.
+
+Implementar lo siguiente:
+
+Safe Areas (iPhone / notch):
+
+* Usar:
+  padding-top: env(safe-area-inset-top)
+  padding-bottom: env(safe-area-inset-bottom)
+
+Altura dinámica:
+
+* Evitar uso de 100vh
+* Usar:
+  min-height: 100dvh
+
+Scroll:
+
+* Asegurar que las vistas tengan:
+  overflow-y: auto
+
+Botones importantes:
+
+* Botones como:
+
+  * Confirmar
+  * Solicitar retiro
+  * Aceptar servicio
+* Deben:
+
+  * Estar visibles siempre
+  * Usar position: sticky o fixed
+  * Tener espacio inferior suficiente
+
+Mobile-first:
+
+* Revisar estas pantallas:
+
+  * Dashboard cliente
+  * Dashboard trabajador
+  * Chat
+  * Verificación
+  * Retiros
+  * Solicitud de servicio
+
+Pruebas:
+
+* Verificar en:
+
+  * Android (Chrome)
+  * iPhone (Safari)
+  * Modo app instalada (PWA)
+
+---
+
+OBJETIVO FINAL:
+
+* Asegurar que la plataforma genere ingresos automáticamente en cada servicio completado
+* Garantizar que la app se vea perfecta en móvil, sin botones fuera de pantalla
+* Lograr una experiencia tipo app profesional (nivel Uber)
+
+---
+
+IMPORTANTE:
+
+* No agregar nuevas tecnologías
+* Mantener la arquitectura actual
+* Priorizar funcionalidad, claridad y estabilidad

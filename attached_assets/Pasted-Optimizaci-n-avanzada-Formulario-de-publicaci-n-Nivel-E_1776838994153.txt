@@ -1,0 +1,146 @@
+Optimización avanzada — Formulario de publicación (Nivel Elite)
+
+---
+
+# OBJETIVO
+
+Mejorar conversión, guiar al usuario y aumentar la calidad de publicaciones mediante microinteracciones inteligentes.
+
+---
+
+# CAMBIOS
+
+## 1. Mensaje de urgencia en preview
+
+Agregar microcopy dentro de la tarjeta de vista previa.
+
+---
+
+### Contenido
+
+"📸 Los productos con foto venden más rápido"
+
+---
+
+### Ubicación
+
+* debajo de la imagen o en el footer del preview
+
+---
+
+### Beneficio
+
+* incentiva subir imágenes
+* refuerza comportamiento correcto
+* aumenta calidad del marketplace
+
+---
+
+## 2. Contador de progreso
+
+Mostrar progreso del formulario en tiempo real.
+
+---
+
+### UI
+
+Texto superior:
+
+"Completa tu publicación (X/Y)"
+
+---
+
+### Ejemplo
+
+* nombre ✔️
+* precio ✔️
+* imagen ✔️
+* categoría ✔️
+* descripción ✔️
+
+---
+
+### Lógica
+
+* incrementar contador dinámicamente
+* mostrar visual (barra o texto)
+
+---
+
+### Beneficio
+
+* motiva a completar
+* reduce abandono
+* mejora UX
+
+---
+
+## 3. Sugerencia automática de precio
+
+Mostrar rango sugerido si el usuario no ha ingresado precio.
+
+---
+
+### Contenido
+
+"💡 Productos similares se venden entre $X – $X"
+
+---
+
+### Lógica
+
+* basado en categoría (mock inicial o data real)
+* ocultar cuando el usuario escribe precio
+
+---
+
+### Ubicación
+
+* debajo del input de precio
+
+---
+
+### Beneficio
+
+* evita precios incorrectos
+* mejora conversión
+* ayuda a nuevos usuarios
+
+---
+
+## 4. Auto-focus en error
+
+Mejorar manejo de validación.
+
+---
+
+### Lógica
+
+* si falta imagen:
+
+  * scroll automático al campo de imágenes
+  * resaltar visualmente
+  * mostrar mensaje:
+
+"Debes agregar al menos una imagen"
+
+---
+
+### Beneficio
+
+* reduce frustración
+* guía al usuario
+* flujo más fluido
+
+---
+
+# RESULTADO
+
+* publicaciones más completas
+* mejor calidad de productos
+* mayor tasa de finalización
+* experiencia tipo marketplace avanzado
+
+---
+
+Prioridad: MEDIA 🚀

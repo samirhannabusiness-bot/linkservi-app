@@ -1,0 +1,111 @@
+steps:
+  # ── Step 1: Build the Docker image ─────────────────────────────────────────
+  - name: "gcr.io/cloud-builders/docker"
+    id: build
+    args:
+      - build
+      - --tag=gcr.io/$PROJECT_ID/linkservi:$COMMIT_SHA
+      - --tag=gcr.io/$PROJECT_ID/linkservi:latest
+      - --cache-from=gcr.io/$PROJECT_ID/linkservi:latest
+      - .
+
+  # ── Step 2: Push image to Container Registry ────────────────────────────────
+  - name: "gcr.io/cloud-builders/docker"
+    id: push
+    waitFor: [build]
+    args:
+      - push
+      - --all-tags
+      - gcr.io/$PROJECT_ID/linkservi
+
+  # ── Step 3: Deploy to Cloud Run ─────────────────────────────────────────────
+  # Uses --env-vars-file to avoid shell quoting/delimiter issues with special
+  # characters in values (e.g. SESSION_SECRET may contain | or , characters).
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    id: deploy
+    waitFor: [push]
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        # Write env vars to a YAML file — avoids all shell quoting issues
+        cat > /workspace/env-vars.yaml << ENVEOF
+        NODE_ENV: "production"
+        NODE_TLS_REJECT_UNAUTHORIZED: "0"
+        DATABASE_URL: "$_DATABASE_URL"
+        SESSION_SECRET: "$_SESSION_SECRET"
+        VITE_FIREBASE_API_KEY: "$_VITE_FIREBASE_API_KEY"
+        VITE_FIREBASE_PROJECT_ID: "$_VITE_FIREBASE_PROJECT_ID"
+        VITE_FIREBASE_APP_ID: "$_VITE_FIREBASE_APP_ID"
+        FIREBASE_PROJECT_ID: "$_FIREBASE_PROJECT_ID"
+        BDV_API_KEY: "$_BDV_API_KEY"
+        BDV_API_URL: "$_BDV_API_URL"
+        BDV_C2P_BASE_URL: "$_BDV_C2P_BASE_URL"
+        BDV_WEBHOOK_API_KEY: "$_BDV_WEBHOOK_API_KEY"
+        BDV_COMMERCE_PHONE: "$_BDV_COMMERCE_PHONE"
+        BDV_DESTINATION_PHONE: "$_BDV_DESTINATION_PHONE"
+        BDV_COMMERCE_RIF: "$_BDV_COMMERCE_RIF"
+        RESEND_API_KEY: "$_RESEND_API_KEY"
+        RESEND_FROM_EMAIL: "$_RESEND_FROM_EMAIL"
+        VITE_GOOGLE_MAPS_API_KEY: "$_VITE_GOOGLE_MAPS_API_KEY"
+        EMAIL_PASSWORD: "$_EMAIL_PASSWORD"
+        APP_URL: "$_APP_URL"
+        ALLOWED_ORIGIN: "$_ALLOWED_ORIGIN"
+        VAPID_PUBLIC_KEY: "$_VAPID_PUBLIC_KEY"
+        VAPID_PRIVATE_KEY: "$_VAPID_PRIVATE_KEY"
+        INDEXNOW_KEY: "$_INDEXNOW_KEY"
+        AI_INTEGRATIONS_GEMINI_BASE_URL: "$_AI_INTEGRATIONS_GEMINI_BASE_URL"
+        AI_INTEGRATIONS_GEMINI_API_KEY: "$_AI_INTEGRATIONS_GEMINI_API_KEY"
+        ENVEOF
+
+        gcloud run deploy linkservi \
+          --image=gcr.io/$PROJECT_ID/linkservi:$COMMIT_SHA \
+          --platform=managed \
+          --region=$_REGION \
+          --port=8080 \
+          --min-instances=0 \
+          --max-instances=10 \
+          --memory=512Mi \
+          --cpu=1 \
+          --concurrency=80 \
+          --timeout=60 \
+          --allow-unauthenticated \
+          --env-vars-file=/workspace/env-vars.yaml
+
+# ── Substitution defaults ────────────────────────────────────────────────────
+substitutions:
+  _REGION: us-central1
+  _DATABASE_URL: ""
+  _SESSION_SECRET: ""
+  _VITE_FIREBASE_API_KEY: ""
+  _VITE_FIREBASE_PROJECT_ID: ""
+  _VITE_FIREBASE_APP_ID: ""
+  _FIREBASE_PROJECT_ID: ""
+  _BDV_API_KEY: ""
+  _BDV_API_URL: "https://bdvconciliacion.banvenez.com/getMovement"
+  _BDV_C2P_BASE_URL: "https://bdvconciliacionqa.banvenez.com:444/BankMobilePaymentC2P/MultipleAccounts"
+  _BDV_WEBHOOK_API_KEY: "linkservi-webhook-bdv-2026"
+  _BDV_COMMERCE_PHONE: "04148301798"
+  _BDV_DESTINATION_PHONE: "04148301798"
+  _BDV_COMMERCE_RIF: "J-412521195"
+  _RESEND_API_KEY: ""
+  _RESEND_FROM_EMAIL: "soporte@linkservi.com"
+  _VITE_GOOGLE_MAPS_API_KEY: ""
+  _EMAIL_PASSWORD: ""
+  _APP_URL: "https://www.linkservi.com"
+  _ALLOWED_ORIGIN: "https://www.linkservi.com"
+  _VAPID_PUBLIC_KEY: ""
+  _VAPID_PRIVATE_KEY: ""
+  _INDEXNOW_KEY: "linkservi-indexnow-2026"
+  _AI_INTEGRATIONS_GEMINI_BASE_URL: "https://generativelanguage.googleapis.com"
+  _AI_INTEGRATIONS_GEMINI_API_KEY: ""
+
+# ── Store built image in Container Registry ──────────────────────────────────
+images:
+  - gcr.io/$PROJECT_ID/linkservi:$COMMIT_SHA
+  - gcr.io/$PROJECT_ID/linkservi:latest
+
+# ── Build options ────────────────────────────────────────────────────────────
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8

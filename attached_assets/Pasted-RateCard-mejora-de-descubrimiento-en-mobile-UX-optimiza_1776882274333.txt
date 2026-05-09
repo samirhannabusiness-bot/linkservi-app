@@ -1,0 +1,151 @@
+RateCard — mejora de descubrimiento en mobile (UX optimizada)
+
+---
+
+# OBJETIVO
+
+Hacer visible y accesible el módulo de tasas en dispositivos móviles sin mover su posición actual ni afectar el flujo principal de la landing.
+
+---
+
+# PROBLEMA ACTUAL
+
+* el RateCard está ubicado correctamente (debajo del contenido principal)
+* en mobile no es visible sin hacer scroll
+* el usuario no sabe que existe
+* resultado: baja interacción
+
+---
+
+# SOLUCIÓN (MOBILE FIRST)
+
+Implementar un sistema de descubrimiento compuesto por:
+
+1. barra flotante (sticky)
+2. indicador visual (scroll hint)
+
+---
+
+# 1. MINI BARRA STICKY (PRINCIPAL)
+
+## Ubicación
+
+* parte inferior de la pantalla (mobile únicamente)
+
+---
+
+## Diseño
+
+* estilo glassmorphism (coherente con la app)
+* altura reducida (no invasiva)
+* bordes redondeados
+* blur + fondo oscuro con leve glow
+
+---
+
+## Contenido
+
+lado izquierdo:
+
+* BCV: valor actual
+* Binance: valor actual (opcional abreviado)
+
+lado derecho:
+
+* botón pequeño:
+  👉 “Ver tasas →”
+
+---
+
+## Comportamiento
+
+* aparece después de 2 segundos de entrar a la pantalla
+  O
+* aparece al hacer scroll inicial (50–100px)
+
+---
+
+## Acción
+
+al hacer click:
+
+* scroll suave hacia el RateCard
+* enfocar visualmente el módulo (opcional: pequeño highlight)
+
+---
+
+## Estado
+
+* si el usuario ya interactuó con el RateCard:
+
+  * ocultar automáticamente
+    O
+  * minimizar
+
+---
+
+# 2. SCROLL HINT (APOYO VISUAL)
+
+## Ubicación
+
+debajo de los botones principales del hero
+
+---
+
+## Texto
+
+“Consulta la tasa del dólar en tiempo real ↓”
+
+---
+
+## Estilo
+
+* tipografía pequeña
+* color cyan tenue
+* animación leve (bounce o fade)
+
+---
+
+## Comportamiento
+
+* visible solo en mobile
+* desaparece al hacer scroll
+
+---
+
+# 3. INTERACCIÓN SUAVE
+
+* scroll con animación (smooth)
+* sin jumps bruscos
+* duración 300–500ms
+
+---
+
+# 4. CONDICIONES
+
+* NO mostrar en desktop
+* NO interferir con botones principales
+* NO bloquear contenido
+* mantener rendimiento alto
+
+---
+
+# 5. LO QUE NO SE DEBE HACER
+
+* NO mover el RateCard arriba
+* NO cambiar el layout principal
+* NO usar modales intrusivos
+* NO saturar la pantalla
+
+---
+
+# RESULTADO ESPERADO
+
+* el usuario descubre el módulo de tasas
+* mayor interacción
+* mejor percepción de valor de la app
+* sin afectar el flujo principal de servicios
+
+---
+
+Prioridad: ALTA 🚀

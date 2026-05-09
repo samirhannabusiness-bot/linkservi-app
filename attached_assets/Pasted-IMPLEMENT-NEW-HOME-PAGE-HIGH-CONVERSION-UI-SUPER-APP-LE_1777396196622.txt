@@ -1,0 +1,103 @@
+IMPLEMENT NEW HOME PAGE — HIGH CONVERSION UI (SUPER APP LEVEL)
+
+OBJECTIVE:
+Replace the current home page with a modern, high-performance, conversion-focused UI similar to Uber / MercadoLibre / Rappi.
+
+This is a FRONTEND-ONLY task.
+
+---
+
+CONSTRAINTS:
+
+* DO NOT modify backend
+* DO NOT break existing routes
+* DO NOT remove existing functionality
+* Keep compatibility with current navigation system
+* Maintain performance optimizations (lazy loading, debounce, etc.)
+
+---
+
+STEP 1 — CREATE NEW COMPONENT
+
+Create a new file:
+
+src/pages/HomeGod.tsx
+
+Paste the provided React + Tailwind code exactly.
+
+---
+
+STEP 2 — INTEGRATE AS MAIN HOME
+
+* Replace current "/" route to render HomeGod
+* Ensure routing continues working normally
+* Do not delete old home yet (keep as fallback if needed)
+
+---
+
+STEP 3 — CONNECT REAL DATA
+
+Replace mock data with real endpoints:
+
+* GET /api/products
+* GET /api/stores
+
+Requirements:
+
+* Support search query (?q=...)
+* Support pagination (?page=1)
+* Maintain loading states (skeletons)
+* Keep debounce for search input
+
+---
+
+STEP 4 — UI BEHAVIOR REQUIREMENTS
+
+Ensure the following UX:
+
+* Search bar is the PRIMARY focus element
+* "Comprar" action must be visually highlighted
+* Stores displayed in horizontal scroll (carousel)
+* Products displayed in responsive grid
+* Images must use lazy loading
+* Smooth transitions and hover effects
+
+---
+
+STEP 5 — PERFORMANCE
+
+* Avoid rendering unnecessary components
+* Keep grid efficient
+* Maintain fast initial load
+* No blocking operations in UI thread
+
+---
+
+STEP 6 — VALIDATION
+
+After implementation:
+
+* Confirm no console errors
+* Confirm homepage loads correctly
+* Confirm navigation still works
+* Confirm search input updates product list
+* Confirm images load lazily
+
+---
+
+EXPECTED RESULT:
+
+A clean, modern, fast homepage that:
+
+* Guides the user immediately
+* Encourages interaction within 3 seconds
+* Scales to thousands of products
+* Feels like a real production-grade super app
+
+---
+
+DO NOT SIMPLIFY THE DESIGN.
+DO NOT CHANGE STRUCTURE.
+FOLLOW THE PROVIDED COMPONENT STRICTLY.
+
+WAITING FOR CODE NEXT.

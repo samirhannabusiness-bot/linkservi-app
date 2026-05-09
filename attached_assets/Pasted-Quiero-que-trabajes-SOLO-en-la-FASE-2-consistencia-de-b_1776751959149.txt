@@ -1,0 +1,78 @@
+Quiero que trabajes SOLO en la FASE 2 (consistencia de base de datos) de mi proyecto "LinkServi".
+
+NO avances a otras fases.
+NO rompas funcionalidades existentes.
+EXPLICA cada cambio antes de hacerlo y muestra código antes/después.
+Si hay riesgo, adviértelo.
+
+FASE 2 — TRANSACCIONES SQL (CRÍTICO)
+OBJETIVO
+
+Garantizar consistencia en operaciones que afectan múltiples tablas.
+
+1. IDENTIFICAR OPERACIONES CRÍTICAS
+
+Busca en el backend (routes/) operaciones que hagan 2 o más de estas acciones en una sola operación lógica:
+
+INSERT en una tabla + UPDATE en otra
+INSERT + envío de notificaciones
+creación de booking/rental + modificación de disponibilidad
+creación de order + cambios de estado + registros relacionados
+
+PRIORIDAD ALTA en:
+
+rentals / alquileres (admin-rentals.ts)
+bookings (servicios/bookings.ts)
+product-orders (marketplace/product-orders.ts)
+delivery_orders
+notificaciones relacionadas a eventos críticos
+2. ENVOLVER EN TRANSACCIONES (DRIZZLE)
+
+Para cada caso crítico:
+
+ANTES (ejemplo típico):
+const rental = await db.insert(rentals).values(...).returning();
+await db.update(products).set(...);
+await db.insert(notifications).values(...);
+
+DESPUÉS:
+await db.transaction(async (tx) => {
+const rental = await tx.insert(rentals).values(...).returning();
+await tx.update(products).set(...);
+await tx.insert(notifications).values(...);
+});
+
+3. MANEJO DE ERRORES
+
+Asegúrate que:
+
+Si cualquier operación falla → rollback automático
+No queden datos parciales en la base de datos
+
+Si ya existe try/catch:
+
+Mantenerlo
+pero NO hacer commits manuales
+4. VALIDACIÓN IMPORTANTE
+
+Antes de aplicar transacciones:
+
+Verifica que las operaciones realmente deben ser atómicas
+No encierres lógica innecesaria dentro de la transacción (ej: llamadas externas)
+5. PRUEBAS
+
+Después de implementar:
+
+Simular fallo en mitad de la operación
+Confirmar que NO se guarda nada parcial
+ENTREGA FINAL
+
+Al terminar:
+
+Lista de archivos modificados
+Qué operaciones fueron protegidas
+Código antes/después (resumido)
+Confirmación de que rollback funciona
+Posibles riesgos o cambios de comportamiento
+
+Quiero una implementación limpia, profesional y segura, como en sistemas de producción reales.

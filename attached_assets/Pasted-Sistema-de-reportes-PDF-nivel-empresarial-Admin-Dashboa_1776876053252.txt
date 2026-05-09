@@ -1,0 +1,239 @@
+Sistema de reportes PDF — nivel empresarial (Admin Dashboard)
+
+---
+
+# OBJETIVO
+
+Crear un sistema de exportación de reportes en PDF de nivel corporativo que permita visualizar, descargar y compartir el estado del negocio con precisión, claridad y control de acceso por roles.
+
+---
+
+# 1. ACCESO POR ROLES (SEGURIDAD)
+
+## Super Admin
+
+Acceso completo a:
+
+* ingresos totales
+* comisiones
+* transacciones
+* retiros
+* disputas
+* actividad de usuarios
+* métricas globales
+
+---
+
+## Finanzas
+
+Acceso a:
+
+* ingresos
+* pagos
+* retiros
+* balances
+* comisiones
+
+---
+
+## Soporte
+
+Acceso a:
+
+* disputas
+* incidencias
+* tickets
+* actividad de usuarios relacionada
+
+---
+
+## Marketing
+
+Acceso a:
+
+* métricas de crecimiento
+* usuarios
+* conversiones
+* actividad general (sin datos financieros sensibles)
+
+---
+
+## Regla
+
+Cada rol solo puede exportar información relacionada a su ámbito.
+
+---
+
+# 2. BOTÓN DE EXPORTACIÓN
+
+## Ubicación
+
+* parte superior del dashboard admin (header)
+
+---
+
+## Texto
+
+“Exportar reporte”
+
+---
+
+## Acción
+
+al hacer click:
+
+abrir modal con:
+
+* selección de rango:
+
+  * hoy
+  * ayer
+  * esta semana
+  * este mes
+  * personalizado (fecha inicio / fin)
+
+---
+
+# 3. ESTRUCTURA DEL PDF
+
+## HEADER
+
+* logo de la plataforma
+* nombre: “Reporte de operaciones”
+* fecha de generación
+* rango seleccionado
+
+---
+
+## SECCIÓN 1 — RESUMEN GENERAL
+
+* ingresos totales
+* comisiones generadas
+* número de transacciones
+* crecimiento vs período anterior
+
+---
+
+## SECCIÓN 2 — INGRESOS POR CANAL
+
+* servicios
+* tienda
+* alquileres
+
+mostrar:
+
+* monto
+* porcentaje del total
+
+---
+
+## SECCIÓN 3 — ACTIVIDAD
+
+* número de pedidos
+* número de servicios completados
+* número de alquileres activos
+
+---
+
+## SECCIÓN 4 — TRANSACCIONES
+
+tabla con:
+
+* fecha
+* tipo (servicio / producto / alquiler)
+* monto
+* estado
+
+---
+
+## SECCIÓN 5 — ALERTAS (SI EXISTEN)
+
+* disputas activas
+* retiros pendientes
+* verificaciones KYC pendientes
+
+---
+
+## SECCIÓN 6 — TOP PERFORMANCE
+
+* mejores trabajadores
+* productos más vendidos
+* categorías con mayor ingreso
+
+---
+
+# 4. DISEÑO DEL PDF
+
+## Estilo
+
+* limpio
+* profesional
+* tipo Stripe / Amazon
+
+---
+
+## Elementos
+
+* tipografía clara
+* números destacados
+* uso de colores sutiles:
+
+  * verde → positivo
+  * rojo → alertas
+  * azul/cyan → información
+
+---
+
+## Layout
+
+* márgenes amplios
+* secciones separadas
+* tablas legibles
+
+---
+
+# 5. GENERACIÓN
+
+* generar PDF en backend
+* evitar depender del DOM
+* garantizar consistencia
+
+---
+
+# 6. DESCARGA
+
+* descarga automática al generarse
+* nombre del archivo:
+
+reporte-{rango}-{fecha}.pdf
+
+---
+
+# 7. SEGURIDAD
+
+* validar rol antes de generar
+* nunca incluir datos fuera del permiso del usuario
+* registrar evento en action_logs:
+
+“export_report”
+
+---
+
+# 8. FUTURO (PREPARADO)
+
+* envío automático por email
+* reportes programados
+* historial de reportes generados
+
+---
+
+# RESULTADO FINAL
+
+* control total del negocio
+* visualización clara de datos
+* herramienta profesional para decisiones
+* nivel corporativo real
+
+---
+
+Prioridad: ALTA 🚀

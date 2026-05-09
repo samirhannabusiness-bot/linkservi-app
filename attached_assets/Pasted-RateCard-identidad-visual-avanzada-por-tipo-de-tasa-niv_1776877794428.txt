@@ -1,0 +1,172 @@
+RateCard — identidad visual avanzada por tipo de tasa (nivel fintech premium)
+
+---
+
+# OBJETIVO
+
+Dar identidad visual única a cada tipo de tasa (BCV, Binance, Euro), elevando el módulo a nivel de producto financiero profesional con diseño moderno, limpio y diferenciable.
+
+---
+
+# 1. IDENTIDAD VISUAL POR MODO
+
+## BCV (Venezuela)
+
+### Elemento clave
+
+* integrar una bandera de Venezuela estilizada (NO emoji)
+
+---
+
+### Diseño
+
+* usar una franja sutil en el header o fondo:
+
+  * amarillo (muy suave)
+  * azul oscuro
+  * rojo tenue
+
+* aplicar en:
+
+  * borde superior del card
+  * glow sutil
+  * línea decorativa
+
+---
+
+### Estilo
+
+* elegante
+* sin saturación
+* sin parecer “patriótico barato”
+
+---
+
+## Binance (Paralelo)
+
+### Elemento clave
+
+* usar identidad inspirada en Binance
+
+---
+
+### Diseño
+
+* color principal: amarillo dorado (#FCD535)
+* fondo con glow tenue amarillo
+* patrón sutil tipo grid o trading
+
+---
+
+### Detalle
+
+* icono abstracto (no logo oficial)
+* sensación de mercado / trading
+
+---
+
+## Euro (BCV EUR)
+
+### Elemento clave
+
+* estilo europeo moderno
+
+---
+
+### Diseño
+
+* azul profundo (#1E3A8A)
+* detalles en dorado suave
+* círculos o estrellas muy sutiles (inspiración UE, no literal)
+
+---
+
+### Estilo
+
+* limpio
+* financiero
+* elegante
+
+---
+
+# 2. TRANSICIÓN ENTRE MODOS
+
+## Comportamiento
+
+* al cambiar de tasa:
+
+  * transición suave (fade + color shift)
+  * 150–200ms
+
+---
+
+## Efecto
+
+* el usuario “siente” el cambio de contexto
+
+---
+
+# 3. HEADER DINÁMICO
+
+## Mostrar
+
+* nombre de la fuente:
+
+  * Banco Central de Venezuela
+  * Mercado paralelo
+  * Euro oficial
+
+---
+
+## Estilo
+
+* badge con color del modo
+* icono pequeño + texto
+
+---
+
+# 4. FONDO DEL CARD
+
+## Diseño
+
+* glassmorphism base
+* overlay de color dinámico según modo
+
+---
+
+## Ejemplo
+
+* BCV → azul/cyan
+* Binance → amarillo cálido
+* Euro → azul profundo
+
+---
+
+# 5. MICRO DETALLES (MUY IMPORTANTE)
+
+* glow adaptativo según tasa
+* animación leve al cambiar número
+* borde activo en el tab seleccionado
+* indicador visual claro del modo activo
+
+---
+
+# 6. LO QUE NO SE DEBE HACER
+
+* NO usar emojis
+* NO usar banderas grandes o invasivas
+* NO saturar colores
+* NO romper consistencia del dark mode
+
+---
+
+# RESULTADO FINAL
+
+* cada tasa tiene personalidad propia
+* sensación de producto financiero real
+* mayor confianza del usuario
+* experiencia visual premium
+
+---
+
+Prioridad: ALTA 🚀

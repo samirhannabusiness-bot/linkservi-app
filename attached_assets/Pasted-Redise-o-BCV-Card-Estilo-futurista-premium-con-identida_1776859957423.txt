@@ -1,0 +1,189 @@
+Rediseño BCV Card — Estilo futurista premium con identidad Venezuela
+
+---
+
+# OBJETIVO
+
+Transformar la tarjeta de tasa BCV en un módulo visual moderno, tecnológico y premium, manteniendo coherencia con el diseño dark de la app.
+
+---
+
+# ESTILO GENERAL
+
+* Tema: dark futurista
+* Inspiración: fintech moderna (tipo Stripe + Apple + crypto dashboards)
+* Sensación: tecnológica, confiable, premium
+* Bordes: suaves (border-radius alto)
+* Efecto: glassmorphism + glow sutil
+
+---
+
+# FONDO (CLAVE VISUAL)
+
+## Bandera de Venezuela (MUY IMPORTANTE)
+
+* NO usar imagen literal ni bandera plana
+* Crear efecto abstracto con gradiente:
+
+Colores:
+
+* Amarillo (#F4C542)
+* Azul (#0033A0)
+* Rojo (#CF142B)
+
+---
+
+### Implementación:
+
+* degradado ondulado (wave / blur)
+* opacidad baja (10–20%)
+* posición: lado derecho superior
+* agregar estrellas blancas MUY sutiles (blur + opacity baja)
+
+💥 Debe sentirse elegante, no literal
+
+---
+
+# HEADER
+
+Izquierda:
+
+* ícono dentro de contenedor glow (cyan/blue)
+* título: "Tasa oficial BCV"
+* subtítulo: "Tasa del día · Fuente BCV"
+
+Debajo:
+
+* badge:
+  "Fuente oficial: Banco Central de Venezuela"
+
+---
+
+Derecha:
+
+* precio grande:
+  482,76
+
+* label:
+  "Bs/USD"
+
+* badge pequeño:
+  "● Actualizado hoy"
+
+---
+
+# EQUIVALENCIAS
+
+* cards individuales
+* cada una con glow distinto (cyan, violeta, azul, naranja)
+
+Ejemplo:
+
+$10 → 4.827 Bs
+$50 → 24.137 Bs
+
+---
+
+* hover effect:
+
+  * leve elevación
+  * glow más fuerte
+
+---
+
+# CALCULADORA
+
+Diseño:
+
+* dos inputs grandes
+* separados por "=" centrado
+* bordes con glow dinámico (cyan → violeta)
+
+---
+
+Labels:
+
+* "TÚ PAGAS (USD)"
+* "RECIBES (VES)"
+
+---
+
+# BOTÓN PRINCIPAL (MUY IMPORTANTE)
+
+Texto:
+
+"Usar esta tasa en mis compras"
+
+---
+
+Estilo:
+
+* gradiente:
+  cyan → azul → violeta
+* borde suave
+* glow exterior
+* hover:
+
+  * más brillo
+  * ligera expansión
+
+---
+
+# TEXTO DE APOYO
+
+Debajo del botón:
+
+"Esta tasa se usará para mostrar precios en Bs en toda la app"
+
+---
+
+# FOOTER INFORMATIVO
+
+3 bloques:
+
+---
+
+1. Fuente oficial
+   Banco Central de Venezuela
+   [www.bcv.org.ve](http://www.bcv.org.ve)
+
+---
+
+2. Actualización automática
+   "Se actualiza cada X minutos"
+
+---
+
+3. Tasa del día
+   "Válida para hoy"
+
+---
+
+# MICRO DETALLES (MUY IMPORTANTE)
+
+* animación suave en entrada (fade + slide)
+* skeleton mientras carga
+* sombras suaves (no duras)
+* todo con coherencia de spacing
+
+---
+
+# NO HACER
+
+❌ no usar colores planos
+❌ no usar bandera literal rígida
+❌ no saturar con efectos exagerados
+❌ no romper el dark theme
+
+---
+
+# RESULTADO ESPERADO
+
+* diseño premium tipo fintech
+* identidad venezolana elegante
+* alta confianza del usuario
+* integración perfecta con la app
+
+---
+
+Prioridad: ALTA 🚀

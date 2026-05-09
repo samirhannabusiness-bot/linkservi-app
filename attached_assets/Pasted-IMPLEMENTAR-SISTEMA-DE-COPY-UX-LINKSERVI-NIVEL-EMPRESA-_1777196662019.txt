@@ -1,0 +1,189 @@
+IMPLEMENTAR: SISTEMA DE COPY UX LINKSERVI (NIVEL EMPRESA)
+
+OBJETIVO:
+Unificar todos los textos de la app para transmitir confianza, claridad y conversión, alineado a un producto tipo Uber / Amazon.
+
+IMPORTANTE:
+NO cambiar lógica.
+NO modificar backend.
+SOLO mejorar textos (copy UX).
+
+---
+
+🧠 TONO DE MARCA
+
+El lenguaje debe ser:
+
+* claro
+* directo
+* confiable
+* sin tecnicismos
+* orientado a acción
+
+EVITAR:
+
+* lenguaje informal
+* palabras ambiguas
+* textos largos
+
+---
+
+🏠 HOME
+
+Reemplazar textos principales por:
+
+Título:
+"Encuentra profesionales verificados en minutos"
+
+Subtítulo:
+"Contrata servicios confiables, paga dentro de la app y recibe garantía"
+
+---
+
+🔍 BÚSQUEDA
+
+Campo de búsqueda:
+
+ANTES:
+"Buscar trabajador"
+
+DESPUÉS:
+"¿Qué servicio necesitas hoy?"
+
+---
+
+🧑 PERFIL PROFESIONAL
+
+Reemplazar encabezados por:
+
+"Profesional verificado"
+
+Debajo incluir:
+
+* ⭐ {rating} de calificación
+* ✔ identidad verificada
+* 🛠 experiencia comprobada
+
+---
+
+🛒 SERVICIOS
+
+Botones:
+
+ANTES:
+"Solicitar servicio"
+
+DESPUÉS:
+"Contratar ahora"
+
+---
+
+💳 PAGOS
+
+Agregar bloque visible:
+
+Título:
+"Pago protegido por LinkServi"
+
+Subtexto:
+
+"Tu dinero se libera solo cuando confirmas el trabajo"
+"Incluye garantía en servicios pagados dentro de la app"
+
+---
+
+📦 PANEL DE TRANSACCIÓN
+
+Título:
+"Esperando tu confirmación"
+
+Contador:
+
+"Se liberará automáticamente en {tiempo}"
+
+Botones:
+
+✔ "Confirmar trabajo"
+❌ "Reportar problema"
+
+---
+
+🛡️ GARANTÍA
+
+Mostrar en UI:
+
+"10 días de garantía en servicios pagados en la app"
+
+---
+
+🧑‍🔧 PROFESIONAL (ANTES TRABAJADOR)
+
+Dashboard:
+
+Título:
+"Tu negocio en LinkServi"
+
+Métricas:
+
+* Ingresos generados
+* Servicios completados
+* Clientes atendidos
+
+---
+
+🧑‍💼 GESTOR
+
+Panel:
+
+Título:
+"Gestiona negocios y genera ingresos"
+
+---
+
+💬 MENSAJES DEL SISTEMA
+
+Reemplazar:
+
+❌ "Error al procesar"
+✔ "Algo salió mal, inténtalo nuevamente"
+
+❌ "Operación exitosa"
+✔ "Todo listo ✅"
+
+---
+
+🧩 MICROCOPY (IMPORTANTE)
+
+Usar en toda la app:
+
+* "Disponible ahora"
+* "Respuesta rápida"
+* "Alta demanda"
+* "Ver todos →"
+
+---
+
+---
+
+🚫 PROHIBIDO
+
+* usar "trabajador"
+* usar lenguaje técnico
+* textos genéricos tipo "ok", "done", etc.
+
+---
+
+🎯 RESULTADO FINAL
+
+La app debe sentirse:
+
+* confiable
+* profesional
+* fácil de usar
+* orientada a conversión
+
+---
+
+Esto no es solo texto.
+
+Es percepción de marca + aumento de ventas.

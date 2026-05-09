@@ -1,0 +1,27 @@
+{
+  "apiUrl": "https://linkservi.com",
+  "apiKey": "REEMPLAZA_CON_TU_API_KEY",
+  "intervalMin": 15,
+  "db": {
+    "type": "sqlserver",
+    "host": "localhost",
+    "port": 1433,
+    "user": "sa",
+    "password": "",
+    "database": "SAINT_DB",
+    "options": {
+      "encrypt": false,
+      "trustServerCertificate": true
+    }
+  },
+  "mapping": {
+    "table": "productos",
+    "sku": "codigo",
+    "name": "descripcion",
+    "price": "precio",
+    "stock": "existencia"
+  },
+  "logging": {
+    "level": "info"
+  }
+}

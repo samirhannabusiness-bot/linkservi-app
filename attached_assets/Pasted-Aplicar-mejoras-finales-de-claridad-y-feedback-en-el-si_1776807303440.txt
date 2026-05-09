@@ -1,0 +1,132 @@
+Aplicar mejoras finales de claridad y feedback en el sidebar del modo trabajador en LinkServi.
+
+NO cambiar lógica.
+NO cambiar rutas.
+Solo mejorar experiencia, orientación y percepción de valor.
+
+---
+
+# OBJETIVO
+
+Eliminar dudas, guiar mejor al usuario y reforzar acciones clave dentro del menú.
+
+---
+
+# CAMBIOS
+
+## 1. TOOLTIPS (MICRO DESCRIPCIONES)
+
+Agregar tooltip o descripción corta al pasar el cursor (o long-press en móvil si aplica):
+
+---
+
+Trabajos
+"Gestiona tus servicios y solicitudes"
+
+---
+
+Mensajería
+"Habla con tus clientes en tiempo real"
+
+---
+
+Mi perfil de servicio
+"Configura lo que ofreces a los clientes"
+
+---
+
+Mi rendimiento
+"Revisa tu actividad y resultados"
+
+---
+
+Trabajos urgentes
+"Solicitudes rápidas disponibles"
+
+---
+
+Retirar dinero
+"Transfiere tus ganancias"
+
+---
+
+Pagos recibidos
+"Historial de ingresos"
+
+---
+
+Mi perfil profesional
+"Así te ven los clientes"
+
+---
+
+Verificar cuenta
+"Aumenta la confianza en tu perfil"
+
+---
+
+Tienda (ServiMarket)
+"Compra herramientas o productos"
+
+---
+
+Mis compras
+"Revisa tus pedidos"
+
+---
+
+# IMPLEMENTACIÓN
+
+* usar tooltip en desktop (hover)
+* usar title o componente existente
+* mantener diseño limpio (no saturar visualmente)
+
+---
+
+## 2. BADGE DINÁMICO EN "TRABAJOS"
+
+Si existen trabajos activos o pendientes:
+
+* mostrar badge con número (ej: 2)
+* o texto: "Trabajos • 2"
+
+---
+
+# OBJETIVO
+
+* generar urgencia
+* dirigir atención
+* aumentar interacción
+
+---
+
+## 3. ESPACIADO ENTRE SECCIONES
+
+Agregar separación visual más clara entre bloques:
+
+* margin-top mayor entre secciones
+* opcional: línea divisora sutil (border-white/10)
+* mantener estética glass/dark
+
+---
+
+# RESULTADO
+
+El usuario:
+
+* entiende cada opción sin pensar
+* sabe qué hacer primero
+* identifica dónde está el dinero y el trabajo
+
+---
+
+# ENTREGA
+
+1. Tooltips visibles y correctos
+2. Badge dinámico funcionando
+3. Sidebar más limpio y legible
+4. Sin cambios en funcionalidad
+
+---
+
+Prioridad: claridad + orientación + experiencia premium

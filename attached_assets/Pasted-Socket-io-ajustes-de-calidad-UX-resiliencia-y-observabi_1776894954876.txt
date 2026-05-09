@@ -1,0 +1,185 @@
+Socket.io — ajustes de calidad (UX, resiliencia y observabilidad)
+
+---
+
+# OBJETIVO
+
+Pulir la implementación de WebSockets para manejar correctamente errores de autenticación, evitar reconexiones infinitas y mejorar la visibilidad del sistema mediante logging estructurado.
+
+---
+
+# 1. MANEJO DE ERROR DE AUTENTICACIÓN (FRONTEND)
+
+## Problema
+
+Si el socket es rechazado por JWT inválido o expirado:
+
+* el usuario no recibe feedback claro
+* el sistema puede quedar en estado inconsistente
+
+---
+
+## Implementación requerida
+
+### Frontend
+
+escuchar evento de error de conexión:
+
+```js
+socket.on("connect_error", (err) => {
+  if (err.message === "Unauthorized") {
+    // manejar error
+  }
+})
+```
+
+---
+
+## Comportamiento
+
+* mostrar mensaje claro:
+  👉 “Sesión expirada. Inicia sesión nuevamente.”
+
+* limpiar estado de socket si aplica
+
+* redirigir a login o disparar refresh de sesión
+
+---
+
+## Resultado
+
+* UX clara
+* evita estados silenciosos de fallo
+
+---
+
+# 2. CONTROL DE RECONEXIÓN (RETRY / TIMEOUT)
+
+## Problema
+
+Socket.io intenta reconectar indefinidamente si falla:
+
+* consumo innecesario
+* posibles loops infinitos
+
+---
+
+## Implementación requerida
+
+### Configuración del cliente
+
+```js
+const socket = io(API_URL, {
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+})
+```
+
+---
+
+## Comportamiento
+
+* máximo 5 intentos de reconexión
+* delay progresivo entre intentos
+
+---
+
+## Manejo de fallo
+
+```js
+socket.on("reconnect_failed", () => {
+  // notificar al usuario
+})
+```
+
+---
+
+## UX
+
+* mostrar mensaje:
+  👉 “No se pudo reconectar. Verifica tu conexión.”
+
+---
+
+## Resultado
+
+* evita loops infinitos
+* comportamiento controlado
+
+---
+
+# 3. LOGGING ESTRUCTURADO (BACKEND + FRONTEND)
+
+## Objetivo
+
+Tener visibilidad completa del sistema de sockets en producción
+
+---
+
+## Backend (Socket.io)
+
+Loggear eventos clave:
+
+* conexión de usuario
+* desconexión
+* errores de autenticación
+* join/leave de rooms
+
+---
+
+## Ejemplo
+
+```js
+io.on("connection", (socket) => {
+  console.log("Socket conectado:", socket.user?.id)
+
+  socket.on("disconnect", (reason) => {
+    console.log("Socket desconectado:", reason)
+  })
+})
+```
+
+---
+
+## Frontend
+
+Log opcional en desarrollo:
+
+```js
+socket.on("connect", () => {
+  console.log("Socket conectado")
+})
+
+socket.on("disconnect", (reason) => {
+  console.log("Socket desconectado:", reason)
+})
+```
+
+---
+
+## Recomendación
+
+* usar logs simples en dev
+* usar logging estructurado (pino) en producción
+
+---
+
+# CONSIDERACIONES
+
+* no saturar logs en producción
+* evitar exponer datos sensibles
+* mantener consistencia en mensajes
+
+---
+
+# RESULTADO FINAL
+
+* manejo claro de errores de sesión
+* reconexión controlada
+* sistema observable y debuggeable
+
+---
+
+Prioridad: MEDIA 🚀

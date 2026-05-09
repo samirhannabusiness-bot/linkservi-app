@@ -1,0 +1,1205 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: ServiLink Marketplace API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication
+  - name: users
+    description: User management
+  - name: workers
+    description: Worker management
+  - name: services
+    description: Service categories and requests
+  - name: bookings
+    description: Service bookings
+  - name: reviews
+    description: Reviews and ratings
+  - name: chat
+    description: Chat messages
+  - name: admin
+    description: Admin operations
+  - name: Storage
+    description: Object storage upload and serving endpoints.
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [services]
+      summary: List service categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  /workers:
+    get:
+      operationId: listWorkers
+      tags: [workers]
+      summary: List available workers
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+        - name: lat
+          in: query
+          schema:
+            type: number
+        - name: lng
+          in: query
+          schema:
+            type: number
+        - name: radius
+          in: query
+          schema:
+            type: number
+        - name: available
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of workers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkerPublic"
+
+  /workers/{workerId}:
+    get:
+      operationId: getWorker
+      tags: [workers]
+      summary: Get worker profile
+      parameters:
+        - name: workerId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Worker profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkerPublic"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /workers/me:
+    get:
+      operationId: getMyWorkerProfile
+      tags: [workers]
+      summary: Get my worker profile
+      responses:
+        "200":
+          description: My worker profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkerProfile"
+    put:
+      operationId: updateMyWorkerProfile
+      tags: [workers]
+      summary: Update my worker profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateWorkerProfileBody"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkerProfile"
+
+  /workers/me/availability:
+    put:
+      operationId: updateAvailability
+      tags: [workers]
+      summary: Toggle worker availability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAvailabilityBody"
+      responses:
+        "200":
+          description: Availability updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkerProfile"
+
+  /workers/me/location:
+    put:
+      operationId: updateWorkerLocation
+      tags: [workers]
+      summary: Update worker GPS location
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateLocationBody"
+      responses:
+        "200":
+          description: Location updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /bookings:
+    get:
+      operationId: listBookings
+      tags: [bookings]
+      summary: List bookings for current user
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, accepted, in_progress, completed, cancelled]
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [client, worker]
+      responses:
+        "200":
+          description: List of bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+    post:
+      operationId: createBooking
+      tags: [bookings]
+      summary: Create a new service booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBookingBody"
+      responses:
+        "201":
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{bookingId}:
+    get:
+      operationId: getBooking
+      tags: [bookings]
+      summary: Get booking details
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Booking details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{bookingId}/accept:
+    post:
+      operationId: acceptBooking
+      tags: [bookings]
+      summary: Worker accepts a booking
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Booking accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{bookingId}/reject:
+    post:
+      operationId: rejectBooking
+      tags: [bookings]
+      summary: Worker rejects a booking
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Booking rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{bookingId}/complete:
+    post:
+      operationId: completeBooking
+      tags: [bookings]
+      summary: Mark booking as complete
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Booking completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{bookingId}/cancel:
+    post:
+      operationId: cancelBooking
+      tags: [bookings]
+      summary: Cancel a booking
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Booking cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /reviews:
+    post:
+      operationId: createReview
+      tags: [reviews]
+      summary: Create a review for a completed booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReviewBody"
+      responses:
+        "201":
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+
+  /reviews/worker/{workerId}:
+    get:
+      operationId: getWorkerReviews
+      tags: [reviews]
+      summary: Get reviews for a worker
+      parameters:
+        - name: workerId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Worker reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+
+  /chat/{bookingId}:
+    get:
+      operationId: getChatMessages
+      tags: [chat]
+      summary: Get chat messages for a booking
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Chat messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChatMessage"
+    post:
+      operationId: sendChatMessage
+      tags: [chat]
+      summary: Send a chat message
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageBody"
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatMessage"
+
+  /admin/dashboard:
+    get:
+      operationId: getAdminDashboard
+      tags: [admin]
+      summary: Admin dashboard stats
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDashboard"
+
+  /admin/users:
+    get:
+      operationId: adminListUsers
+      tags: [admin]
+      summary: Admin - list all users
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [client, worker, admin]
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /admin/users/{userId}:
+    put:
+      operationId: adminUpdateUser
+      tags: [admin]
+      summary: Admin - update user status
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUpdateUserBody"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /admin/workers/pending:
+    get:
+      operationId: adminListPendingWorkers
+      tags: [admin]
+      summary: Admin - list workers pending verification
+      responses:
+        "200":
+          description: Pending workers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkerProfile"
+
+  /admin/workers/{workerId}/verify:
+    post:
+      operationId: adminVerifyWorker
+      tags: [admin]
+      summary: Admin - verify a worker
+      parameters:
+        - name: workerId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminVerifyWorkerBody"
+      responses:
+        "200":
+          description: Worker verified/rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkerProfile"
+
+  /admin/bookings:
+    get:
+      operationId: adminListBookings
+      tags: [admin]
+      summary: Admin - list all bookings
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: All bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+
+  /admin/categories:
+    post:
+      operationId: adminCreateCategory
+      tags: [admin]
+      summary: Admin - create service category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCategoryBody"
+      responses:
+        "201":
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+  /storage/uploads/request-url:
+    post:
+      tags: [Storage]
+      operationId: requestUploadUrl
+      summary: Request a presigned URL for file upload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadUrlRequest'
+      responses:
+        '200':
+          description: Presigned upload URL generated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadUrlResponse'
+  /storage/objects/{objectPath}:
+    get:
+      tags: [Storage]
+      operationId: getStorageObject
+      summary: Serve an object entity
+      parameters:
+        - name: objectPath
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Object content streamed.
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+
+  /profile/avatar:
+    put:
+      tags: [users]
+      operationId: updateAvatar
+      summary: Update user profile avatar URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAvatarBody'
+      responses:
+        '200':
+          description: Avatar updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    RegisterBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [client, worker]
+      required:
+        - name
+        - email
+        - password
+        - role
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+      required:
+        - user
+        - token
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [client, worker, admin]
+        avatarUrl:
+          type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - email
+        - role
+        - isActive
+        - createdAt
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        color:
+          type: string
+        workerCount:
+          type: integer
+      required:
+        - id
+        - name
+        - icon
+
+    WorkerPublic:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        name:
+          type: string
+        avatarUrl:
+          type: string
+        categoryId:
+          type: integer
+        categoryName:
+          type: string
+        description:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        hourlyRate:
+          type: number
+        rating:
+          type: number
+        reviewCount:
+          type: integer
+        isAvailable:
+          type: boolean
+        isVerified:
+          type: boolean
+        lat:
+          type: number
+        lng:
+          type: number
+        distance:
+          type: number
+        completedJobs:
+          type: integer
+      required:
+        - id
+        - userId
+        - name
+        - categoryId
+        - isAvailable
+        - isVerified
+        - rating
+        - reviewCount
+
+    WorkerProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        categoryId:
+          type: integer
+        description:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        hourlyRate:
+          type: number
+        rating:
+          type: number
+        reviewCount:
+          type: integer
+        isAvailable:
+          type: boolean
+        isVerified:
+          type: boolean
+        verificationStatus:
+          type: string
+          enum: [pending, approved, rejected]
+        lat:
+          type: number
+        lng:
+          type: number
+        completedJobs:
+          type: integer
+        earnings:
+          type: number
+      required:
+        - id
+        - userId
+        - categoryId
+        - isAvailable
+        - isVerified
+        - verificationStatus
+        - rating
+        - reviewCount
+
+    UpdateWorkerProfileBody:
+      type: object
+      properties:
+        categoryId:
+          type: integer
+        description:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        hourlyRate:
+          type: number
+
+    UpdateAvailabilityBody:
+      type: object
+      properties:
+        isAvailable:
+          type: boolean
+      required:
+        - isAvailable
+
+    UpdateLocationBody:
+      type: object
+      properties:
+        lat:
+          type: number
+        lng:
+          type: number
+      required:
+        - lat
+        - lng
+
+    CreateBookingBody:
+      type: object
+      properties:
+        workerId:
+          type: integer
+        categoryId:
+          type: integer
+        description:
+          type: string
+        address:
+          type: string
+        lat:
+          type: number
+        lng:
+          type: number
+        estimatedHours:
+          type: number
+        scheduledAt:
+          type: string
+      required:
+        - workerId
+        - categoryId
+        - description
+        - address
+
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+        clientId:
+          type: integer
+        workerId:
+          type: integer
+        categoryId:
+          type: integer
+        clientName:
+          type: string
+        workerName:
+          type: string
+        categoryName:
+          type: string
+        description:
+          type: string
+        address:
+          type: string
+        lat:
+          type: number
+        lng:
+          type: number
+        status:
+          type: string
+          enum: [pending, accepted, in_progress, completed, cancelled]
+        estimatedHours:
+          type: number
+        totalAmount:
+          type: number
+        scheduledAt:
+          type: string
+        completedAt:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - clientId
+        - workerId
+        - categoryId
+        - description
+        - address
+        - status
+        - createdAt
+
+    CreateReviewBody:
+      type: object
+      properties:
+        bookingId:
+          type: integer
+        workerId:
+          type: integer
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+      required:
+        - bookingId
+        - workerId
+        - rating
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        bookingId:
+          type: integer
+        workerId:
+          type: integer
+        clientId:
+          type: integer
+        clientName:
+          type: string
+        rating:
+          type: integer
+        comment:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - bookingId
+        - workerId
+        - clientId
+        - rating
+        - createdAt
+
+    SendMessageBody:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+        - content
+
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        bookingId:
+          type: integer
+        senderId:
+          type: integer
+        senderName:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - bookingId
+        - senderId
+        - content
+        - createdAt
+
+    AdminDashboard:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalWorkers:
+          type: integer
+        totalClients:
+          type: integer
+        pendingVerifications:
+          type: integer
+        totalBookings:
+          type: integer
+        activeBookings:
+          type: integer
+        completedBookings:
+          type: integer
+        totalRevenue:
+          type: number
+        revenueThisMonth:
+          type: number
+        bookingsByCategory:
+          type: array
+          items:
+            type: object
+            properties:
+              categoryName:
+                type: string
+              count:
+                type: integer
+            required:
+              - categoryName
+              - count
+        recentBookings:
+          type: array
+          items:
+            $ref: "#/components/schemas/Booking"
+        topWorkers:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkerPublic"
+      required:
+        - totalUsers
+        - totalWorkers
+        - totalClients
+        - pendingVerifications
+        - totalBookings
+        - activeBookings
+        - completedBookings
+        - totalRevenue
+        - revenueThisMonth
+        - bookingsByCategory
+        - recentBookings
+        - topWorkers
+
+    AdminUpdateUserBody:
+      type: object
+      properties:
+        isActive:
+          type: boolean
+        role:
+          type: string
+          enum: [client, worker, admin]
+
+    AdminVerifyWorkerBody:
+      type: object
+      properties:
+        approved:
+          type: boolean
+        notes:
+          type: string
+      required:
+        - approved
+
+    CreateCategoryBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        color:
+          type: string
+      required:
+        - name
+        - icon
+
+    UploadUrlRequest:
+      type: object
+      required: [name, size, contentType]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        size:
+          type: integer
+          minimum: 1
+        contentType:
+          type: string
+          minLength: 1
+    UploadUrlResponse:
+      type: object
+      required: [uploadURL, objectPath]
+      properties:
+        uploadURL:
+          type: string
+          format: uri
+        objectPath:
+          type: string
+        metadata:
+          $ref: '#/components/schemas/UploadUrlRequest'
+    UpdateAvatarBody:
+      type: object
+      required: [avatarUrl]
+      properties:
+        avatarUrl:
+          type: string

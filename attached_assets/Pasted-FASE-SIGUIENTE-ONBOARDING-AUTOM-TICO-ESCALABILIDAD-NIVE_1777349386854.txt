@@ -1,0 +1,268 @@
+FASE SIGUIENTE — ONBOARDING AUTOMÁTICO + ESCALABILIDAD (NIVEL PLATAFORMA)
+
+OBJETIVO:
+Convertir el Sync Agent + LinkServi en un sistema que:
+
+* se active casi sin intervención humana
+* escale a múltiples negocios sin soporte manual
+* sea resiliente y observable en producción
+
+RESTRICCIONES:
+
+* NO modificar la lógica de sincronización existente
+* NO cambiar /api/integrations/products/sync
+* Construir encima: onboarding, orquestación, validación y observabilidad
+
+---
+
+T001 — ONBOARDING REMOTO AUTOMÁTICO (PAIRING)
+
+Implementar flujo “pairing” desde LinkServi:
+
+1. En LinkServi (web):
+
+* botón: “Conectar mi sistema”
+* genera pairingCode (UUID corto, TTL 10 min)
+* muestra código QR + código alfanumérico
+
+2. En Sync Agent (primer arranque):
+
+* pantalla: “Conectar con LinkServi”
+* opción: escanear QR (webcam) o pegar código
+
+3. Endpoint backend:
+   POST /api/integrations/agent/pair
+   Body: { pairingCode }
+
+* valida código
+* devuelve apiKey + apiUrl + storeId
+
+4. Guardar automáticamente en config.json
+5. Marcar pairingCode como usado (one-time)
+
+RESULTADO:
+El usuario no copia API keys. Conecta en 1 paso.
+
+---
+
+T002 — AUTO-DETECCIÓN AVANZADA DE DB (SIN CAMPOS)
+
+Implementar motor de detección:
+
+* escanear localhost:1433 y puertos comunes
+* listar instancias SQL Server disponibles
+* intentar login con credenciales Windows (si aplica)
+* descubrir bases con tablas tipo “productos”
+
+Endpoint local:
+GET /api/db/autodetect-advanced
+Respuesta:
+{
+candidates: [
+{ host, port, database, confidenceScore, tablesDetected }
+]
+}
+
+UI:
+
+* seleccionar automáticamente el mejor candidato (confidenceScore)
+* fallback manual si ninguno válido
+
+---
+
+T003 — MAPEO INTELIGENTE AUTOMÁTICO
+
+Implementar inferencia de columnas:
+
+* leer nombres de columnas de la tabla
+* detectar:
+  sku → codigo, sku, id
+  name → nombre, descripcion
+  price → precio, pvp
+  stock → existencia, stock
+
+Función:
+autoMapColumns(schema) → mapping
+
+Mostrar preview al usuario:
+“Detectamos tu estructura automáticamente”
+
+Permitir editar (avanzado).
+
+---
+
+T004 — DRY-RUN VISUAL (SIN RIESGO)
+
+Antes de activar sync:
+
+* ejecutar lectura real (limit 20 productos)
+* NO enviar al backend
+
+Mostrar:
+
+✔ Productos detectados: 20
+✔ Precio OK
+✔ Stock OK
+
+Errores claros si existen.
+
+Botón:
+👉 “Todo se ve bien — Activar”
+
+---
+
+T005 — ACTIVACIÓN CERO-CLICKS
+
+Si pasan:
+
+* pairing OK
+* DB OK
+* mapping OK
+
+👉 activar sync automáticamente
+
+* iniciar loop
+* ejecutar primer sync inmediato
+* mostrar estado “Activo”
+
+SIN botón extra obligatorio.
+
+---
+
+T006 — AUTO-UPDATE DEL AGENTE
+
+Implementar:
+
+* endpoint:
+  GET /api/integrations/agent/version
+
+* el agente compara versión actual vs latest
+
+* si hay update:
+
+  * descarga installer en background
+  * notifica: “Nueva versión disponible”
+  * botón: “Actualizar ahora”
+
+(Opción silent update configurable)
+
+---
+
+T007 — TELEMETRÍA Y SALUD (CENTRALIZADA)
+
+Enviar eventos al backend (no sensibles):
+
+POST /api/integrations/agent/telemetry
+
+Eventos:
+
+* agent_started
+* sync_success
+* sync_error
+* db_error
+* version
+
+Payload:
+{ storeId, version, status, timestamp }
+
+---
+
+T008 — DASHBOARD EN LINKSERVI (CONTROL CENTRAL)
+
+Crear vista en web:
+
+/admin/integrations/agents
+
+Mostrar por tienda:
+
+* estado (online/offline)
+* última sync
+* errores recientes
+* versión instalada
+
+Permitir:
+
+* ver logs resumidos
+* forzar sync remoto (opcional)
+
+---
+
+T009 — RESILIENCIA AVANZADA
+
+Implementar:
+
+* cola interna de reintentos
+* backoff exponencial con jitter
+* circuit breaker:
+
+  * si 5 fallos consecutivos → pausa temporal
+* reconexión automática DB
+
+NUNCA cerrar el proceso por errores recuperables.
+
+---
+
+T010 — MODO “SIN TÉCNICO” (DEFAULT)
+
+UX final:
+
+Pantalla única:
+
+“Conecta tu sistema en 3 pasos”
+
+1. Escanea código (pairing)
+2. Detectando sistema… (auto)
+3. Listo — sincronizando 🚀
+
+Ocultar TODO lo demás.
+
+Botón pequeño:
+“Configuración avanzada”
+
+---
+
+T011 — SEGURIDAD END-TO-END
+
+* pairingCode con TTL + one-time use
+* API Key nunca visible tras pairing
+* validar payloads estrictamente
+* limitar rate por agentId
+* firmar requests opcional (HMAC futuro)
+
+---
+
+RESULTADO ESPERADO:
+
+Un negocio puede:
+
+* abrir LinkServi
+* escanear un QR
+* esperar 10–20 segundos
+* quedar sincronizando automáticamente
+
+SIN:
+
+* copiar claves
+* configurar base de datos manualmente
+* entender conceptos técnicos
+
+---
+
+ESTÁNDAR DE EXPERIENCIA:
+
+Debe sentirse como:
+
+👉 conectar WhatsApp Web
+👉 conectar Stripe
+👉 conectar Google Drive
+
+NO como:
+
+👉 configurar un servidor
+👉 instalar software técnico complejo
+
+---
+
+NO romper el core.
+NO rehacer lo existente.
+SOLO construir la capa que permite escalar sin soporte.

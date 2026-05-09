@@ -1,0 +1,92 @@
+Quiero mejorar y escalar mi app ServiLink (marketplace de servicios tipo Uber para Venezuela) utilizando únicamente herramientas y APIs gratuitas en esta etapa inicial.
+
+El objetivo es lograr una app funcional, rápida y profesional sin costos, priorizando geolocalización, notificaciones, chat en tiempo real, sistema de precios y seguridad.
+
+Implementar lo siguiente:
+
+1. Sistema de mapas gratuito:
+
+* Integrar mapas usando OpenStreetMap con Leaflet.
+* Mostrar trabajadores cercanos en tiempo real con marcadores.
+* Calcular distancia aproximada entre cliente y trabajador.
+* Actualizar ubicación usando geolocalización del navegador (navigator.geolocation).
+
+2. Sistema de solicitudes inteligente (tipo Uber):
+
+* Enviar solicitudes automáticamente a trabajadores cercanos.
+* Permitir aceptar o rechazar.
+* Reasignar automáticamente si nadie acepta en cierto tiempo.
+* Incluir modo “servicio urgente” con prioridad y recargo.
+
+3. Sistema de precios adaptado a Venezuela:
+
+* Eliminar precios por hora.
+* Implementar:
+
+  * Precio base (visita)
+  * Precio fijo por servicio
+  * Sistema de oferta del cliente (tipo subasta controlada)
+* Permitir contraofertas de trabajadores.
+* Mostrar precio estimado antes de confirmar.
+
+4. Chat en tiempo real gratuito:
+
+* Implementar usando Supabase Realtime o Socket.IO.
+* Guardar historial de conversaciones como evidencia.
+
+5. Notificaciones push gratuitas:
+
+* Integrar Firebase Cloud Messaging.
+* Notificar:
+
+  * Nuevas solicitudes
+  * Aceptaciones
+  * Mensajes
+  * Pagos confirmados
+
+6. Backend y base de datos gratuitos:
+
+* Usar Supabase como backend principal.
+* Manejar:
+
+  * Usuarios
+  * Servicios
+  * Pagos
+  * Historial
+  * Reputación
+
+7. Sistema de autenticación:
+
+* Implementar Firebase Auth o Supabase Auth.
+* Login con correo y Google.
+
+8. Sistema de reputación:
+
+* Calificaciones con estrellas
+* Porcentaje de cumplimiento
+* Niveles:
+
+  * Nuevo
+  * Verificado
+  * Top trabajador
+
+9. Wallet interno básico:
+
+* Mostrar balance del trabajador
+* Historial de pagos
+* Comisión automática de la plataforma
+
+10. Sistema anti-fraude (adaptado a Venezuela):
+
+* Confirmación manual del pago
+* Alertas para evitar comprobantes falsos
+* Registro del chat como respaldo
+
+IMPORTANTE:
+
+* Todo debe funcionar con herramientas gratuitas (OpenStreetMap, Leaflet, Supabase, Firebase).
+* La app debe ser rápida, simple y fácil de usar.
+* Debe adaptarse a la realidad de Venezuela (pagos manuales, precios flexibles, negociación).
+* El enfoque principal es validar el negocio antes de escalar a servicios pagos.
+
+El resultado final debe ser un MVP profesional, funcional y listo para crecer.

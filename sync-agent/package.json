@@ -1,0 +1,41 @@
+{
+  "name": "linkservi-sync-agent",
+  "version": "1.0.0",
+  "description": "Sync Agent local que conecta SAINT (SQL Server / Firebird) con LinkServi.",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "linkservi-sync-agent": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "once": "node src/index.js --once",
+    "dry-run": "node src/index.js --dry-run --once",
+    "test": "node test/run-all.js",
+    "build:exe": "node scripts/build-exe.mjs",
+    "build:installer": "node scripts/build-installer.mjs",
+    "build": "npm run build:exe && npm run build:installer"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "mssql": "^11.0.1"
+  },
+  "devDependencies": {
+    "@yao-pkg/pkg": "^6.6.0"
+  },
+  "pkg": {
+    "scripts": [
+      "src/**/*.js"
+    ],
+    "assets": [
+      "src/ui/**/*",
+      "config.example.json"
+    ],
+    "targets": [
+      "node22-win-x64"
+    ],
+    "outputPath": "dist"
+  }
+}

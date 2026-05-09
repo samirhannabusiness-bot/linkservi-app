@@ -1,0 +1,144 @@
+Quiero que realices una limpieza profesional del frontend de mi app "LinkServi".
+
+IMPORTANTE:
+
+* NO romper funcionalidades existentes
+* NO cambiar lógica de negocio
+* NO modificar endpoints backend
+* SOLO mejorar estructura, orden y calidad del código
+
+Trabaja como ingeniero senior.
+
+---
+
+# OBJETIVO
+
+Dejar el frontend:
+
+* limpio
+* consistente
+* fácil de mantener
+* listo para escalar
+
+---
+
+# 1. UNIFICAR LLAMADAS API
+
+PROBLEMA:
+Actualmente hay mezcla de:
+
+* fetch() crudo
+* TanStack Query
+
+TAREA:
+
+* Identificar todos los fetch()
+
+* Migrarlos progresivamente a:
+
+  * TanStack Query
+  * o hooks existentes del api-client
+
+* Centralizar llamadas en:
+  /hooks o /services
+
+RESULTADO:
+
+* manejo de cache consistente
+* retry automático
+* estado global limpio
+
+---
+
+# 2. ELIMINAR DUPLICADOS
+
+Buscar y resolver:
+
+* Skeleton.tsx vs skeleton.tsx
+* componentes repetidos
+* funciones duplicadas
+
+Mantener una sola versión clara.
+
+---
+
+# 3. LIMPIAR LOGS
+
+* Reemplazar console.log / console.error innecesarios
+* Mantener solo logs útiles
+* Preparar código para producción
+
+---
+
+# 4. ROMPER COMPONENTES GRANDES
+
+Identificar archivos grandes como:
+
+* StorePage.tsx
+* StoreChatPage.tsx
+* JobsPage.tsx
+* BookingDetailPage.tsx (si creció demasiado)
+
+Dividir en:
+
+* componentes pequeños
+* hooks para lógica
+* UI separada de lógica
+
+---
+
+# 5. SEPARAR LÓGICA DE UI
+
+Mover lógica a:
+
+* hooks personalizados
+
+Ejemplo:
+useBooking()
+usePayment()
+useWorkerStatus()
+
+Los componentes deben:
+👉 solo renderizar
+
+---
+
+# 6. ORGANIZAR ESTRUCTURA
+
+Asegurar carpetas claras:
+
+/components
+/pages
+/hooks
+/services (o api)
+/context
+
+---
+
+# 7. ELIMINAR CÓDIGO MUERTO
+
+* imports no usados
+* funciones sin uso
+* archivos innecesarios
+
+---
+
+# 8. MEJORAR CONSISTENCIA
+
+* nombres de variables uniformes
+* tipos claros
+* evitar código confuso
+
+---
+
+# ENTREGA FINAL
+
+1. Lista de archivos modificados
+2. Qué duplicados se eliminaron
+3. Qué componentes se dividieron
+4. Cómo se unificaron llamadas API
+5. Confirmación de que nada se rompió
+
+---
+
+Quiero un resultado limpio, profesional y listo para escalar a miles de usuarios.

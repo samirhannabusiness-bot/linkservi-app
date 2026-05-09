@@ -1,0 +1,163 @@
+Quiero rediseñar completamente la sección "Mi Servicio" y el perfil del trabajador para convertirlo en una EXPERIENCIA PREMIUM tipo Fiverr/Uber, NO un formulario.
+
+OBJETIVO:
+Que el perfil del trabajador sea una página de ventas visual, moderna, interactiva y que aumente conversiones.
+
+ESTO ES UN REDISEÑO COMPLETO, NO SOLO AJUSTES.
+
+---
+
+1. HEADER PREMIUM (IMPACTO VISUAL)
+
+Crear un header tipo "hero" con:
+
+* fondo degradado o imagen
+* foto de perfil grande
+* nombre + badge verificado
+* categoría
+* ubicación
+* precio desde (ej: "Desde $100")
+
+Agregar:
+
+⭐ rating + número de reseñas
+🟢 estado online/offline
+
+BOTONES GRANDES:
+
+* "Reservar servicio" (principal)
+* "Solicitar cotización" (secundario)
+
+Este header debe parecer una página real de ventas, no un bloque simple.
+
+---
+
+2. NAVEGACIÓN TIPO TABS (MUY IMPORTANTE)
+
+Agregar tabs:
+
+* Perfil
+* Servicios
+* Portafolio
+* Reseñas (aunque sea futura)
+
+Con transición suave (sin recargar página).
+
+---
+
+3. SECCIÓN SERVICIOS (CLAVE)
+
+Eliminar dependencia del "precio base" como elemento principal.
+
+Crear sistema de tarjetas de servicios:
+
+Cada servicio debe ser una CARD:
+
+* nombre
+* precio
+* descripción corta
+* botón "Seleccionar"
+
+Diseño moderno, tipo marketplace.
+
+Agregar:
+
+➕ botón "Agregar servicio"
+✏️ editar
+🗑️ eliminar
+
+---
+
+4. PORTAFOLIO VISUAL PRO
+
+* Grid tipo galería (estilo Instagram)
+* Imágenes grandes
+* Hover con efecto
+* Click abre modal con imagen completa
+
+---
+
+5. DESCRIPCIÓN PROFESIONAL MEJORADA
+
+Cambiar textarea simple por editor estructurado:
+
+* título destacado
+* bullets (lista)
+* texto formateado
+
+Ejemplo visual:
+
+"Tus resultados crecerán con mi audiencia de +2M seguidores"
+
+✔ campañas reales
+✔ alto alcance
+✔ resultados comprobados
+
+---
+
+6. EDITOR CON VISTA PREVIA (CLAVE)
+
+Dividir pantalla en:
+
+IZQUIERDA:
+
+* formulario de edición
+
+DERECHA:
+
+* vista previa en tiempo real del perfil
+
+Esto es obligatorio.
+
+---
+
+7. MICROINTERACCIONES
+
+Agregar:
+
+* animaciones suaves
+* hover en botones
+* feedback visual al guardar
+* transiciones entre tabs
+
+---
+
+8. EXPERIENCIA
+
+Eliminar sensación de:
+
+❌ formulario largo
+❌ configuración técnica
+
+Convertir en:
+
+💥 perfil visual
+💥 tipo landing page
+
+---
+
+9. OBJETIVO FINAL
+
+Que cuando alguien vea el perfil diga:
+
+"Este profesional se ve serio, confiable y vale lo que cobra"
+
+Y que aumente la probabilidad de que el cliente:
+
+* haga click
+* inicie chat
+* pague
+
+---
+
+IMPORTANTE:
+
+No quiero pequeños cambios visuales.
+
+Quiero un rediseño completo tipo app premium moderna.
+
+Inspiración:
+
+* Fiverr
+* Uber servicios
+* marketplaces modernos

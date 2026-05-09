@@ -1,0 +1,143 @@
+IMPLEMENTAR: ALERTAS AUTOMÁTICAS + VISUALIZACIÓN DE TRÁFICO LEGACY (/worker)
+
+OBJETIVO:
+Detectar automáticamente cuándo el tráfico de rutas legacy (/worker) es suficientemente bajo para eliminarlo, y tener visibilidad simple del estado sin necesidad de revisar logs manualmente.
+
+IMPORTANTE:
+Mantenerlo simple.
+NO construir dashboard complejo.
+NO agregar dependencias innecesarias.
+
+---
+
+🧠 CONTEXTO
+
+* Ya existe tabla legacy_redirects
+* Ya existe endpoint GET /api/admin/legacy-worker/stats
+* Ya se mide tráfico real
+
+Falta:
+
+* alerta automática
+* visibilidad rápida
+
+---
+
+🟢 FASE 1 — ALERTA AUTOMÁTICA
+
+Agregar lógica en backend:
+
+Cuando se cumpla:
+
+* < 5 redirects en últimas 24h
+  O
+* 0 redirects en últimos 7 días
+
+---
+
+ENTONCES:
+
+Emitir alerta:
+
+OPCIÓN 1 (simple):
+console.log("[migration] /worker ready for removal")
+
+OPCIÓN 2 (mejor):
+enviar POST a webhook (Slack / Discord / email)
+
+Payload:
+
+{
+event: "worker_sunset_ready",
+last24h: number,
+last7d: number,
+timestamp
+}
+
+---
+
+IMPORTANTE:
+
+* evitar spam → enviar solo una vez por día
+* guardar último envío en memoria o DB
+
+---
+
+---
+
+🟡 FASE 2 — ENDPOINT DE ESTADO SIMPLE
+
+Crear endpoint:
+
+GET /api/admin/legacy-worker/status
+
+Respuesta:
+
+{
+last24h: number,
+last7d: number,
+uniqueUsers: number,
+readyForRemoval: boolean
+}
+
+---
+
+🟢 readyForRemoval =
+
+last24h < 5 OR last7d == 0
+
+---
+
+---
+
+🟠 FASE 3 — VISUALIZACIÓN SIMPLE (FRONTEND)
+
+NO crear página nueva.
+
+Agregar pequeño bloque opcional en admin:
+
+Texto simple:
+
+"Tráfico legacy (/worker): 3 accesos en 24h"
+
+Si readyForRemoval:
+
+Mostrar:
+
+"Listo para eliminar rutas legacy"
+
+---
+
+---
+
+🔴 FASE 4 — SEGURIDAD
+
+Endpoint solo accesible por:
+
+* admin
+
+---
+
+---
+
+🚫 PROHIBIDO
+
+* dashboards complejos
+* gráficos pesados
+* dependencias externas innecesarias
+
+---
+
+---
+
+🎯 RESULTADO FINAL
+
+* sabes exactamente cuándo eliminar /worker
+* no necesitas revisar logs manualmente
+* sistema toma decisiones basado en datos
+
+---
+
+Esto no es monitoreo.
+
+Es control inteligente del sistema.

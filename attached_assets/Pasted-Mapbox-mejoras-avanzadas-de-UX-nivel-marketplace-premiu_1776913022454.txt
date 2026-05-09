@@ -1,0 +1,163 @@
+Mapbox — mejoras avanzadas de UX (nivel marketplace premium)
+
+---
+
+# OBJETIVO
+
+Elevar la experiencia del mapa a nivel de aplicaciones líderes (Airbnb / Uber) mediante mejoras visuales, interacción inteligente y sincronización con la UI.
+
+---
+
+# 1. PRICE MARKERS (CRÍTICO)
+
+## Problema
+
+Actualmente se usan pins tradicionales que no muestran información clave.
+
+---
+
+## Implementación requerida
+
+Reemplazar markers estándar por markers tipo precio:
+
+* formato: pill (border-radius alto)
+* contenido: "$25", "$100"
+* fondo: blanco o negro con sombra
+* texto: bold, legible
+* animación ligera al render
+
+---
+
+## Comportamiento
+
+* cada producto/servicio muestra su precio directamente en el mapa
+* mantener click handler existente
+
+---
+
+## Resultado
+
+* mayor visibilidad
+* aumento de interacción (clics)
+
+---
+
+# 2. FILTRO POR MAPA (BOUND-BASED FETCH)
+
+## Problema
+
+Actualmente se cargan todos los puntos sin considerar el viewport.
+
+---
+
+## Implementación requerida
+
+* escuchar evento de movimiento del mapa:
+
+```js
+map.on("moveend", ...)
+```
+
+---
+
+## Lógica
+
+* obtener bounds visibles:
+
+```js
+const bounds = map.getBounds()
+```
+
+---
+
+* enviar al backend:
+
+* northEast
+
+* southWest
+
+---
+
+## Backend
+
+* filtrar resultados por coordenadas dentro del bounding box
+
+---
+
+## Resultado
+
+* solo se muestran resultados relevantes
+* mejora performance
+* experiencia tipo Airbnb
+
+---
+
+# 3. ANIMACIÓN DE SELECCIÓN
+
+## Implementación requerida
+
+Cuando un marker es seleccionado:
+
+* escala: 1 → 1.15
+* sombra más intensa
+* borde o glow sutil
+
+---
+
+## Lógica
+
+* comparar selectedId con id del marker
+* aplicar clase activa
+
+---
+
+## Resultado
+
+* feedback visual claro
+* sensación premium
+
+---
+
+# 4. SINCRONIZACIÓN MAPA ↔ UI (BIDIRECCIONAL)
+
+## A. CLICK EN CARD → MAPA
+
+* al seleccionar una card:
+
+  * centrar mapa en su ubicación
+  * usar flyTo con animación suave
+
+---
+
+## B. MOVIMIENTO DEL MAPA → LISTA
+
+* al hacer moveend:
+
+  * actualizar lista de productos/servicios visibles
+
+---
+
+## Resultado
+
+* mapa y lista sincronizados
+* navegación fluida tipo Airbnb
+
+---
+
+# CONSIDERACIONES
+
+* evitar re-renders excesivos
+* debounce en eventos de movimiento (200–300ms)
+* mantener compatibilidad con clustering si está activo
+
+---
+
+# RESULTADO FINAL
+
+* mapa interactivo de alto nivel
+* experiencia premium
+* aumento de conversión y retención
+
+---
+
+Prioridad: MEDIA 🚀

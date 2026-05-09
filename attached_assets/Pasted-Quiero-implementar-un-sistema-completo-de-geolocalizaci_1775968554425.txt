@@ -1,0 +1,104 @@
+Quiero implementar un sistema completo de geolocalización combinado con el sistema Premium en ServiLink.
+
+El objetivo es mejorar la búsqueda de servicios cercanos y al mismo tiempo potenciar la visibilidad de trabajadores Premium.
+
+---
+
+1. Ubicación del usuario:
+
+* En el registro agregar:
+
+  * Estado (obligatorio)
+  * Ciudad (obligatorio)
+
+* Usar un selector dinámico:
+
+  * Lista completa de estados de Venezuela
+  * Al seleccionar estado → cargar ciudades correspondientes
+
+* Guardar en base de datos:
+
+  * state
+  * city
+
+---
+
+2. Ubicación del trabajador:
+
+* Cada trabajador debe tener:
+
+  * Estado
+  * Ciudad
+
+* Mostrar esta información en su perfil
+
+---
+
+3. Lógica de búsqueda (MUY IMPORTANTE):
+
+Ordenar resultados de esta forma:
+
+1. Trabajadores Premium del mismo estado/ciudad
+2. Trabajadores normales del mismo estado/ciudad
+3. Trabajadores Premium de otros estados
+4. Trabajadores normales de otros estados
+
+---
+
+4. Beneficio Premium:
+
+* Los trabajadores Premium pueden aparecer:
+
+  * En otras ciudades
+  * En otros estados
+
+* Aunque estén lejos, siguen teniendo visibilidad
+
+---
+
+5. UI:
+
+* Filtros de búsqueda:
+
+  * Estado
+  * Ciudad
+
+* Por defecto:
+
+  * Mostrar trabajadores de la misma ubicación del cliente
+
+---
+
+6. Experiencia del usuario:
+
+* Mostrar claramente la ubicación del trabajador
+* Ejemplo:
+
+  * “📍 Barquisimeto, Lara”
+
+---
+
+7. Preparación futura:
+
+* Preparar campos para:
+
+  * lat (latitud)
+  * lng (longitud)
+
+* Para implementar búsqueda por distancia más adelante
+
+---
+
+8. Integración con Premium:
+
+* Mostrar badge ⭐ Premium en resultados
+* Premium siempre tiene prioridad en el orden
+
+---
+
+IMPORTANTE:
+
+* La app está enfocada en Venezuela
+* Este sistema debe mejorar la relevancia de los resultados
+* Premium debe aumentar la visibilidad sin eliminar a los trabajadores normales
+* El objetivo es mejorar la experiencia del cliente y aumentar ingresos de la plataforma

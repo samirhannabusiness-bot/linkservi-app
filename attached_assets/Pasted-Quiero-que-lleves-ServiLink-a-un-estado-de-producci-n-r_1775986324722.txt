@@ -1,0 +1,179 @@
+Quiero que lleves ServiLink a un estado de producción robusto (nivel 10/10).
+
+Ya existe un MVP funcional sólido, pero necesito que corrijas todos los problemas críticos de seguridad, consistencia de datos y escalabilidad detectados en la auditoría.
+
+Trabaja con enfoque profesional, sin romper funcionalidades existentes.
+
+---
+
+🔴 1. SEGURIDAD (CRÍTICO — BLOQUEANTE)
+
+1. JWT Secret:
+
+* Eliminar completamente el fallback:
+  "servilink-secret-key"
+* Obligar a que SESSION_SECRET exista en variables de entorno
+* Si no existe → el servidor NO debe iniciar
+
+---
+
+2. Authorization / Ownership:
+
+Agregar validaciones en TODOS los endpoints de bookings:
+
+* /bookings/:id/start
+* /bookings/:id/finish
+* /bookings/:id/complete
+* /bookings/:id/dispute
+* /bookings/:id/cancel
+
+Validar:
+
+* Cliente solo puede operar SUS bookings
+* Worker solo puede operar SUS bookings
+* Admin puede operar todos
+
+Si no cumple → 403 Forbidden
+
+---
+
+3. Rate limiting:
+
+Implementar protección en:
+
+* /auth/login
+* /auth/forgot-password
+
+Ejemplo:
+
+* 5 intentos por 15 minutos por IP
+
+---
+
+4. Validaciones:
+
+* Limitar tamaño de imágenes (max 2MB)
+* Validar inputs en todos los endpoints
+
+---
+
+🟠 2. CONSISTENCIA DE DATOS
+
+1. BCV fields:
+
+Corregir enrichBooking() para incluir:
+
+* bcvRateUsed
+* bcvAmountBs
+
+Actualmente se guardan pero NO se envían al frontend.
+
+---
+
+2. Flujo de pagos:
+
+Asegurar que en cada pago se guarde:
+
+* amountUsd
+* amountBs
+* rateUsed
+
+Y que estos datos se muestren en:
+
+* Payment history
+* Admin panel
+* Worker dashboard
+
+---
+
+🟡 3. PERFORMANCE Y ESCALABILIDAD
+
+1. Imágenes:
+
+Eliminar uso de base64 en DB.
+
+* Subir comprobantes a object storage
+* Guardar solo URL
+
+---
+
+2. Queries:
+
+Optimizar enrichBooking():
+
+* Evitar N+1 queries
+* Usar JOIN o batch queries
+
+---
+
+3. Índices en DB:
+
+Agregar índices en:
+
+* bookings.status
+* bookings.client_id
+* bookings.worker_id
+* workers.is_available
+
+---
+
+🟢 4. UX / PRODUCTO
+
+1. Chat:
+
+* Agregar botón visible en bookings (cliente y worker)
+* Integrar correctamente en flujo
+
+---
+
+2. Premium:
+
+* Activar sistema Premium existente
+* Mostrar badge en workers premium
+* Asegurar impacto en ranking
+
+---
+
+3. Worker UX:
+
+* Mantener orden por prioridad (pending → in_progress → completed)
+* Resaltar nuevas solicitudes
+* Mantener modal de nuevas solicitudes
+
+---
+
+4. Perfil:
+
+* Simplificar campos de precios (evitar confusión entre tarifas)
+
+---
+
+🔵 5. CONFIANZA Y LEGAL
+
+Agregar:
+
+* Página de Términos y Condiciones
+* Política de Privacidad
+* Información básica de la empresa
+
+---
+
+🟣 6. MONITOREO
+
+* Asegurar logging estructurado en backend
+* Mantener logs de errores críticos
+* Preparar integración futura con monitoreo (ej: Sentry)
+
+---
+
+IMPORTANTE:
+
+* No romper ningún flujo existente
+* Mantener compatibilidad con frontend actual
+* Validar cada cambio con pruebas reales
+
+---
+
+OBJETIVO FINAL:
+
+Una app estable, segura, coherente y lista para usuarios reales y crecimiento.

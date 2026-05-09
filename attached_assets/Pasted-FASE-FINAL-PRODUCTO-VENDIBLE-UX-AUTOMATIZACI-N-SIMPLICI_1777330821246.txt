@@ -1,0 +1,177 @@
+FASE FINAL — PRODUCTO VENDIBLE (UX + AUTOMATIZACIÓN + SIMPLICIDAD)
+
+OBJETIVO:
+Convertir el Sync Agent en un producto plug & play que cualquier empresa pueda usar sin conocimientos técnicos.
+
+IMPORTANTE:
+- NO modificar lógica de sincronización existente
+- NO tocar endpoint /api/integrations/products/sync
+- SOLO mejorar experiencia, automatización y facilidad de uso
+
+---
+
+1. AUTO-DETECCIÓN DE BASE DE DATOS
+
+Implementar:
+
+- detectar automáticamente instancias locales de SQL Server
+- sugerir bases disponibles
+- autocompletar host (localhost por defecto)
+- puerto por defecto 1433
+
+Si falla:
+mostrar:
+"⚠ No se detectó base de datos automáticamente. Puedes configurarla manualmente."
+
+---
+
+2. WIZARD GUIADO (3 PASOS MÁXIMO)
+
+Reemplazar configuración compleja por wizard:
+
+PASO 1:
+👉 Conectar LinkServi
+- campo API Key
+- botón "Validar conexión"
+
+PASO 2:
+👉 Conectar sistema del negocio
+- autodetect + opción manual
+- botón "Probar conexión"
+
+PASO 3:
+👉 Activar sincronización
+- botón grande: "Activar sincronización automática"
+
+---
+
+3. MODO SIMPLE (DEFAULT)
+
+Eliminar campos técnicos visibles por defecto:
+
+- ocultar mapping avanzado
+- ocultar configuraciones internas
+
+Agregar botón:
+👉 "Configuración avanzada"
+
+---
+
+4. MENSAJES HUMANOS (NO TÉCNICOS)
+
+Reemplazar errores técnicos por mensajes claros:
+
+Ejemplo:
+
+❌ "ECONNREFUSED"
+✔ "No se pudo conectar al sistema. Verifica que el sistema esté abierto."
+
+❌ "Invalid API Key"
+✔ "La clave no es válida. Revisa e intenta nuevamente."
+
+---
+
+5. BOTÓN PRINCIPAL (CTA)
+
+Agregar botón grande en UI:
+
+👉 "SINCRONIZAR AHORA"
+
+y otro:
+
+👉 "SINCRONIZACIÓN ACTIVA"
+
+con estado visual:
+
+- verde: activo
+- amarillo: sincronizando
+- rojo: error
+
+---
+
+6. MODO AUTOMÁTICO (CORE DEL PRODUCTO)
+
+Implementar:
+
+- iniciar sync automáticamente al arrancar
+- no depender de acciones manuales
+- retry automático si falla
+- reconexión silenciosa
+
+---
+
+7. DASHBOARD SIMPLE
+
+Mostrar SOLO:
+
+- estado: activo / error
+- última sincronización
+- productos sincronizados
+- errores recientes (máx 3)
+
+NO mostrar logs técnicos por defecto
+
+---
+
+8. EXPERIENCIA "INSTALAR Y LISTO"
+
+Al abrir por primera vez:
+
+Mostrar pantalla:
+
+"Bienvenido a LinkServi Sync"
+
+con 3 pasos visuales:
+
+1. Conecta tu cuenta
+2. Conecta tu sistema
+3. Listo 🚀
+
+---
+
+9. REDUCIR FRICCIÓN
+
+Eliminar:
+
+- necesidad de reiniciar manualmente
+- pasos innecesarios
+- configuraciones duplicadas
+
+---
+
+10. VALIDACIÓN COMPLETA
+
+Antes de activar sync:
+
+- verificar API Key válida
+- verificar conexión DB
+- verificar que hay productos
+
+Si todo OK:
+
+👉 activar automáticamente
+
+---
+
+RESULTADO ESPERADO:
+
+El usuario instala el programa, sigue 3 pasos simples y el sistema comienza a sincronizar automáticamente sin ayuda técnica.
+
+Esto debe sentirse como:
+👉 conectar WhatsApp Web
+👉 no como configurar un servidor
+
+---
+
+ESTÁNDAR DE CALIDAD:
+
+El producto debe poder ser usado por:
+
+- dueño de negocio sin conocimientos técnicos
+- técnico en menos de 5 minutos
+
+---
+
+NO romper lo existente.
+NO cambiar backend.
+SOLO mejorar experiencia y automatización.
