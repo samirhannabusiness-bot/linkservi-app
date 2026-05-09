@@ -4,6 +4,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { authenticate } from "../lib/auth";
 import { logger } from "../lib/logger";
 import { autoMap, fetchCatalog, findRunningImport, parseInput, runImport, STALE_RUN_TIMEOUT_MS, failStaleRun } from "../services/importer";
+import { encryptSecret } from "../lib/secret-cipher";
 
 const router: IRouter = Router();
 
@@ -129,7 +130,7 @@ router.post("/imports/run", authenticate, async (req, res): Promise<void> => {
       storeId,
       sourceType,
       sourceUrl: sourceType === "url" ? sourceUrl : null,
-      apiKey: apiKey || null,
+      apiKey: encryptSecret(apiKey || null),
       format: "auto",
       autoSync: enableAutoSync,
       intervalMin: interval,

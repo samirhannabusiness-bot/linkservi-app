@@ -60,7 +60,9 @@ export async function runDueAutoSyncs(): Promise<{ launched: number; skipped: nu
       }
 
       // SSRF-hardened fetch (DNS rebinding defense + redirect manual + cap 50 MB)
-      const raw = await fetchCatalog(imp.sourceUrl, imp.apiKey ?? undefined);
+      const { decryptSecret } = await import("../lib/secret-cipher");
+      const decryptedKey = decryptSecret(imp.apiKey) ?? undefined;
+      const raw = await fetchCatalog(imp.sourceUrl, decryptedKey);
 
       const [run] = await db.insert(importRunsTable).values({
         storeId: imp.storeId,

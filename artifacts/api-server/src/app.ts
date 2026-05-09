@@ -7,6 +7,7 @@ import rateLimit from "express-rate-limit";
 import path from "path";
 import router from "./routes";
 import seoRouter from "./routes/seo";
+import { seoBotMiddleware } from "./lib/seo-bot";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
@@ -102,12 +103,24 @@ app.use(express.urlencoded({ extended: true, limit: "500mb" }));
 app.use(cookieParser());
 
 // ── Rate limiting ─────────────────────────────────────────────────────────────
-const authRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 30,                    // 30 attempts per real IP per window (generous for shared IPs)
+// Login es el endpoint más expuesto a fuerza bruta. Lo separamos en dos capas:
+//   - loginLimiter: 5 intentos cada 5 min por IP (protege contraseñas)
+//   - authRateLimiter: 10 intentos cada 15 min por IP (registro / forgot)
+const loginLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 5,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "Demasiados intentos de inicio de sesión. Por favor espera 15 minutos antes de intentar de nuevo." },
+  message: { error: "Demasiados intentos de inicio de sesión. Espera 5 minutos antes de intentar de nuevo." },
+  skip: (req) => process.env.NODE_ENV === "test",
+});
+
+const authRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Demasiados intentos. Espera 15 minutos antes de intentar de nuevo." },
   skip: (req) => process.env.NODE_ENV === "test",
 });
 
@@ -121,7 +134,7 @@ const createRateLimiter = rateLimit({
   skip: (req) => process.env.NODE_ENV === "test",
 });
 
-app.use("/api/auth/login", authRateLimiter);
+app.use("/api/auth/login", loginLimiter);
 app.use("/api/auth/forgot-password", authRateLimiter);
 app.use("/api/auth/register", authRateLimiter);
 
@@ -152,6 +165,14 @@ app.use("/api", apiErrorHandler);
 // All non-/api routes fall through to index.html (SPA client-side routing).
 if (process.env.NODE_ENV === "production") {
   const publicDir = path.join(process.cwd(), "public");
+
+  // ── SEO bot middleware ────────────────────────────────────────────────────
+  // Crawlers de WhatsApp/Twitter/Facebook/Google no ejecutan JS, así que la SPA
+  // no inyecta meta tags a tiempo para mostrar preview con foto/nombre del
+  // profesional al compartir un link. Este middleware detecta el user-agent
+  // del bot y devuelve un HTML mínimo con og:title, og:description y og:image
+  // específicos del recurso. Usuarios reales no se ven afectados.
+  app.use(seoBotMiddleware());
 
   // CRÍTICO: NO cachear archivos HTML — solo archivos hasheados (/assets/*).
   // Cachear index.html con max-age=1y bloqueaba a usuarios en versiones viejas
