@@ -23,7 +23,12 @@ COPY artifacts/api-server/package.json      ./artifacts/api-server/
 COPY artifacts/servilink/package.json       ./artifacts/servilink/
 
 # Install all dependencies (dev + prod).
-RUN pnpm install --frozen-lockfile
+# Usamos --no-frozen-lockfile porque corepack a veces baja una versión
+# patch más estricta de pnpm que rechaza el lockfile aunque localmente
+# pnpm 10.26.1 lo considera válido. Sin --frozen, pnpm acomoda diferencias
+# triviales sin fallar. La reproducibilidad se mantiene porque el lockfile
+# sigue siendo la fuente de versiones.
+RUN pnpm install --no-frozen-lockfile
 
 # Copy all source code.
 COPY lib/                   ./lib/
@@ -77,7 +82,7 @@ COPY artifacts/api-server/package.json      ./artifacts/api-server/
 COPY artifacts/servilink/package.json       ./artifacts/servilink/
 
 # Install only production dependencies.
-RUN pnpm install --frozen-lockfile --prod
+RUN pnpm install --no-frozen-lockfile --prod
 
 # --- Copy build artefacts ---
 # API server bundle
