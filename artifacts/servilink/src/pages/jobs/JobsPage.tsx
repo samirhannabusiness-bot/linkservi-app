@@ -65,15 +65,31 @@ function VideoThumb({ url }: { url: string }) {
   const [playing, setPlaying] = useState(false);
   const toggle = () => {
     const v = ref.current; if (!v) return;
-    if (playing) { v.pause(); setPlaying(false); } else { v.play(); setPlaying(true); }
+    if (playing) { v.pause(); setPlaying(false); } else { v.play().then(() => setPlaying(true)).catch(() => setPlaying(false)); }
   };
   return (
     <div className="relative rounded-xl overflow-hidden" style={{ background: "#000", minHeight: 240 }}>
-      <video ref={ref} src={url} className="w-full object-contain" style={{ maxHeight: 420, display: "block" }}
-        playsInline preload="metadata" onEnded={() => setPlaying(false)} />
-      <button onClick={toggle} className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/30 transition-colors">
-        {playing ? <Pause className="w-10 h-10 text-white" /> : <Play className="w-10 h-10 text-white drop-shadow-lg" />}
-      </button>
+      <video
+        ref={ref}
+        src={url}
+        className="w-full object-contain"
+        style={{ maxHeight: 420, display: "block" }}
+        playsInline
+        preload="auto"
+        controls={playing}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onEnded={() => setPlaying(false)}
+      />
+      {!playing && (
+        <button
+          onClick={toggle}
+          className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/20 transition-colors"
+          aria-label="Reproducir video"
+        >
+          <Play className="w-10 h-10 text-white drop-shadow-lg" />
+        </button>
+      )}
     </div>
   );
 }
