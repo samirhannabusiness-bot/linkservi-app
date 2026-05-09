@@ -100,9 +100,14 @@ router.post("/storage/uploads/request-url", authenticate, async (req: Request, r
         metadata: { name, size, contentType },
       }),
     );
-  } catch (error) {
+  } catch (error: unknown) {
     req.log.error({ err: error }, "Error generating upload URL");
-    res.status(500).json({ error: "Failed to generate upload URL" });
+    const err = error as { message?: string; code?: number | string };
+    res.status(500).json({
+      error: "Failed to generate upload URL",
+      detail: err?.message ?? String(error),
+      code: err?.code,
+    });
   }
 });
 
