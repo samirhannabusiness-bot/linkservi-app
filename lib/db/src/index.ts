@@ -18,7 +18,11 @@ const sslmode = url.searchParams.get("sslmode");
 url.searchParams.delete("sslmode");
 url.searchParams.delete("uselibpqcompat");
 const cleanUrl = url.toString().replace(/\?$/, "");
-const needsSsl = sslmode === "require" || sslmode === "verify" || sslmode === "prefer";
+// Force SSL when running on Cloud Run (K_SERVICE is set automatically by GCP)
+// because Cloud SQL public IP always requires encryption — pg_hba.conf rejects
+// unencrypted connections. Locally we honor the sslmode query parameter.
+const isCloudRun = !!process.env.K_SERVICE;
+const needsSsl = isCloudRun || sslmode === "require" || sslmode === "verify-full" || sslmode === "verify-ca" || sslmode === "prefer";
 
 export const pool = new Pool({
   connectionString: cleanUrl,
