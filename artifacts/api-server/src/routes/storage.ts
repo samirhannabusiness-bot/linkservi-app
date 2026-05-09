@@ -90,8 +90,13 @@ router.post("/storage/uploads/request-url", authenticate, async (req: Request, r
   try {
     const { name, size, contentType } = parsed.data;
 
-    const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+    let uploadURL = await objectStorageService.getObjectEntityUploadURL();
     const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+    if (uploadURL.startsWith("/")) {
+      const host = req.get("host");
+      const proto = (req.headers["x-forwarded-proto"] as string) || req.protocol || "https";
+      uploadURL = `${proto}://${host}${uploadURL}`;
+    }
 
     res.json(
       RequestUploadUrlResponse.parse({
