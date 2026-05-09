@@ -151,34 +151,6 @@ router.put(
   },
 );
 
-router.get("/storage/diag-sign", async (_req: Request, res: Response) => {
-  let runtimeSA: string | null = null;
-  try {
-    const r = await fetch("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email", {
-      headers: { "Metadata-Flavor": "Google" },
-      signal: AbortSignal.timeout(3000),
-    });
-    if (r.ok) runtimeSA = (await r.text()).trim();
-  } catch {}
-  try {
-    const url = await objectStorageService.getObjectEntityUploadURL();
-    res.json({ ok: true, url, runtimeSA });
-  } catch (error: unknown) {
-    const err = error as { message?: string; code?: number | string; stack?: string };
-    res.status(500).json({
-      ok: false,
-      runtimeSA,
-      message: err?.message ?? String(error),
-      code: err?.code,
-      env: {
-        PRIVATE_OBJECT_DIR: process.env.PRIVATE_OBJECT_DIR,
-        DEFAULT_OBJECT_STORAGE_BUCKET_ID: process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID,
-        K_SERVICE: process.env.K_SERVICE,
-      },
-    });
-  }
-});
-
 /**
  * GET /storage/public-objects/*
  *

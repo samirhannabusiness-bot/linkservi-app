@@ -68,12 +68,14 @@ function VideoThumb({ url }: { url: string }) {
     if (playing) { v.pause(); setPlaying(false); } else { v.play().then(() => setPlaying(true)).catch(() => setPlaying(false)); }
   };
   return (
-    <div className="relative rounded-xl overflow-hidden" style={{ background: "#000", minHeight: 240 }}>
+    <div
+      className="relative rounded-xl overflow-hidden mx-auto"
+      style={{ background: "#000", aspectRatio: "9 / 16", maxWidth: 280, width: "100%" }}
+    >
       <video
         ref={ref}
         src={url}
-        className="w-full object-contain"
-        style={{ maxHeight: 420, display: "block" }}
+        className="absolute inset-0 w-full h-full object-cover"
         playsInline
         preload="auto"
         controls={playing}
