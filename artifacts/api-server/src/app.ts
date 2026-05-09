@@ -137,9 +137,12 @@ app.use("/api", router);
 // Log API errors so production failures show up in Cloud Run logs instead of
 // silently returning the default Express "Internal Server Error" page.
 app.use("/api", (err: any, req: any, res: any, _next: any) => {
-  console.error(`[api error] ${req.method} ${req.originalUrl}:`, err?.message || err, err?.stack);
+  const cause = err?.cause;
+  const detail = cause?.message || err?.message || String(err);
+  const code = cause?.code || err?.code;
+  console.error(`[api error] ${req.method} ${req.originalUrl}:`, detail, code, err?.stack, cause?.stack);
   if (res.headersSent) return;
-  res.status(500).json({ error: "Internal Server Error", detail: err?.message || String(err) });
+  res.status(500).json({ error: "Internal Server Error", detail, code });
 });
 
 // ── Production: serve built Vite frontend ────────────────────────────────────
