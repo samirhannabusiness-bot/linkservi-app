@@ -142,7 +142,7 @@ app.use("/api", (err: any, req: any, res: any, _next: any) => {
   const code = cause?.code || err?.code;
   console.error(`[api error] ${req.method} ${req.originalUrl}:`, detail, code, err?.stack, cause?.stack);
   if (res.headersSent) return;
-  res.status(500).json({ error: "Internal Server Error", detail, code });
+  res.status(500).json({ error: "Internal Server Error" });
 });
 
 // ── Production: serve built Vite frontend ────────────────────────────────────
