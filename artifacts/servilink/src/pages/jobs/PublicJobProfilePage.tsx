@@ -38,21 +38,36 @@ function VideoPlayer({ url }: { url: string }) {
   const [playing, setPlaying] = useState(false);
   const toggle = () => {
     const v = ref.current; if (!v) return;
-    playing ? (v.pause(), setPlaying(false)) : (v.play(), setPlaying(true));
+    if (playing) { v.pause(); } else { v.play().catch(() => setPlaying(false)); }
   };
   return (
-    <div className="relative rounded-2xl overflow-hidden cursor-pointer" style={{ background: "#000" }} onClick={toggle}>
-      <video ref={ref} src={url} className="w-full object-contain" style={{ maxHeight: 340, display: "block" }}
-        playsInline preload="metadata" onEnded={() => setPlaying(false)} />
-      <div className="absolute inset-0 flex items-center justify-center"
-        style={{ background: playing ? "transparent" : "rgba(0,0,0,0.38)" }}>
-        {!playing && (
+    <div className="relative rounded-2xl overflow-hidden" style={{ background: "#000" }}>
+      <video
+        ref={ref}
+        src={url}
+        className="w-full object-contain"
+        style={{ maxHeight: 340, display: "block" }}
+        playsInline
+        preload="auto"
+        controls={playing}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onEnded={() => setPlaying(false)}
+      />
+      {!playing && (
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label="Reproducir video"
+          className="absolute inset-0 flex items-center justify-center cursor-pointer"
+          style={{ background: "rgba(0,0,0,0.38)" }}
+        >
           <div className="w-14 h-14 rounded-full flex items-center justify-center"
             style={{ background: "rgba(255,255,255,0.18)", backdropFilter: "blur(4px)" }}>
             <Play className="w-7 h-7 text-white ml-1" />
           </div>
-        )}
-      </div>
+        </button>
+      )}
     </div>
   );
 }
