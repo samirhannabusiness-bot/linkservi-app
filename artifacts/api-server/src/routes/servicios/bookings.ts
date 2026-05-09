@@ -906,7 +906,7 @@ router.post("/bookings/:bookingId/counter-offer/respond", authenticate, async (r
 // ── Auto-cancel expired payment windows (every 60s) ───────────────────────────
 const PAYMENT_WINDOW_MS = 30 * 60 * 1000;
 
-async function autoExpireAcceptedBookings() {
+export async function autoExpireAcceptedBookings() {
   const cutoff = new Date(Date.now() - PAYMENT_WINDOW_MS);
 
   // Use a DB-level date filter to avoid full table scan
@@ -939,14 +939,14 @@ async function autoExpireAcceptedBookings() {
   }
 }
 
-// ── Auto-confirm finished bookings (escrow release after 25 min) ──────────────
-// Implements the fintech-style "client has 25 min to dispute, otherwise the
+// ── Auto-confirm finished bookings (escrow release after 35 min) ──────────────
+// Implements the fintech-style "client has 35 min to dispute, otherwise the
 // payment is auto-released to the worker" flow. Mirrors the manual confirm
 // transition in POST /bookings/:id/complete (commission, worker earnings,
 // completedJobs increment) inside an atomic transaction.
-const FINISHED_AUTO_CONFIRM_MS = 25 * 60 * 1000;
+export const FINISHED_AUTO_CONFIRM_MS = 35 * 60 * 1000;
 
-async function autoConfirmFinishedBookings() {
+export async function autoConfirmFinishedBookings() {
   const cutoff = new Date(Date.now() - FINISHED_AUTO_CONFIRM_MS);
   const { lt } = await import("drizzle-orm");
 
@@ -995,12 +995,12 @@ async function autoConfirmFinishedBookings() {
       try {
         await createNotification(b.clientId, "booking_auto_confirmed",
           "✅ Servicio confirmado automáticamente",
-          "Pasaron 25 minutos sin reportes y el pago se liberó al profesional. Si tienes algún problema, contacta soporte.",
+          "Pasaron 35 minutos sin reportes y el pago se liberó al profesional. Si tienes algún problema, contacta soporte.",
           b.id, "client");
         if (result.worker) {
           await createNotification(result.worker.userId, "payment_auto_released",
             "💰 Pago liberado automáticamente",
-            "El cliente no reportó problemas en 25 minutos. Tu pago ya está en tu billetera.",
+            "El cliente no reportó problemas en 35 minutos. Tu pago ya está en tu billetera.",
             b.id, "worker");
         }
       } catch (e) {}

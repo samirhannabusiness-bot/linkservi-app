@@ -932,13 +932,13 @@ function ConfirmDisputePanel({ booking, onDone }: { booking: any; onDone: () => 
   const isPremium = user?.clientPlan === "premium";
   const total = Number(booking.totalAmount ?? 0);
 
-  // 25-min countdown — auto-confirm window. Backend job will release the
+  // 35-min countdown — auto-confirm window. Backend job will release the
   // payment automatically when the countdown reaches zero.
   useEffect(() => {
     if (!booking.finishedAt) return;
     const calc = () => {
       const finished = new Date(booking.finishedAt).getTime();
-      const target = finished + 25 * 60 * 1000;
+      const target = finished + 35 * 60 * 1000;
       const left = Math.max(0, Math.floor((target - Date.now()) / 1000));
       setSecsLeft(left);
       // When the timer hits zero, refresh from backend to pick up auto-completion
@@ -1006,7 +1006,7 @@ function ConfirmDisputePanel({ booking, onDone }: { booking: any; onDone: () => 
   }
 
   // ── Main confirmation step ────────────────────────────────────────────────
-  const mins = secsLeft != null ? Math.floor(secsLeft / 60).toString().padStart(2, "0") : "25";
+  const mins = secsLeft != null ? Math.floor(secsLeft / 60).toString().padStart(2, "0") : "35";
   const secs = secsLeft != null ? (secsLeft % 60).toString().padStart(2, "0") : "00";
   const urgent = secsLeft != null && secsLeft < 5 * 60;
   const accent = urgent ? "#fb923c" : "#38bdf8";

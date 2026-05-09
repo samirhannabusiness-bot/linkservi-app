@@ -7,6 +7,7 @@ import { runEmailCampaigns } from "./routes/email-campaigns";
 import { initSocketServer } from "./lib/socket";
 import { startLegacyWorkerAlertScheduler } from "./lib/legacy-worker-alerts";
 import { startImportScheduler } from "./services/import-scheduler";
+import { autoExpireAcceptedBookings, autoConfirmFinishedBookings } from "./routes/servicios/bookings";
 
 function isMissingTableError(err: unknown, table: string): boolean {
   const message = String((err as any)?.message ?? err);
@@ -77,4 +78,19 @@ httpServer.listen(port, async () => {
     }
     logger.warn({ err }, "Import scheduler skipped");
   }
+
+  // ── Booking lifecycle scheduler (every 60s) ──────────────────────────────
+  // - autoExpireAcceptedBookings: cancela solicitudes aceptadas no pagadas (30 min)
+  // - autoConfirmFinishedBookings: libera el escrow al profesional si el cliente
+  //   no confirmó ni abrió disputa (35 min). El frontend muestra un reloj
+  //   regresivo en BookingDetailPage > ConfirmDisputePanel.
+  const BOOKING_TICK_MS = 60_000;
+  const tickBookings = async () => {
+    try { await autoExpireAcceptedBookings(); }
+    catch (err) { logger.warn({ err }, "autoExpireAcceptedBookings failed"); }
+    try { await autoConfirmFinishedBookings(); }
+    catch (err) { logger.warn({ err }, "autoConfirmFinishedBookings failed"); }
+  };
+  setInterval(tickBookings, BOOKING_TICK_MS);
+  logger.info("⏱  Booking lifecycle scheduler started — every 60s (auto-confirm @ 35 min)");
 });
