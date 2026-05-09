@@ -243,7 +243,7 @@ export function WorkerProfileEdit() {
     e.target.value = "";
     if (!file) return;
     if (!file.type.startsWith("image/")) { setAvatarError("Solo imágenes JPG, PNG o WebP."); return; }
-    if (file.size > 5 * 1024 * 1024) { setAvatarError("La imagen no puede superar 5 MB."); return; }
+    if (file.size > 15 * 1024 * 1024) { setAvatarError("La imagen no puede superar 15 MB."); return; }
     setAvatarError("");
     setAvatarFile(file);
     setAvatarPreview(URL.createObjectURL(file));

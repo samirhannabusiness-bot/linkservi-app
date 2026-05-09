@@ -308,7 +308,7 @@ function StoreBuilderPanel({
       setError("Logo: solo JPG, PNG o WebP");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) { setError("Logo máx. 5 MB"); return; }
+    if (file.size > 15 * 1024 * 1024) { setError("Logo máx. 15 MB"); return; }
     setLogoUploading(true);
     setError("");
     try {
@@ -329,7 +329,7 @@ function StoreBuilderPanel({
       setError("Banner: solo JPG, PNG o WebP");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) { setError("Banner máx. 5 MB"); return; }
+    if (file.size > 15 * 1024 * 1024) { setError("Banner máx. 15 MB"); return; }
     setBannerUploading(true);
     setError("");
     try {
@@ -458,7 +458,7 @@ function StoreBuilderPanel({
                       {form.logoUrl ? "Cambiar logo" : "📷 Subir logo"}
                     </button>
                     {form.logoUrl && <button onClick={() => f("logoUrl", "")} className="w-full py-1.5 rounded-xl text-xs text-red-400 border border-red-400/20 hover:bg-red-400/10 transition-colors">Quitar</button>}
-                    <p className="text-[10px] text-muted-foreground/60 text-center">PNG, JPG · Cuadrado (1:1) · Máx. 5 MB</p>
+                    <p className="text-[10px] text-muted-foreground/60 text-center">PNG, JPG · Cuadrado (1:1) · Máx. 15 MB</p>
                   </div>
                 </div>
               </div>

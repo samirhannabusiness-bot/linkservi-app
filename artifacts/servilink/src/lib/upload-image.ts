@@ -21,7 +21,7 @@ export interface UploadedImage {
 }
 
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 15 * 1024 * 1024;
 
 export class ImageUploadError extends Error {
   constructor(public readonly code: string, message: string) {
@@ -43,7 +43,7 @@ export async function uploadImage(file: File, kind: ImageKind): Promise<Uploaded
     throw new ImageUploadError("INVALID_TYPE", "Solo se aceptan imágenes JPEG, PNG o WebP.");
   }
   if (file.size > MAX_BYTES) {
-    throw new ImageUploadError("FILE_TOO_LARGE", "La imagen excede el máximo de 5 MB.");
+    throw new ImageUploadError("FILE_TOO_LARGE", "La imagen excede el máximo de 15 MB.");
   }
 
   const fd = new FormData();

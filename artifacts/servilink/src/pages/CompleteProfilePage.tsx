@@ -92,7 +92,7 @@ export function CompleteProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) { setPhotoError("Solo se permiten imágenes (JPG, PNG, WebP)."); return; }
-    if (file.size > 5 * 1024 * 1024) { setPhotoError("La imagen no puede superar 5 MB."); return; }
+    if (file.size > 15 * 1024 * 1024) { setPhotoError("La imagen no puede superar 15 MB."); return; }
     setPhotoError("");
     setSelectedFile(file);
     setPreview(URL.createObjectURL(file));
@@ -321,7 +321,7 @@ export function CompleteProfilePage() {
                 </div>
 
                 <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] p-3.5 mb-5 text-xs text-white/35 space-y-0.5">
-                  <p>• Formatos: JPG, PNG, WebP · Máximo 5 MB</p>
+                  <p>• Formatos: JPG, PNG, WebP · Máximo 15 MB</p>
                   <p>• Usa una foto clara de tu rostro</p>
                 </div>
 

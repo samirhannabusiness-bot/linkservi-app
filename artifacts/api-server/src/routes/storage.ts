@@ -18,10 +18,12 @@ import {
 const router: IRouter = Router();
 const objectStorageService = new ObjectStorageService();
 
-// Multer: in-memory storage with a 6 MB safety cap (real validation is 5 MB in pipeline)
+// Multer: in-memory storage with a 16 MB safety cap (cliente valida 15 MB; el
+// pipeline redimensiona a 1200 px y convierte a WebP, así que originales
+// grandes terminan pesando <500 KB en disco).
 const imageUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 6 * 1024 * 1024, files: 1 },
+  limits: { fileSize: 16 * 1024 * 1024, files: 1 },
 });
 
 /**

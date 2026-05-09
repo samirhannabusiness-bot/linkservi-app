@@ -235,7 +235,7 @@ export function StoreDashboardPage() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { setProductError("Imagen máx. 5 MB"); return; }
+    if (file.size > 15 * 1024 * 1024) { setProductError("Imagen máx. 15 MB"); return; }
     setImageUploading(true);
     try {
       const r = await fetch("/api/storage/uploads/request-url", {

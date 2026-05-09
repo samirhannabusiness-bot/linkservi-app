@@ -19,7 +19,7 @@ import { useSeo } from "@/lib/seo-helpers";
 //  - Sugerencias de marca y modelo dinámicas según el tipo (datalist).
 //  - Campo extra "tipo de grúa" sólo cuando el vehículo es grúa.
 //  - Subida real de la foto del vehículo (cámara móvil + galería + dropzone +
-//    preview), con validación de formato (jpg/png/webp) y tamaño (≤5 MB).
+//    preview), con validación de formato (jpg/png/webp) y tamaño (≤15 MB).
 //  - Foto obligatoria en el primer registro; al editar se conserva la actual.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -99,7 +99,7 @@ interface DriverProfile {
 }
 
 const CURRENT_YEAR = new Date().getFullYear();
-const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_PHOTO_BYTES = 15 * 1024 * 1024; // 15 MB
 const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 // Convierte un objectPath devuelto por el backend (`/objects/uploads/xxx`) en
@@ -181,7 +181,7 @@ export function DriverSetupPage() {
       return;
     }
     if (file.size > MAX_PHOTO_BYTES) {
-      setPhotoError("La foto no debe pesar más de 5 MB.");
+      setPhotoError("La foto no debe pesar más de 15 MB.");
       return;
     }
 
@@ -568,7 +568,7 @@ export function DriverSetupPage() {
                 <ImageIcon className="w-3 h-3 mt-0.5 shrink-0" />
                 <span>
                   {typeMeta?.photoHint ?? "Toma una foto clara de tu vehículo."}{" "}
-                  Formatos: JPG, PNG o WEBP. Máximo 5 MB.
+                  Formatos: JPG, PNG o WEBP. Máximo 15 MB.
                 </span>
               </p>
 

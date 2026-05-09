@@ -344,7 +344,7 @@ export function UserVerificationPage() {
               {[
                 "La foto del documento debe mostrar frente y reverso",
                 "En la selfie debes sujetar el documento junto a tu cara",
-                "JPG, PNG o PDF · máximo 5 MB por imagen",
+                "JPG, PNG o PDF · máximo 15 MB por imagen",
               ].map((tip) => (
                 <li key={tip} className="flex items-start gap-1.5 text-xs text-muted-foreground">
                   <span className="text-primary mt-0.5">•</span> {tip}
