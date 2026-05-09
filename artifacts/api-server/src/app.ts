@@ -1,4 +1,4 @@
-import express, { type Express } from "express";
+import express, { type Express, type ErrorRequestHandler } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
@@ -136,14 +136,15 @@ app.use("/api", router);
 
 // Log API errors so production failures show up in Cloud Run logs instead of
 // silently returning the default Express "Internal Server Error" page.
-app.use("/api", (err: any, req: any, res: any, _next: any) => {
-  const cause = err?.cause;
-  const detail = cause?.message || err?.message || String(err);
-  const code = cause?.code || err?.code;
-  console.error(`[api error] ${req.method} ${req.originalUrl}:`, detail, code, err?.stack, cause?.stack);
+const apiErrorHandler: ErrorRequestHandler = (err, req, res, _next) => {
+  const cause = (err as { cause?: { message?: string; code?: string; stack?: string } } | null)?.cause;
+  const detail = cause?.message || (err as Error)?.message || String(err);
+  const code = cause?.code || (err as { code?: string })?.code;
+  console.error(`[api error] ${req.method} ${req.originalUrl}:`, detail, code, (err as Error)?.stack, cause?.stack);
   if (res.headersSent) return;
   res.status(500).json({ error: "Internal Server Error" });
-});
+};
+app.use("/api", apiErrorHandler);
 
 // ── Production: serve built Vite frontend ────────────────────────────────────
 // In the Docker image the compiled SPA lives at /app/public (copied from
