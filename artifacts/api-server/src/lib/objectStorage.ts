@@ -11,23 +11,34 @@ import {
 
 const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
 
-export const objectStorageClient = new Storage({
-  credentials: {
-    audience: "replit",
-    subject_token_type: "access_token",
-    token_url: `${REPLIT_SIDECAR_ENDPOINT}/token`,
-    type: "external_account",
-    credential_source: {
-      url: `${REPLIT_SIDECAR_ENDPOINT}/credential`,
-      format: {
-        type: "json",
-        subject_token_field_name: "access_token",
+// Detect runtime environment.
+// - In Replit (dev/preview): REPL_ID is set and the sidecar is reachable at 127.0.0.1:1106.
+// - In Cloud Run (production): K_SERVICE is set and Application Default Credentials
+//   are provided automatically via the metadata server (no key file needed).
+const IS_REPLIT = !!process.env.REPL_ID && !process.env.K_SERVICE;
+
+export const objectStorageClient = IS_REPLIT
+  ? new Storage({
+      credentials: {
+        audience: "replit",
+        subject_token_type: "access_token",
+        token_url: `${REPLIT_SIDECAR_ENDPOINT}/token`,
+        type: "external_account",
+        credential_source: {
+          url: `${REPLIT_SIDECAR_ENDPOINT}/credential`,
+          format: {
+            type: "json",
+            subject_token_field_name: "access_token",
+          },
+        },
+        universe_domain: "googleapis.com",
       },
-    },
-    universe_domain: "googleapis.com",
-  },
-  projectId: "",
-});
+      projectId: "",
+    })
+  : // Cloud Run / GCE: use Application Default Credentials. The Cloud Run
+    // service account (compute default) automatically has access to GCS
+    // buckets in the same GCP project.
+    new Storage();
 
 export class ObjectNotFoundError extends Error {
   constructor() {
@@ -238,6 +249,27 @@ async function signObjectURL({
   method: "GET" | "PUT" | "DELETE" | "HEAD";
   ttlSec: number;
 }): Promise<string> {
+  // Production (Cloud Run): use native GCS signed URLs. The @google-cloud/storage
+  // SDK auto-detects ADC and uses the IAM Service Account Credentials API to
+  // sign on behalf of the Cloud Run service account (which needs the
+  // "Service Account Token Creator" role on itself for this to work).
+  if (!IS_REPLIT) {
+    const [url] = await objectStorageClient
+      .bucket(bucketName)
+      .file(objectName)
+      .getSignedUrl({
+        version: "v4",
+        action: method === "PUT"
+          ? "write"
+          : method === "DELETE"
+            ? "delete"
+            : "read",
+        expires: Date.now() + ttlSec * 1000,
+      });
+    return url;
+  }
+
+  // Replit dev: ask the sidecar to sign using Replit's service account.
   const request = {
     bucket_name: bucketName,
     object_name: objectName,
