@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { getAuthHeader } from "@/lib/api";
+import { toast } from "@/hooks/use-toast";
 import {
   Wallet as WalletIcon,
   Lock,
@@ -10,6 +11,9 @@ import {
   ShieldCheck,
   Clock,
   RefreshCw,
+  Send,
+  X,
+  KeyRound,
 } from "lucide-react";
 
 type WalletData = {
@@ -19,6 +23,7 @@ type WalletData = {
     totalCents: number;
     currency: string;
     updatedAt: string;
+    hasPin?: boolean;
   };
   recentTransactions: Array<{
     id: number;
@@ -68,12 +73,15 @@ const TYPE_LABELS: Record<string, string> = {
   commission: "Comisión LinkServi",
   bonus: "Bono",
   adjustment: "Ajuste",
+  transfer_out: "Transferencia enviada",
+  transfer_in: "Transferencia recibida",
 };
 
 export default function WalletPage() {
   const [data, setData] = useState<WalletData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const [showTransfer, setShowTransfer] = useState(false);
 
   async function load() {
     try {
@@ -160,18 +168,25 @@ export default function WalletPage() {
         </div>
 
         {/* Actions */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-2">
           <button
             disabled
-            className="flex items-center justify-center gap-2 bg-primary/90 text-primary-foreground font-semibold py-3 rounded-xl opacity-60 cursor-not-allowed"
+            className="flex flex-col items-center justify-center gap-1 bg-primary/90 text-primary-foreground font-semibold py-3 rounded-xl opacity-60 cursor-not-allowed text-xs"
             title="Próximamente"
           >
             <ArrowDownToLine className="w-4 h-4" />
             Recargar
           </button>
           <button
+            onClick={() => setShowTransfer(true)}
+            className="flex flex-col items-center justify-center gap-1 bg-primary text-primary-foreground font-semibold py-3 rounded-xl text-xs hover:bg-primary/90 transition"
+          >
+            <Send className="w-4 h-4" />
+            Transferir
+          </button>
+          <button
             disabled
-            className="flex items-center justify-center gap-2 border border-border text-foreground font-semibold py-3 rounded-xl opacity-60 cursor-not-allowed"
+            className="flex flex-col items-center justify-center gap-1 border border-border text-foreground font-semibold py-3 rounded-xl opacity-60 cursor-not-allowed text-xs"
             title="Próximamente"
           >
             <ArrowUpToLine className="w-4 h-4" />
@@ -179,7 +194,7 @@ export default function WalletPage() {
           </button>
         </div>
         <p className="text-[11px] text-muted-foreground text-center -mt-2">
-          Recarga y retiro estarán disponibles muy pronto. Por ahora los pagos siguen funcionando como siempre.
+          Recarga y retiro estarán disponibles muy pronto. Las transferencias entre usuarios LinkServi son sin comisión.
         </p>
 
         {/* Active holds */}
@@ -261,6 +276,313 @@ export default function WalletPage() {
           </p>
         </div>
       </div>
+
+      {showTransfer ? (
+        <TransferModal
+          balanceCents={data?.wallet.balanceCents ?? 0}
+          hasPin={!!data?.wallet.hasPin}
+          onClose={() => setShowTransfer(false)}
+          onDone={() => { setShowTransfer(false); void load(); }}
+        />
+      ) : null}
     </AppLayout>
+  );
+}
+
+// ── Transferir modal ─────────────────────────────────────────────────────────
+type TransferModalProps = {
+  balanceCents: number;
+  hasPin: boolean;
+  onClose: () => void;
+  onDone: () => void;
+};
+
+function TransferModal({ balanceCents, hasPin, onClose, onDone }: TransferModalProps) {
+  const [step, setStep] = useState<"form" | "confirm" | "pin-setup">(hasPin ? "form" : "form");
+  const [email, setEmail] = useState("");
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [pin, setPin] = useState("");
+  const [preview, setPreview] = useState<{ recipient: { name: string; email: string }; amountCents: number } | null>(null);
+  const [needsPinSetup, setNeedsPinSetup] = useState(!hasPin);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  // ── Setup PIN flow ──
+  const [pinPassword, setPinPassword] = useState("");
+  const [pinNew, setPinNew] = useState("");
+  const [pinConfirm, setPinConfirm] = useState("");
+
+  async function handlePreview(e: React.FormEvent) {
+    e.preventDefault();
+    setErr("");
+    const cents = Math.round(parseFloat(amount.replace(",", ".")) * 100);
+    if (!email.trim() || !Number.isFinite(cents) || cents <= 0) {
+      setErr("Completa correo y monto válido");
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await fetch("/api/wallet/transfer/preview", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", ...getAuthHeader() },
+        body: JSON.stringify({ email: email.trim(), amountCents: cents }),
+      });
+      const j = await res.json();
+      if (!res.ok) { setErr(j.error || "No se pudo verificar"); return; }
+      setPreview({ recipient: j.recipient, amountCents: j.amountCents });
+      setNeedsPinSetup(!!j.needsPinSetup);
+      setStep(j.needsPinSetup ? "pin-setup" : "confirm");
+    } catch (e: any) {
+      setErr(e?.message || "Error de conexión");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleSetupPin(e: React.FormEvent) {
+    e.preventDefault();
+    setErr("");
+    if (!/^\d{4}$/.test(pinNew)) { setErr("El PIN debe ser de 4 dígitos"); return; }
+    if (pinNew !== pinConfirm) { setErr("Los PINs no coinciden"); return; }
+    if (!pinPassword) { setErr("Confirma tu contraseña"); return; }
+    setBusy(true);
+    try {
+      const res = await fetch("/api/wallet/pin/set", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", ...getAuthHeader() },
+        body: JSON.stringify({ password: pinPassword, pin: pinNew }),
+      });
+      const j = await res.json();
+      if (!res.ok) { setErr(j.error || "No se pudo guardar el PIN"); return; }
+      toast({ title: "PIN configurado", description: "Ya puedes confirmar tu transferencia." });
+      setNeedsPinSetup(false);
+      setStep("confirm");
+    } catch (e: any) {
+      setErr(e?.message || "Error de conexión");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleConfirm(e: React.FormEvent) {
+    e.preventDefault();
+    setErr("");
+    if (!/^\d{4}$/.test(pin)) { setErr("PIN de 4 dígitos requerido"); return; }
+    if (!preview) return;
+    setBusy(true);
+    try {
+      const res = await fetch("/api/wallet/transfer", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", ...getAuthHeader() },
+        body: JSON.stringify({
+          email: email.trim(),
+          amountCents: preview.amountCents,
+          pin,
+          description: description.trim() || undefined,
+        }),
+      });
+      const j = await res.json();
+      if (!res.ok) { setErr(j.error || "Transferencia fallida"); return; }
+      toast({
+        title: "Transferencia exitosa",
+        description: `Enviaste ${fmtUsd(preview.amountCents)} a ${preview.recipient.name}.`,
+      });
+      onDone();
+    } catch (e: any) {
+      setErr(e?.message || "Error de conexión");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/70 flex items-end md:items-center justify-center p-0 md:p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-card border border-border rounded-t-2xl md:rounded-2xl w-full max-w-md p-5 space-y-4 max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold flex items-center gap-2 text-foreground">
+            <Send className="w-5 h-5 text-primary" />
+            {step === "pin-setup" ? "Configura tu PIN" : step === "confirm" ? "Confirmar transferencia" : "Transferir dinero"}
+          </h2>
+          <button onClick={onClose} className="p-1 rounded hover:bg-muted text-muted-foreground">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <p className="text-xs text-muted-foreground">
+          Saldo disponible: <strong className="text-foreground">{fmtUsd(balanceCents)}</strong>
+        </p>
+
+        {err ? (
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm">
+            {err}
+          </div>
+        ) : null}
+
+        {step === "form" ? (
+          <form onSubmit={handlePreview} className="space-y-3">
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1">Correo del destinatario</label>
+              <input
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="ejemplo@correo.com"
+                className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1">Monto en USD</label>
+              <input
+                type="number"
+                inputMode="decimal"
+                step="0.01"
+                min="0.10"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="25.00"
+                className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-lg font-semibold text-foreground"
+                required
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">Mínimo $0.10 — máximo $500 por operación.</p>
+            </div>
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1">Concepto (opcional)</label>
+              <input
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Pago por la mudanza"
+                maxLength={140}
+                className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={busy}
+              className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-xl disabled:opacity-50"
+            >
+              {busy ? "Verificando…" : "Continuar"}
+            </button>
+          </form>
+        ) : null}
+
+        {step === "pin-setup" ? (
+          <form onSubmit={handleSetupPin} className="space-y-3">
+            <div className="bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-lg p-3 text-xs flex items-start gap-2">
+              <KeyRound className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>Es la primera vez que mueves dinero en LinkWallet. Crea un PIN de 4 dígitos para autorizar esta y futuras transferencias.</span>
+            </div>
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1">Tu contraseña de LinkServi</label>
+              <input
+                type="password"
+                value={pinPassword}
+                onChange={(e) => setPinPassword(e.target.value)}
+                autoComplete="current-password"
+                className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-muted-foreground mb-1">Nuevo PIN (4 dígitos)</label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  pattern="\d{4}"
+                  maxLength={4}
+                  value={pinNew}
+                  onChange={(e) => setPinNew(e.target.value.replace(/\D/g, ""))}
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-center text-xl tracking-widest text-foreground"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-muted-foreground mb-1">Repetir PIN</label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  pattern="\d{4}"
+                  maxLength={4}
+                  value={pinConfirm}
+                  onChange={(e) => setPinConfirm(e.target.value.replace(/\D/g, ""))}
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-center text-xl tracking-widest text-foreground"
+                  required
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={busy}
+              className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-xl disabled:opacity-50"
+            >
+              {busy ? "Guardando…" : "Guardar PIN y continuar"}
+            </button>
+          </form>
+        ) : null}
+
+        {step === "confirm" && preview ? (
+          <form onSubmit={handleConfirm} className="space-y-3">
+            <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 space-y-1">
+              <p className="text-xs text-muted-foreground">Vas a enviar</p>
+              <p className="text-3xl font-bold text-foreground">{fmtUsd(preview.amountCents)}</p>
+              <p className="text-sm text-foreground mt-2">
+                a <strong>{preview.recipient.name}</strong>
+              </p>
+              <p className="text-xs text-muted-foreground">{preview.recipient.email}</p>
+              {description ? (
+                <p className="text-xs text-muted-foreground border-t border-border/50 pt-2 mt-2">
+                  Concepto: {description}
+                </p>
+              ) : null}
+            </div>
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1">Tu PIN de billetera (4 dígitos)</label>
+              <input
+                type="password"
+                inputMode="numeric"
+                pattern="\d{4}"
+                maxLength={4}
+                value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+                autoFocus
+                className="w-full bg-background border border-border rounded-lg px-3 py-3 text-center text-2xl tracking-[0.5em] text-foreground"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => { setStep("form"); setPin(""); }}
+                disabled={busy}
+                className="border border-border text-foreground font-medium py-3 rounded-xl disabled:opacity-50"
+              >
+                Atrás
+              </button>
+              <button
+                type="submit"
+                disabled={busy || pin.length !== 4}
+                className="bg-primary text-primary-foreground font-semibold py-3 rounded-xl disabled:opacity-50"
+              >
+                {busy ? "Enviando…" : "Confirmar"}
+              </button>
+            </div>
+          </form>
+        ) : null}
+      </div>
+    </div>
   );
 }

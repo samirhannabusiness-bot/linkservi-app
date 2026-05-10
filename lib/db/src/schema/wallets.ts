@@ -24,6 +24,11 @@ export const walletsTable = pgTable("wallets", {
   balanceCents: integer("balance_cents").notNull().default(0),
   holdCents: integer("hold_cents").notNull().default(0),
   currency: text("currency").notNull().default("USD"),
+  // PIN de billetera — bcrypt hash del PIN de 4 dígitos. NULL = sin configurar.
+  // Se exige para autorizar transferencias y retiros.
+  pinHash: text("pin_hash"),
+  pinFailedAttempts: integer("pin_failed_attempts").notNull().default(0),
+  pinLockedUntil: timestamp("pin_locked_until", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (table) => [
