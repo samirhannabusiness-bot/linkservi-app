@@ -1,4 +1,5 @@
 import { useLocation } from "wouter";
+import { Plus } from "lucide-react";
 import { useAuth, type AppMode } from "@/lib/auth-context";
 import { getModeMeta, MODE_META } from "@/lib/mode-meta";
 import { toast } from "@/hooks/use-toast";
@@ -22,8 +23,38 @@ export function ModeSwitch() {
   const [, setLocation] = useLocation();
 
   if (!user) return null;
-  // Cliente puro (sin roles extra) → no hay nada que cambiar.
-  if (!isManager && !isWorker && !isDriver) return null;
+  // Cliente puro (sin roles extra): mostramos un solo botón "+ Activar rol"
+  // que lleva al dashboard donde están las tarjetas de Profesional / Conductor /
+  // Tienda. Esto garantiza que el usuario SIEMPRE vea cómo activar otro rol
+  // sin tener que navegar a un menú escondido.
+  const isClientOnly = !isManager && !isWorker && !isDriver;
+  if (isClientOnly) {
+    return (
+      <button
+        type="button"
+        onClick={() => setLocation("/client?activate=1")}
+        data-testid="mode-switch-activate"
+        title="Activar otro rol en tu cuenta"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "6px",
+          padding: "6px 12px",
+          borderRadius: "999px",
+          fontSize: "12px",
+          fontWeight: 700,
+          color: "#06b6d4",
+          background: "rgba(6,182,212,0.08)",
+          border: "1px solid rgba(6,182,212,0.35)",
+          cursor: "pointer",
+          transition: "background 0.18s ease, border-color 0.18s ease",
+        }}
+      >
+        <Plus style={{ width: 14, height: 14 }} />
+        Activar otro rol
+      </button>
+    );
+  }
 
   const syncActiveModeFor = (mode: AppMode) => {
     if (!user) return;

@@ -274,12 +274,11 @@ function AuthGuard({ children, roles }: { children: React.ReactNode; roles: stri
         user.role,
         user.secondaryRole,
       ].filter(Boolean) as string[];
-      const setupBypassRoles = ["admin", "cohost", "seller", "worker", "gestor"];
-      const bypassSetup = userRolesAll.some(r => setupBypassRoles.includes(r));
-      if (!user.avatarUrl && !bypassSetup && location !== "/profile/setup") {
-        navigate("/profile/setup");
-        return;
-      }
+      // Foto de perfil ya NO es bloqueante. La invitación a subirla aparece
+      // como banner suave dentro del dashboard. Esto evita que un usuario
+      // recién registrado quede atrapado en /profile/setup sin descubrir
+      // los botones de activación de roles.
+      void userRolesAll;
       const userRoles = [
         ...(Array.isArray((user as any).roles) ? (user as any).roles : []),
         user.role,

@@ -7,6 +7,7 @@ import {
   Store, KeyRound, CarFront, Newspaper, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useAuth } from "@/lib/auth-context";
 import { publishRates } from "@/lib/sharedRates";
 import { NeonBackground } from "@/components/ui/NeonBackground";
 import { GlobalSearchBar } from "@/components/ui/GlobalSearchBar";
@@ -888,9 +889,25 @@ function RateCard() {
 
 export function LandingPage() {
   const [, navigate] = useLocation();
+  const { user } = useAuth();
   const [fabOpen, setFabOpen] = useState(false);
   const [rateOpen, setRateOpen] = useState(false);
   const { data: workers = [] } = useListWorkers({});
+
+  // Si el usuario ya está logueado, mandamos directo a su dashboard
+  // (donde ven los botones de activación de roles). Sin esto, un usuario
+  // que vuelve al inicio se queda en la landing pública y no encuentra
+  // dónde activar Profesional / Conductor / Tienda.
+  useEffect(() => {
+    if (!user) return;
+    const dest =
+      user.role === "admin" ? "/admin"
+      : user.role === "worker" ? "/professional"
+      : user.role === "cohost" ? "/cohost"
+      : user.role === "seller" ? "/seller"
+      : "/client";
+    navigate(dest);
+  }, [user, navigate]);
 
   const availableCount = (workers as any[]).filter((w: any) => w.isAvailable || w.hasRecentContact).length;
 
