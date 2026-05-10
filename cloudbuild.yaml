@@ -22,12 +22,37 @@ steps:
       - --all-tags
       - gcr.io/$PROJECT_ID/linkservi
 
-  # ── Step 3: Deploy to Cloud Run ─────────────────────────────────────────────
+  # ── Step 3: Apply additive DB migrations ───────────────────────────────────
+  # Runs all SQL files in /migrations against the production database BEFORE
+  # the Cloud Run deploy. Migrations are written to be idempotent (CREATE
+  # TABLE IF NOT EXISTS, CREATE INDEX IF NOT EXISTS) so they're safe to run
+  # on every build. Files are applied in alphabetical order. To add a new
+  # migration, drop a 000N_name.sql file in /migrations.
+  - name: "postgres:16-alpine"
+    id: db-migrate
+    waitFor: [push]
+    entrypoint: sh
+    args:
+      - -c
+      - |
+        set -e
+        if [ -z "$_DATABASE_URL" ]; then
+          echo "ERROR: _DATABASE_URL substitution is empty — cannot run migrations"
+          exit 1
+        fi
+        echo "Applying migrations from /workspace/migrations/ ..."
+        for f in /workspace/migrations/*.sql; do
+          echo "→ $f"
+          PGSSLMODE=require psql "$_DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f"
+        done
+        echo "✓ All migrations applied"
+
+  # ── Step 4: Deploy to Cloud Run ─────────────────────────────────────────────
   # Uses --env-vars-file to avoid shell quoting/delimiter issues with special
   # characters in values (e.g. SESSION_SECRET may contain | or , characters).
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     id: deploy
-    waitFor: [push]
+    waitFor: [db-migrate]
     entrypoint: bash
     args:
       - -c
