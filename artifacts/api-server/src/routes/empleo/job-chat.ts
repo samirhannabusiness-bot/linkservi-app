@@ -1,12 +1,13 @@
 import { Router } from "express";
 import {
   db, jobConversationsTable, jobMessagesTable,
-  jobSubscriptionsTable, usersTable,
+  jobSubscriptionsTable, usersTable, systemAlertsTable,
 } from "@workspace/db";
 import { eq, and, or, desc, gte, ne, isNull } from "drizzle-orm";
 import { authenticate } from "../../lib/auth";
 import { sendPushToUser } from "../push";
 import { emitToRoom } from "../../lib/socket";
+import { filterMessage } from "../../lib/messageFilter";
 
 const router = Router();
 
@@ -220,13 +221,33 @@ router.post("/jobs/conversations/:id/messages", authenticate, async (req, res): 
       res.status(400).json({ error: "mediaUrl es requerido para este tipo de mensaje" }); return;
     }
 
+    // ── Anti-bypass filter (text messages only) ────────────────────────────
+    const rawContent = (content ?? "").trim();
+    const { content: filteredContent, wasFiltered } = messageType === "text"
+      ? filterMessage(rawContent)
+      : { content: rawContent, wasFiltered: false };
+    if (wasFiltered) {
+      try {
+        await db.insert(systemAlertsTable).values({
+          type: "CHAT_BYPASS_ATTEMPT",
+          payload: {
+            channel: "jobs_chat",
+            conversationId: convId,
+            senderId: userId,
+            rawContent,
+            filteredContent,
+          },
+        });
+      } catch { /* non-critical */ }
+    }
+
     const [msg] = await db
       .insert(jobMessagesTable)
       .values({
         conversationId: convId,
         senderId: userId,
         messageType,
-        content: content.trim(),
+        content: filteredContent,
         mediaUrl: mediaUrl ?? null,
         mediaMime: mediaMime ?? null,
         duration: duration ?? null,
@@ -281,6 +302,7 @@ router.post("/jobs/conversations/:id/messages", authenticate, async (req, res): 
       duration: msg.duration,
       readAt: msg.readAt,
       createdAt: msg.createdAt,
+      wasFiltered,
     });
   } catch (err: any) {
     res.status(500).json({ error: err?.message ?? "Error al enviar mensaje" });

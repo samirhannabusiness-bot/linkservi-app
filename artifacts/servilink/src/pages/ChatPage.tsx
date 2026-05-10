@@ -548,7 +548,16 @@ export function ChatPage() {
   const { mutate: sendMessage, isPending } = useSendChatMessage({
     ...opts,
     mutation: {
-      onSuccess: () => { setMessage(""); refetch(); setShowQuickReplies(false); },
+      onSuccess: (data: any) => {
+        setMessage(""); refetch(); setShowQuickReplies(false);
+        if (data?.wasFiltered) {
+          toast({
+            title: "Recordatorio de seguridad",
+            description: "Por tu protección, no se permiten números de teléfono ni datos de contacto en el chat. Tu garantía LinkServi solo aplica si te comunicas dentro de la app.",
+            variant: "destructive",
+          });
+        }
+      },
       onError: (err: any) => {
         const msg = err?.message ?? err?.error ?? "No se pudo enviar el mensaje";
         toast({ title: msg, variant: "destructive" });

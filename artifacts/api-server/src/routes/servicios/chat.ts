@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { db, chatMessagesTable, chatOffersTable, usersTable, bookingsTable, workersTable } from "@workspace/db";
+import { db, chatMessagesTable, chatOffersTable, usersTable, bookingsTable, workersTable, systemAlertsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { authenticate, requireVerifiedEmail } from "../../lib/auth";
 import { sendPushToUser } from "../push";
 import { emitToRoom } from "../../lib/socket";
 import { createNotification } from "../notifications";
+import { filterMessage } from "../../lib/messageFilter";
 
 const router = Router();
 
@@ -73,27 +74,32 @@ router.post("/chat/:bookingId", authenticate, requireVerifiedEmail, async (req, 
   if (!booking) { res.status(404).json({ error: "Solicitud no encontrada" }); return; }
   if (!isParticipant) { res.status(403).json({ error: "No tienes acceso a este chat" }); return; }
 
-  // ── Contact info filter ────────────────────────────────────────────────────
-  // Block emails
-  const emailRegex = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/;
-  // Block Venezuelan phone numbers in all common formats:
-  //   0416-1234567, 04161234567, 416-1234567, 4161234567,
-  //   +584161234567, 584161234567, spaces or dots between digits
-  const phoneRegex = /(?:\+?58[\s.\-]?)?(?:0?4(?:1[246]|2[46]|1[24]|26))[\s.\-]?\d{3}[\s.\-]?\d{4}|\b\d[\s.\-]?\d[\s.\-]?\d[\s.\-]?\d[\s.\-]?\d[\s.\-]?\d[\s.\-]?\d[\s.\-]?\d[\s.\-]?\d[\s.\-]?\d[\s.\-]?\d\b/;
-
-  if (emailRegex.test(content)) {
-    res.status(422).json({ error: "No puedes compartir correos electrónicos en el chat. Comunícate a través de la plataforma." });
-    return;
+  // ── Anti-bypass content filter ────────────────────────────────────────────
+  // Replaces phone numbers, emails, social handles and "contáctame por
+  // WhatsApp" evasions with [contacto bloqueado]. Redacts (no longer blocks)
+  // so the conversation flows naturally and the worker/client can't argue
+  // they "tried to send" a message that never arrived. When filtered, we
+  // also log to system_alerts for the admin's anti-bypass audit panel.
+  const rawContent = content;
+  const { content: filtered, wasFiltered } = filterMessage(rawContent);
+  if (wasFiltered) {
+    try {
+      await db.insert(systemAlertsTable).values({
+        type: "CHAT_BYPASS_ATTEMPT",
+        payload: {
+          channel: "booking_chat",
+          bookingId,
+          senderId: req.user!.id,
+          rawContent,
+          filteredContent: filtered,
+        },
+      });
+    } catch { /* logging failure is non-critical */ }
   }
-  if (phoneRegex.test(content)) {
-    res.status(422).json({ error: "No puedes compartir números de teléfono en el chat. Comunícate a través de la plataforma." });
-    return;
-  }
-  // ──────────────────────────────────────────────────────────────────────────
 
   const [message] = await db
     .insert(chatMessagesTable)
-    .values({ bookingId, senderId: req.user!.id, content })
+    .values({ bookingId, senderId: req.user!.id, content: filtered })
     .returning();
 
   const [sender] = await db.select().from(usersTable).where(eq(usersTable.id, req.user!.id));
@@ -143,6 +149,7 @@ router.post("/chat/:bookingId", authenticate, requireVerifiedEmail, async (req, 
     content: message.content,
     createdAt: message.createdAt,
     type: "message",
+    wasFiltered,
   });
 });
 
