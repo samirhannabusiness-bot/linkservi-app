@@ -57,3 +57,4 @@ export * from "./integration_configs";
 export * from "./agents";
 export * from "./agent_pairing_codes";
 export * from "./agent_telemetry_events";
+export * from "./wallets";

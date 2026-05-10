@@ -72,6 +72,7 @@ const clientLinks = [
   { href: "/client/bookings",   label: "Mis Solicitudes",    icon: Calendar },
   { href: "/mensajes",          label: "Mensajería",         icon: MessageCircle },
   { href: "/client/payments",   label: "Pagos",              icon: TrendingUp },
+  { href: "/billetera",         label: "Mi LinkWallet",      icon: Wallet },
   { href: "/store",             label: "ServiMarket",        icon: ShoppingBag },
   { href: "/client/product-orders", label: "Mis Compras",   icon: Package },
   { href: "/transport",         label: "Transporte",         icon: Car },
@@ -131,6 +132,7 @@ const workerLinks = [
   { href: "/professional/analytics", label: "Estadísticas", icon: TrendingUp },
   { href: "/professional/comprobantes", label: "Comprobantes", icon: BookOpen },
   { href: "/professional/withdrawals", label: "Mis Retiros", icon: ArrowDownToLine },
+  { href: "/billetera", label: "Mi LinkWallet", icon: Wallet },
   { href: "/professional/verification", label: "Verificación", icon: Shield },
   { href: "/jobs?tab=mine", label: "Mi Hoja de Vida", icon: Briefcase },
 ];

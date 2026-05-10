@@ -61,6 +61,7 @@ const BookingPage            = lazy(() => import("@/pages/client/BookingPage").t
 const ClientBookingsPage     = lazy(() => import("@/pages/client/BookingsListPage").then(m => ({ default: m.ClientBookingsPage })));
 const ClientProfilePage      = lazy(() => import("@/pages/client/ClientProfilePage").then(m => ({ default: m.ClientProfilePage })));
 const PaymentHistoryPage     = lazy(() => import("@/pages/client/PaymentHistoryPage").then(m => ({ default: m.PaymentHistoryPage })));
+const WalletPage             = lazy(() => import("@/pages/WalletPage"));
 const ClientReferralPage     = lazy(() => import("@/pages/client/ClientReferralPage").then(m => ({ default: m.ClientReferralPage })));
 const ClientPlanPage         = lazy(() => import("@/pages/client/ClientPlanPage").then(m => ({ default: m.ClientPlanPage })));
 const FavoritesPage          = lazy(() => import("@/pages/client/FavoritesPage").then(m => ({ default: m.FavoritesPage })));
@@ -654,6 +655,9 @@ function Router() {
         </Route>
         <Route path="/client/payments">
           {() => <AuthGuard roles={["client"]}><PaymentHistoryPage /></AuthGuard>}
+        </Route>
+        <Route path="/billetera">
+          {() => <AuthGuard roles={["client", "worker", "cohost", "seller", "gestor", "driver", "admin"]}><WalletPage /></AuthGuard>}
         </Route>
         <Route path="/client/referral">
           {() => <AuthGuard roles={["client"]}><ClientReferralPage /></AuthGuard>}
