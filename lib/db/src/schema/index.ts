@@ -58,3 +58,4 @@ export * from "./agents";
 export * from "./agent_pairing_codes";
 export * from "./agent_telemetry_events";
 export * from "./wallets";
+export * from "./wallet_deposits";

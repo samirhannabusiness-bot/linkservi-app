@@ -3,12 +3,14 @@ import {
   db,
   walletsTable,
   walletTransactionsTable,
+  walletDepositsTable,
   escrowHoldsTable,
   usersTable,
 } from "@workspace/db";
 import { and, desc, eq, or, gte, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { authenticate, comparePassword } from "../lib/auth";
+import { createNotification } from "./notifications";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LinkWallet — endpoints
@@ -34,6 +36,19 @@ const MAX_PIN_ATTEMPTS           = 3;
 const PIN_LOCK_MINUTES           = 15;
 const MIN_TRANSFER_CENTS         = 10;     // $0.10 mínimo
 const MAX_TRANSFER_CENTS         = 50_000; // $500 máximo por operación
+
+// Recargas Binance/Zelle (manual con aprobación admin).
+const MIN_MANUAL_DEPOSIT_CENTS = 500;     // $5.00 mínimo
+const MAX_DEPOSIT_CENTS        = 50_000;  // $500 máximo por operación
+const DAILY_DEPOSIT_LIMIT_CENTS = 200_000; // $2,000 USD/día por usuario
+
+// Datos de cobro de LinkServi para los métodos manuales. En producción
+// se moverán a env vars; aquí los exponemos via /wallet/deposit/info para
+// que el frontend los muestre al usuario al iniciar la recarga.
+const LINKSERVI_BINANCE_PAY_ID = process.env.LINKSERVI_BINANCE_PAY_ID || "Próximamente";
+const LINKSERVI_BINANCE_USDT_TRC20 = process.env.LINKSERVI_BINANCE_USDT_TRC20 || "Próximamente";
+const LINKSERVI_ZELLE_EMAIL = process.env.LINKSERVI_ZELLE_EMAIL || "Próximamente";
+const LINKSERVI_ZELLE_NAME = process.env.LINKSERVI_ZELLE_NAME || "LinkServi";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -529,6 +544,350 @@ router.post("/wallet/transfer", authenticate, async (req, res): Promise<void> =>
   } catch (err) {
     console.error("[wallet/transfer] error", err);
     res.status(500).json({ error: "No se pudo completar la transferencia" });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RECARGAS — depósitos a la billetera
+//
+// Tres canales:
+//   - BDV (automático):  flow C2P existente con referenceType="wallet_deposit".
+//                        El crédito al wallet ocurre en applyDomainEffect.
+//   - Binance/Zelle (manual): el usuario sube comprobante; admin aprueba.
+//
+// Endpoints:
+//   GET  /wallet/deposit/info                     — datos de cobro de LinkServi
+//   POST /wallet/deposit/manual                   — abre solicitud pending (binance/zelle)
+//   GET  /wallet/deposits                         — historial del usuario
+//   GET  /admin/wallet/deposits                   — admin: lista todas
+//   POST /admin/wallet/deposits/:id/approve       — admin: acredita al wallet
+//   POST /admin/wallet/deposits/:id/reject        — admin: rechaza con nota
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Suma de recargas pendientes/aprobadas en últimas 24h del usuario. */
+async function dailyDepositedCents(userId: number): Promise<number> {
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const [row] = await db
+    .select({ total: sql<number>`COALESCE(SUM(${walletDepositsTable.amountCents}), 0)::int` })
+    .from(walletDepositsTable)
+    .where(and(
+      eq(walletDepositsTable.userId, userId),
+      gte(walletDepositsTable.createdAt, since),
+      or(
+        eq(walletDepositsTable.status, "pending"),
+        eq(walletDepositsTable.status, "approved"),
+      ),
+    ));
+  return row?.total ?? 0;
+}
+
+// ── GET /api/wallet/deposit/info ────────────────────────────────────────────
+router.get("/wallet/deposit/info", authenticate, async (_req, res): Promise<void> => {
+  res.json({
+    minUsd: 1,
+    maxUsd: 500,
+    minManualUsd: MIN_MANUAL_DEPOSIT_CENTS / 100,
+    dailyLimitUsd: DAILY_DEPOSIT_LIMIT_CENTS / 100,
+    methods: {
+      bdv: {
+        label: "Pago Móvil BDV",
+        description: "Recarga inmediata desde tu cuenta del Banco de Venezuela. El monto se acredita automáticamente.",
+        feePct: 0,
+      },
+      binance: {
+        label: "Binance",
+        description: "Envía USDT a la wallet de LinkServi y sube el comprobante. Acreditamos en menos de 1 hora hábil.",
+        feePct: 0,
+        payId: LINKSERVI_BINANCE_PAY_ID,
+        usdtTrc20: LINKSERVI_BINANCE_USDT_TRC20,
+        network: "TRC20 (Tron) — sin comisión",
+      },
+      zelle: {
+        label: "Zelle",
+        description: "Envía Zelle al correo de LinkServi y sube el comprobante. Acreditamos en menos de 1 hora hábil.",
+        feePct: 0,
+        email: LINKSERVI_ZELLE_EMAIL,
+        beneficiary: LINKSERVI_ZELLE_NAME,
+      },
+    },
+  });
+});
+
+// ── POST /api/wallet/deposit/manual ────────────────────────────────────────
+// Abre una solicitud de recarga pendiente. NO acredita saldo todavía —
+// el admin debe aprobar después de verificar el comprobante.
+router.post("/wallet/deposit/manual", authenticate, async (req, res): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const { method, amountCents, proofUrl, externalRef, userNotes } = req.body ?? {};
+
+    if (method !== "binance" && method !== "zelle") {
+      res.status(400).json({ error: "Método inválido. Usa binance o zelle." });
+      return;
+    }
+    const amount = Number.isInteger(amountCents) ? amountCents : 0;
+    if (amount < MIN_MANUAL_DEPOSIT_CENTS) {
+      res.status(400).json({ error: `Monto mínimo $${(MIN_MANUAL_DEPOSIT_CENTS / 100).toFixed(2)}` });
+      return;
+    }
+    if (amount > MAX_DEPOSIT_CENTS) {
+      res.status(400).json({ error: `Monto máximo $${(MAX_DEPOSIT_CENTS / 100).toFixed(2)} por operación` });
+      return;
+    }
+    if (typeof proofUrl !== "string" || !proofUrl.trim()) {
+      res.status(400).json({ error: "Sube el comprobante de pago para continuar" });
+      return;
+    }
+    // Anti race-condition: serializamos check-de-límite + insert dentro de
+    // una transacción que toma SELECT FOR UPDATE sobre la fila del wallet.
+    // Como cada usuario tiene exactamente una fila en `wallets`, dos POSTs
+    // concurrentes del mismo usuario quedan en cola — el segundo recalcula
+    // dailyDepositedCents después del commit del primero.
+    await ensureWallet(userId);
+    let dep;
+    try {
+      dep = await db.transaction(async (tx) => {
+        await tx.execute(sql`SELECT 1 FROM wallets WHERE user_id = ${userId} FOR UPDATE`);
+        const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const [{ total: dailyUsed }] = await tx
+          .select({ total: sql<number>`COALESCE(SUM(${walletDepositsTable.amountCents}), 0)::int` })
+          .from(walletDepositsTable)
+          .where(and(
+            eq(walletDepositsTable.userId, userId),
+            gte(walletDepositsTable.createdAt, since),
+            or(
+              eq(walletDepositsTable.status, "pending"),
+              eq(walletDepositsTable.status, "approved"),
+            ),
+          ));
+        if ((dailyUsed ?? 0) + amount > DAILY_DEPOSIT_LIMIT_CENTS) {
+          const remaining = Math.max(0, DAILY_DEPOSIT_LIMIT_CENTS - (dailyUsed ?? 0));
+          throw Object.assign(new Error(
+            `Límite diario excedido. Disponible hoy: $${(remaining / 100).toFixed(2)} de $${(DAILY_DEPOSIT_LIMIT_CENTS / 100).toFixed(2)}.`
+          ), { code: "DAILY_LIMIT" });
+        }
+        const [row] = await tx.insert(walletDepositsTable).values({
+          userId,
+          method,
+          amountCents: amount,
+          status: "pending",
+          proofUrl: proofUrl.trim().slice(0, 1000),
+          externalRef: typeof externalRef === "string" ? externalRef.trim().slice(0, 200) : null,
+          userNotes: typeof userNotes === "string" ? userNotes.trim().slice(0, 500) : null,
+        }).returning();
+        return row;
+      });
+    } catch (e: any) {
+      if (e?.code === "DAILY_LIMIT") {
+        res.status(400).json({ error: e.message });
+        return;
+      }
+      throw e;
+    }
+
+    res.json({
+      ok: true,
+      deposit: {
+        id: dep.id,
+        method: dep.method,
+        amountCents: dep.amountCents,
+        status: dep.status,
+        createdAt: dep.createdAt,
+      },
+      message: "Recarga registrada. Te avisaremos cuando se acredite (menos de 1 hora hábil).",
+    });
+  } catch (err) {
+    console.error("[wallet/deposit/manual] error", err);
+    res.status(500).json({ error: "No se pudo registrar la recarga" });
+  }
+});
+
+// ── GET /api/wallet/deposits ────────────────────────────────────────────────
+router.get("/wallet/deposits", authenticate, async (req, res): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const limit = Math.min(Math.max(Number(req.query.limit) || 30, 1), 100);
+    const rows = await db
+      .select()
+      .from(walletDepositsTable)
+      .where(eq(walletDepositsTable.userId, userId))
+      .orderBy(desc(walletDepositsTable.createdAt))
+      .limit(limit);
+    res.json({ deposits: rows });
+  } catch (err) {
+    console.error("[wallet/deposits] error", err);
+    res.status(500).json({ error: "No se pudieron cargar las recargas" });
+  }
+});
+
+// ── GET /api/admin/wallet/deposits ──────────────────────────────────────────
+router.get("/admin/wallet/deposits", authenticate, async (req, res): Promise<void> => {
+  if (req.user!.role !== "admin") { res.status(403).json({ error: "Acceso denegado" }); return; }
+  try {
+    const rows = await db
+      .select({
+        deposit: walletDepositsTable,
+        user: { id: usersTable.id, name: usersTable.name, email: usersTable.email, phone: usersTable.phone },
+      })
+      .from(walletDepositsTable)
+      .innerJoin(usersTable, eq(walletDepositsTable.userId, usersTable.id))
+      .orderBy(desc(walletDepositsTable.createdAt))
+      .limit(500);
+    res.json(rows.map(({ deposit, user }) => ({
+      ...deposit,
+      userName: user.name,
+      userEmail: user.email,
+      userPhone: user.phone,
+    })));
+  } catch (err) {
+    console.error("[admin/wallet/deposits] error", err);
+    res.status(500).json({ error: "No se pudieron cargar las recargas" });
+  }
+});
+
+// ── POST /api/admin/wallet/deposits/:id/approve ─────────────────────────────
+// Acredita el monto al wallet del usuario y registra la transacción
+// contable. Atómico: si falla algo, todo se revierte.
+router.post("/admin/wallet/deposits/:id/approve", authenticate, async (req, res): Promise<void> => {
+  if (req.user!.role !== "admin") { res.status(403).json({ error: "Acceso denegado" }); return; }
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) { res.status(400).json({ error: "ID inválido" }); return; }
+    const adminId = req.user!.id;
+    const adminNotes = typeof req.body?.notes === "string" ? req.body.notes.trim().slice(0, 500) : null;
+
+    const [dep] = await db.select().from(walletDepositsTable).where(eq(walletDepositsTable.id, id)).limit(1);
+    if (!dep) { res.status(404).json({ error: "Recarga no encontrada" }); return; }
+    if (dep.status !== "pending") {
+      res.status(409).json({ error: `Esta recarga ya está ${dep.status === "approved" ? "aprobada" : "rechazada"}` });
+      return;
+    }
+    if (dep.method === "bdv") {
+      res.status(400).json({ error: "Las recargas BDV se acreditan automáticamente, no requieren aprobación" });
+      return;
+    }
+
+    // Transacción atómica: actualiza deposit, suma balance, inserta tx contable.
+    const result = await db.transaction(async (tx) => {
+      // Re-lock + re-check del status para evitar doble aprobación concurrente.
+      const lockedDep = await tx.execute(sql`
+        SELECT id, status, amount_cents, user_id
+        FROM wallet_deposits
+        WHERE id = ${id}
+        FOR UPDATE
+      `);
+      const depRows = (lockedDep.rows ?? lockedDep) as Array<{
+        id: number; status: string; amount_cents: number; user_id: number;
+      }>;
+      if (!depRows[0] || depRows[0].status !== "pending") {
+        throw new Error("ALREADY_PROCESSED");
+      }
+
+      // Asegurar wallet + lock.
+      await tx
+        .insert(walletsTable)
+        .values({ userId: dep.userId, balanceCents: 0, holdCents: 0, currency: "USD" })
+        .onConflictDoNothing({ target: walletsTable.userId });
+      const lockedW = await tx.execute(sql`
+        SELECT user_id, balance_cents, hold_cents
+        FROM wallets WHERE user_id = ${dep.userId} FOR UPDATE
+      `);
+      const wRows = (lockedW.rows ?? lockedW) as Array<{
+        user_id: number; balance_cents: number; hold_cents: number;
+      }>;
+      const w = wRows[0];
+      if (!w) throw new Error("WALLET_NOT_FOUND");
+
+      const newBalance = w.balance_cents + dep.amountCents;
+
+      await tx.update(walletsTable)
+        .set({ balanceCents: newBalance })
+        .where(eq(walletsTable.userId, dep.userId));
+      await tx.insert(walletTransactionsTable).values({
+        userId: dep.userId,
+        type: "deposit",
+        amountCents: dep.amountCents,
+        balanceAfterCents: newBalance,
+        holdAfterCents: w.hold_cents,
+        refType: "wallet_deposit",
+        refId: dep.id,
+        description: `Recarga ${dep.method === "binance" ? "Binance" : "Zelle"} aprobada · Ref ${dep.externalRef ?? dep.id}`,
+        status: "posted",
+      });
+      await tx.update(walletDepositsTable)
+        .set({
+          status: "approved",
+          adminNotes,
+          processedByUserId: adminId,
+          processedAt: new Date(),
+        })
+        .where(eq(walletDepositsTable.id, id));
+
+      return { newBalance };
+    });
+
+    // Notificar al usuario fuera de la transacción.
+    try {
+      await createNotification({
+        userId: dep.userId,
+        type: "wallet_deposit_approved",
+        title: "Recarga aprobada",
+        message: `Acreditamos $${(dep.amountCents / 100).toFixed(2)} a tu LinkWallet.`,
+        link: "/wallet",
+      });
+    } catch (e) { console.warn("[deposit/approve] notify error", e); }
+
+    res.json({ ok: true, newBalanceCents: result.newBalance });
+  } catch (err: any) {
+    if (err?.message === "ALREADY_PROCESSED") {
+      res.status(409).json({ error: "Esta recarga ya fue procesada" });
+      return;
+    }
+    console.error("[admin/wallet/deposits/approve] error", err);
+    res.status(500).json({ error: "No se pudo aprobar la recarga" });
+  }
+});
+
+// ── POST /api/admin/wallet/deposits/:id/reject ──────────────────────────────
+router.post("/admin/wallet/deposits/:id/reject", authenticate, async (req, res): Promise<void> => {
+  if (req.user!.role !== "admin") { res.status(403).json({ error: "Acceso denegado" }); return; }
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) { res.status(400).json({ error: "ID inválido" }); return; }
+    const adminNotes = typeof req.body?.notes === "string" ? req.body.notes.trim().slice(0, 500) : null;
+
+    const [dep] = await db.select().from(walletDepositsTable).where(eq(walletDepositsTable.id, id)).limit(1);
+    if (!dep) { res.status(404).json({ error: "Recarga no encontrada" }); return; }
+    if (dep.status !== "pending") {
+      res.status(409).json({ error: "Esta recarga ya fue procesada" });
+      return;
+    }
+
+    await db.update(walletDepositsTable)
+      .set({
+        status: "rejected",
+        adminNotes,
+        processedByUserId: req.user!.id,
+        processedAt: new Date(),
+      })
+      .where(eq(walletDepositsTable.id, id));
+
+    try {
+      await createNotification({
+        userId: dep.userId,
+        type: "wallet_deposit_rejected",
+        title: "Recarga rechazada",
+        message: adminNotes
+          ? `No pudimos verificar tu recarga: ${adminNotes}`
+          : "No pudimos verificar tu comprobante. Contáctanos por soporte.",
+        link: "/wallet",
+      });
+    } catch (e) { console.warn("[deposit/reject] notify error", e); }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("[admin/wallet/deposits/reject] error", err);
+    res.status(500).json({ error: "No se pudo rechazar la recarga" });
   }
 });
 

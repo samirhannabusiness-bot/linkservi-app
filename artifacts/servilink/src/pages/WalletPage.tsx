@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { getAuthHeader } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
+import { C2PModal } from "@/components/payments/C2PModal";
+import { uploadImage } from "@/lib/upload-image";
 import {
   Wallet as WalletIcon,
   Lock,
@@ -14,6 +16,13 @@ import {
   Send,
   X,
   KeyRound,
+  Smartphone,
+  Bitcoin,
+  Mail,
+  Upload,
+  Copy,
+  CheckCircle2,
+  Loader2,
 } from "lucide-react";
 
 type WalletData = {
@@ -82,6 +91,7 @@ export default function WalletPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [showTransfer, setShowTransfer] = useState(false);
+  const [showRecharge, setShowRecharge] = useState(false);
 
   async function load() {
     try {
@@ -170,9 +180,8 @@ export default function WalletPage() {
         {/* Actions */}
         <div className="grid grid-cols-3 gap-2">
           <button
-            disabled
-            className="flex flex-col items-center justify-center gap-1 bg-primary/90 text-primary-foreground font-semibold py-3 rounded-xl opacity-60 cursor-not-allowed text-xs"
-            title="Próximamente"
+            onClick={() => setShowRecharge(true)}
+            className="flex flex-col items-center justify-center gap-1 bg-primary text-primary-foreground font-semibold py-3 rounded-xl text-xs hover:bg-primary/90 transition"
           >
             <ArrowDownToLine className="w-4 h-4" />
             Recargar
@@ -194,7 +203,7 @@ export default function WalletPage() {
           </button>
         </div>
         <p className="text-[11px] text-muted-foreground text-center -mt-2">
-          Recarga y retiro estarán disponibles muy pronto. Las transferencias entre usuarios LinkServi son sin comisión.
+          Recargas sin comisión. Las transferencias entre usuarios LinkServi también son gratis.
         </p>
 
         {/* Active holds */}
@@ -285,7 +294,338 @@ export default function WalletPage() {
           onDone={() => { setShowTransfer(false); void load(); }}
         />
       ) : null}
+
+      {showRecharge ? (
+        <RechargeModal
+          onClose={() => setShowRecharge(false)}
+          onDone={() => { setShowRecharge(false); void load(); }}
+        />
+      ) : null}
     </AppLayout>
+  );
+}
+
+// ── Recargar modal ───────────────────────────────────────────────────────────
+type RechargeMethod = "bdv" | "binance" | "zelle";
+
+type DepositInfo = {
+  minUsd: number;
+  maxUsd: number;
+  minManualUsd: number;
+  dailyLimitUsd: number;
+  methods: {
+    bdv: { label: string; description: string; feePct: number };
+    binance: { label: string; description: string; feePct: number; payId: string; usdtTrc20: string; network: string };
+    zelle: { label: string; description: string; feePct: number; email: string; beneficiary: string };
+  };
+};
+
+function RechargeModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [method, setMethod] = useState<RechargeMethod>("bdv");
+  const [amount, setAmount] = useState("");
+  const [info, setInfo] = useState<DepositInfo | null>(null);
+  const [showC2P, setShowC2P] = useState(false);
+
+  // Manual (Binance/Zelle) state
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofUrl, setProofUrl] = useState<string>("");
+  const [externalRef, setExternalRef] = useState("");
+  const [userNotes, setUserNotes] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/wallet/deposit/info", {
+          credentials: "include", headers: { ...getAuthHeader() },
+        });
+        if (res.ok) setInfo(await res.json());
+      } catch { /* noop */ }
+    })();
+  }, []);
+
+  const amountUsd = parseFloat(amount.replace(",", "."));
+  const amountCents = Number.isFinite(amountUsd) ? Math.round(amountUsd * 100) : 0;
+  const minUsd = method === "bdv" ? (info?.minUsd ?? 1) : (info?.minManualUsd ?? 5);
+  const maxUsd = info?.maxUsd ?? 500;
+  const amountValid = amountCents >= Math.round(minUsd * 100) && amountCents <= Math.round(maxUsd * 100);
+
+  function handleStartBdv() {
+    setErr("");
+    if (!amountValid) {
+      setErr(`Monto debe estar entre $${minUsd.toFixed(2)} y $${maxUsd.toFixed(0)}`);
+      return;
+    }
+    setShowC2P(true);
+  }
+
+  function handleC2pSuccess() {
+    setShowC2P(false);
+    toast({
+      title: "Recarga acreditada",
+      description: `$${amountUsd.toFixed(2)} se sumaron a tu LinkWallet.`,
+    });
+    onDone();
+  }
+
+  async function handleProofUpload(file: File) {
+    setProofFile(file);
+    setErr("");
+    setBusy(true);
+    try {
+      const { url } = await uploadImage(file, "receipts");
+      setProofUrl(url);
+    } catch (e: any) {
+      setErr(e?.message || "No se pudo subir el comprobante");
+      setProofFile(null);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleSubmitManual(e: React.FormEvent) {
+    e.preventDefault();
+    setErr("");
+    if (!amountValid) {
+      setErr(`Monto debe estar entre $${minUsd.toFixed(2)} y $${maxUsd.toFixed(0)}`);
+      return;
+    }
+    if (!proofUrl) {
+      setErr("Sube el comprobante de pago para continuar");
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await fetch("/api/wallet/deposit/manual", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json", ...getAuthHeader() },
+        body: JSON.stringify({
+          method,
+          amountCents,
+          proofUrl,
+          externalRef: externalRef.trim() || undefined,
+          userNotes: userNotes.trim() || undefined,
+        }),
+      });
+      const j = await res.json();
+      if (!res.ok) { setErr(j.error || "No se pudo registrar la recarga"); return; }
+      setDone(true);
+    } catch (e: any) {
+      setErr(e?.message || "Error de conexión");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function copyToClipboard(text: string) {
+    if (!text || text === "Próximamente") return;
+    navigator.clipboard.writeText(text).then(
+      () => toast({ title: "Copiado", description: text }),
+      () => toast({ title: "No se pudo copiar", variant: "destructive" }),
+    );
+  }
+
+  if (done) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/70 flex items-end md:items-center justify-center p-0 md:p-4" onClick={onDone}>
+        <div className="bg-card border border-border rounded-t-2xl md:rounded-2xl w-full max-w-md p-6 space-y-4 text-center"
+          onClick={(e) => e.stopPropagation()}>
+          <CheckCircle2 className="w-14 h-14 text-emerald-400 mx-auto" />
+          <h2 className="text-xl font-bold text-foreground">Recarga registrada</h2>
+          <p className="text-sm text-muted-foreground">
+            Verificaremos tu comprobante y acreditaremos <strong className="text-foreground">${amountUsd.toFixed(2)}</strong> a tu LinkWallet
+            en menos de 1 hora hábil. Te avisaremos cuando esté listo.
+          </p>
+          <button onClick={onDone}
+            className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-xl mt-2">
+            Entendido
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/70 flex items-end md:items-center justify-center p-0 md:p-4" onClick={onClose}>
+        <div className="bg-card border border-border rounded-t-2xl md:rounded-2xl w-full max-w-md p-5 space-y-4 max-h-[90vh] overflow-y-auto"
+          onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold flex items-center gap-2 text-foreground">
+              <ArrowDownToLine className="w-5 h-5 text-primary" />
+              Recargar LinkWallet
+            </h2>
+            <button onClick={onClose} className="p-1 rounded hover:bg-muted text-muted-foreground">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Method tabs */}
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { id: "bdv" as const,     label: "Pago Móvil", icon: Smartphone },
+              { id: "binance" as const, label: "Binance",    icon: Bitcoin    },
+              { id: "zelle" as const,   label: "Zelle",      icon: Mail       },
+            ]).map((m) => {
+              const Icon = m.icon;
+              const active = method === m.id;
+              return (
+                <button key={m.id} type="button" onClick={() => { setMethod(m.id); setErr(""); }}
+                  className={`flex flex-col items-center gap-1 py-3 rounded-xl text-xs font-medium border transition ${active ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border text-muted-foreground hover:text-foreground"}`}>
+                  <Icon className="w-5 h-5" />
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Amount input */}
+          <div>
+            <label className="block text-xs text-muted-foreground mb-1">Monto a recargar (USD)</label>
+            <input type="number" inputMode="decimal" step="0.01"
+              min={minUsd} max={maxUsd}
+              value={amount} onChange={(e) => setAmount(e.target.value)}
+              placeholder={method === "bdv" ? "10.00" : "20.00"}
+              className="w-full bg-background border border-border rounded-lg px-3 py-3 text-2xl font-semibold text-foreground text-center" />
+            <p className="text-[11px] text-muted-foreground mt-1 text-center">
+              Mínimo ${minUsd.toFixed(2)} — máximo ${maxUsd.toFixed(0)} por operación. Sin comisión.
+            </p>
+          </div>
+
+          {err && (
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm">{err}</div>
+          )}
+
+          {/* Method-specific content */}
+          {method === "bdv" && (
+            <div className="space-y-3">
+              <div className="bg-primary/10 border border-primary/30 rounded-xl p-3 text-xs text-foreground space-y-1">
+                <p className="font-semibold flex items-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5 text-primary" />
+                  Pago Móvil BDV — acreditación inmediata
+                </p>
+                <p className="text-muted-foreground">
+                  Cobramos directamente desde tu cuenta del Banco de Venezuela usando tu clave de Pago Móvil.
+                  El saldo aparece en tu LinkWallet al instante.
+                </p>
+              </div>
+              <button type="button" onClick={handleStartBdv} disabled={!amountValid}
+                className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-xl disabled:opacity-50">
+                Continuar con Pago Móvil
+              </button>
+            </div>
+          )}
+
+          {method === "binance" && info && (
+            <form onSubmit={handleSubmitManual} className="space-y-3">
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-xs text-foreground space-y-2">
+                <p className="font-semibold flex items-center gap-1.5">
+                  <Bitcoin className="w-3.5 h-3.5 text-amber-400" />
+                  Envía USDT a LinkServi
+                </p>
+                <div className="space-y-1.5">
+                  <CopyRow label="Binance Pay ID" value={info.methods.binance.payId} onCopy={copyToClipboard} />
+                  <CopyRow label="USDT (TRC20)" value={info.methods.binance.usdtTrc20} onCopy={copyToClipboard} />
+                </div>
+                <p className="text-[11px] text-muted-foreground">{info.methods.binance.network}</p>
+              </div>
+              <ProofUpload proofFile={proofFile} proofUrl={proofUrl} busy={busy} onUpload={handleProofUpload} />
+              <input type="text" value={externalRef} onChange={(e) => setExternalRef(e.target.value)}
+                placeholder="Hash o ID de la transacción (opcional)"
+                className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground" />
+              <SubmitManualButton busy={busy} amountValid={amountValid} hasProof={!!proofUrl} />
+            </form>
+          )}
+
+          {method === "zelle" && info && (
+            <form onSubmit={handleSubmitManual} className="space-y-3">
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 text-xs text-foreground space-y-2">
+                <p className="font-semibold flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-blue-400" />
+                  Envía Zelle a LinkServi
+                </p>
+                <div className="space-y-1.5">
+                  <CopyRow label="Correo Zelle" value={info.methods.zelle.email} onCopy={copyToClipboard} />
+                  <CopyRow label="Beneficiario" value={info.methods.zelle.beneficiary} onCopy={copyToClipboard} />
+                </div>
+              </div>
+              <ProofUpload proofFile={proofFile} proofUrl={proofUrl} busy={busy} onUpload={handleProofUpload} />
+              <input type="text" value={externalRef} onChange={(e) => setExternalRef(e.target.value)}
+                placeholder="Número de confirmación Zelle (opcional)"
+                className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground" />
+              <SubmitManualButton busy={busy} amountValid={amountValid} hasProof={!!proofUrl} />
+            </form>
+          )}
+        </div>
+      </div>
+
+      {showC2P && amountValid && (
+        <C2PModal
+          open={showC2P}
+          onClose={() => setShowC2P(false)}
+          amountUsd={amountUsd}
+          concept={`Recarga LinkWallet $${amountUsd.toFixed(2)}`}
+          referenceType="wallet_deposit"
+          referenceId={null}
+          metadata={{ amountUsd }}
+          onSuccess={handleC2pSuccess}
+        />
+      )}
+    </>
+  );
+}
+
+function CopyRow({ label, value, onCopy }: { label: string; value: string; onCopy: (s: string) => void }) {
+  const isPlaceholder = value === "Próximamente";
+  return (
+    <div className="flex items-center justify-between gap-2 bg-background/50 rounded-lg px-2 py-1.5">
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
+        <p className={`text-xs font-mono truncate ${isPlaceholder ? "text-muted-foreground italic" : "text-foreground"}`}>{value}</p>
+      </div>
+      {!isPlaceholder && (
+        <button type="button" onClick={() => onCopy(value)}
+          className="p-1.5 rounded hover:bg-muted text-muted-foreground" aria-label="Copiar">
+          <Copy className="w-3.5 h-3.5" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ProofUpload({
+  proofFile, proofUrl, busy, onUpload,
+}: { proofFile: File | null; proofUrl: string; busy: boolean; onUpload: (f: File) => void }) {
+  return (
+    <div>
+      <label className="block text-xs text-muted-foreground mb-1">Comprobante de pago (foto o captura)</label>
+      <label className={`flex items-center justify-center gap-2 w-full bg-background border border-dashed border-border rounded-lg py-4 cursor-pointer hover:bg-muted/30 transition ${proofUrl ? "border-emerald-500/50" : ""}`}>
+        {busy ? (
+          <><Loader2 className="w-4 h-4 animate-spin text-primary" /><span className="text-xs text-muted-foreground">Subiendo…</span></>
+        ) : proofUrl ? (
+          <><CheckCircle2 className="w-4 h-4 text-emerald-400" /><span className="text-xs text-foreground">Comprobante subido — toca para cambiar</span></>
+        ) : (
+          <><Upload className="w-4 h-4 text-primary" /><span className="text-xs text-muted-foreground">Toca para subir foto</span></>
+        )}
+        <input type="file" accept="image/*" className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f); }} />
+      </label>
+      {proofFile && (
+        <p className="text-[11px] text-muted-foreground mt-1 truncate">{proofFile.name}</p>
+      )}
+    </div>
+  );
+}
+
+function SubmitManualButton({ busy, amountValid, hasProof }: { busy: boolean; amountValid: boolean; hasProof: boolean }) {
+  return (
+    <button type="submit" disabled={busy || !amountValid || !hasProof}
+      className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-xl disabled:opacity-50">
+      {busy ? "Enviando…" : "Solicitar recarga"}
+    </button>
   );
 }
 

@@ -16,7 +16,8 @@ export type C2PReferenceType =
   | "cohost_plan"
   | "ride"
   | "worker_featured"
-  | "business_premium";
+  | "business_premium"
+  | "wallet_deposit";
 
 export interface C2PSuccessPayload {
   transactionId: number;

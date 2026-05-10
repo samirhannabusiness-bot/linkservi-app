@@ -206,6 +206,7 @@ const allAdminSections: AdminSection[] = [
     label: "FINANZAS",
     links: [
       { href: "/admin/withdrawals", label: "Retiros",   icon: Wallet,       roles: ["super_admin", "finanzas"], urgent: "withdrawals" },
+      { href: "/admin/wallet-deposits", label: "Recargas Wallet", icon: Wallet, roles: ["super_admin", "finanzas"] },
       { href: "/admin/warranties",  label: "Garantías", icon: Shield,       roles: ["super_admin", "soporte"] },
       { href: "/admin/disputes",    label: "Disputas",  icon: AlertOctagon, roles: ["super_admin", "soporte"],  urgent: "disputes" },
     ],

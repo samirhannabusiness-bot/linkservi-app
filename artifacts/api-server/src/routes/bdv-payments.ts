@@ -11,6 +11,9 @@ import {
   workersTable,
   transportRidesTable,
   jobSubscriptionsTable,
+  walletsTable,
+  walletTransactionsTable,
+  walletDepositsTable,
 } from "@workspace/db";
 import { and, eq, sql } from "drizzle-orm";
 import { authenticate, requireVerifiedEmail } from "../lib/auth";
@@ -311,6 +314,19 @@ async function deriveExpectedAmountUsd(args: {
       if (!tier) return { ok: false, status: 400, error: "Tipo de suscripción inválido" };
       return { ok: true, amountUsd: tier.amountUsd };
     }
+    case "wallet_deposit": {
+      // El usuario decide cuánto recargar — no hay precio canónico que mirar.
+      // Confiamos en metadata.amountUsd dentro de límites razonables.
+      const usd = Number(metadata?.amountUsd);
+      if (!Number.isFinite(usd) || usd < 1) {
+        return { ok: false, status: 400, error: "El monto mínimo para recargar es $1.00" };
+      }
+      if (usd > 500) {
+        return { ok: false, status: 400, error: "El monto máximo por recarga es $500.00" };
+      }
+      // Redondeo a centavos.
+      return { ok: true, amountUsd: Math.round(usd * 100) / 100 };
+    }
     default:
       return { ok: false, status: 400, error: `referenceType no soportado: ${referenceType}` };
   }
@@ -524,6 +540,79 @@ async function applyDomainEffect(args: {
         };
       }
 
+      case "wallet_deposit": {
+        // Recarga vía Pago Móvil C2P de BDV. El cobro ya fue aprobado por el banco.
+        // Acreditamos el saldo en la billetera + insertamos la fila auditable
+        // en wallet_transactions y wallet_deposits, todo en UNA transacción.
+        const usd = Number(metadata?.expectedAmountUsd);
+        if (!Number.isFinite(usd) || usd <= 0) {
+          return { ok: false, error: "Monto de recarga inválido" };
+        }
+        const cents = Math.round(usd * 100);
+        try {
+          const out = await db.transaction(async (tx) => {
+            // Asegurar que la billetera existe (idempotente).
+            await tx
+              .insert(walletsTable)
+              .values({ userId, balanceCents: 0, holdCents: 0, currency: "USD" })
+              .onConflictDoNothing({ target: walletsTable.userId });
+            // Lock + lectura del saldo actual.
+            const lockedRows = await tx.execute(sql`
+              SELECT user_id, balance_cents, hold_cents
+              FROM wallets
+              WHERE user_id = ${userId}
+              FOR UPDATE
+            `);
+            const rows = (lockedRows.rows ?? lockedRows) as Array<{
+              user_id: number; balance_cents: number; hold_cents: number;
+            }>;
+            const w = rows[0];
+            if (!w) throw new Error("Billetera no encontrada");
+            const newBalance = w.balance_cents + cents;
+            await tx
+              .update(walletsTable)
+              .set({ balanceCents: newBalance })
+              .where(eq(walletsTable.userId, userId));
+            await tx.insert(walletTransactionsTable).values({
+              userId,
+              type: "deposit",
+              amountCents: cents,
+              balanceAfterCents: newBalance,
+              holdAfterCents: w.hold_cents,
+              refType: "bdv_c2p",
+              refId: args.transactionId,
+              description: `Recarga vía Pago Móvil BDV · Ref ${paymentRef ?? args.transactionId}`,
+              status: "posted",
+            });
+            const [dep] = await tx.insert(walletDepositsTable).values({
+              userId,
+              method: "bdv",
+              amountCents: cents,
+              status: "approved",
+              bdvTransactionId: args.transactionId,
+              externalRef: paymentRef,
+              processedAt: new Date(),
+            }).returning({ id: walletDepositsTable.id });
+            // Cerramos la txn BDV en el mismo lock para evitar estados parciales.
+            await tx.update(bdvC2pTransactionsTable)
+              .set({ domainStatus: "applied", updatedAt: new Date() })
+              .where(eq(bdvC2pTransactionsTable.id, args.transactionId));
+            return { newBalance, depositId: dep.id };
+          });
+          return {
+            ok: true,
+            details: {
+              walletDepositId: out.depositId,
+              creditedCents: cents,
+              newBalanceCents: out.newBalance,
+            },
+            _domainAppliedInline: true,
+          };
+        } catch (e: any) {
+          return { ok: false, error: e?.message ?? "Error acreditando recarga" };
+        }
+      }
+
       default:
         return { ok: false, error: `referenceType no soportado: ${referenceType}` };
     }
@@ -648,7 +737,8 @@ router.post("/payments/bdv/c2p/process", authenticate, requireVerifiedEmail, asy
         referenceType === "worker_premium" ||
         referenceType === "cohost_plan" ||
         referenceType === "worker_featured" ||
-        referenceType === "business_premium";
+        referenceType === "business_premium" ||
+        referenceType === "wallet_deposit";
       const isOneShot =
         referenceType &&
         !isRecurringPlan &&

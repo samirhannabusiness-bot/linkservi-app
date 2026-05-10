@@ -142,6 +142,7 @@ const AdminAgentsPage        = lazy(() => import("@/pages/admin/AdminAgentsPage"
 const AdminWorkersPage       = lazy(() => import("@/pages/admin/AdminWorkersPage").then(m => ({ default: m.AdminWorkersPage })));
 const AdminBookingsPage      = lazy(() => import("@/pages/admin/AdminBookingsPage").then(m => ({ default: m.AdminBookingsPage })));
 const AdminWithdrawalsPage   = lazy(() => import("@/pages/admin/AdminWithdrawalsPage").then(m => ({ default: m.AdminWithdrawalsPage })));
+const AdminWalletDepositsPage = lazy(() => import("@/pages/admin/AdminWalletDepositsPage").then(m => ({ default: m.AdminWalletDepositsPage })));
 const AdminDisputesPage      = lazy(() => import("@/pages/admin/AdminDisputesPage").then(m => ({ default: m.AdminDisputesPage })));
 const AdminProductOrdersPage = lazy(() => import("@/pages/admin/AdminProductOrdersPage").then(m => ({ default: m.AdminProductOrdersPage })));
 const AdminStoresPage        = lazy(() => import("@/pages/admin/AdminStoresPage").then(m => ({ default: m.AdminStoresPage })));
@@ -861,6 +862,9 @@ function Router() {
         </Route>
         <Route path="/admin/withdrawals">
           {() => <AuthGuard roles={["admin"]}><AdminWithdrawalsPage /></AuthGuard>}
+        </Route>
+        <Route path="/admin/wallet-deposits">
+          {() => <AuthGuard roles={["admin"]}><AdminWalletDepositsPage /></AuthGuard>}
         </Route>
         <Route path="/admin/disputes">
           {() => <AuthGuard roles={["admin"]}><AdminDisputesPage /></AuthGuard>}
