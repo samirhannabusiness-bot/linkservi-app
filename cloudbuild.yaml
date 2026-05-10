@@ -36,41 +36,17 @@ steps:
     id: db-migrate
     waitFor: [push]
     entrypoint: bash
-    env:
-      - 'DB_URL=$_DATABASE_URL'
     args:
       - -c
       - |
         set -e
-        if [ -z "$DB_URL" ]; then
-          echo "ERROR: _DATABASE_URL substitution is empty — cannot run migrations"
-          exit 1
-        fi
         cd /workspace
         echo "Installing pg client..."
+        npm init -y > /dev/null 2>&1
+        npm pkg set type=module > /dev/null 2>&1
         npm install pg@8 --no-save --silent --no-audit --no-fund
-        echo "Applying migrations from /workspace/migrations/ ..."
-        node -e "
-          const { Client } = require('pg');
-          const fs = require('fs');
-          const path = require('path');
-          (async () => {
-            const client = new Client({
-              connectionString: process.env.DB_URL,
-              ssl: { rejectUnauthorized: false },
-            });
-            await client.connect();
-            const dir = '/workspace/migrations';
-            const files = fs.readdirSync(dir).filter(f => f.endsWith('.sql')).sort();
-            for (const f of files) {
-              console.log('\u2192 ' + f);
-              const sql = fs.readFileSync(path.join(dir, f), 'utf8');
-              await client.query(sql);
-            }
-            await client.end();
-            console.log('\u2713 All migrations applied');
-          })().catch(e => { console.error('Migration failed:', e.message); process.exit(1); });
-        "
+        echo "Running migrations from /workspace/migrations ..."
+        DB_URL="$_DATABASE_URL" MIGRATIONS_DIR=/workspace/migrations node /workspace/scripts/run-migrations.mjs
 
   # ── Step 4: Deploy to Cloud Run ─────────────────────────────────────────────
   # Uses --env-vars-file to avoid shell quoting/delimiter issues with special
