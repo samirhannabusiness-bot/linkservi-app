@@ -28,24 +28,49 @@ steps:
   # TABLE IF NOT EXISTS, CREATE INDEX IF NOT EXISTS) so they're safe to run
   # on every build. Files are applied in alphabetical order. To add a new
   # migration, drop a 000N_name.sql file in /migrations.
-  - name: "postgres:16-alpine"
+  #
+  # Uses Node + `pg` (same parser as the app) instead of psql/libpq, because
+  # libpq's URL parser is strict about special characters in the password
+  # (=, &, +) that work fine for the Node app but break psql.
+  - name: "node:22-slim"
     id: db-migrate
     waitFor: [push]
-    entrypoint: sh
+    entrypoint: bash
+    env:
+      - 'DB_URL=$_DATABASE_URL'
     args:
       - -c
       - |
         set -e
-        if [ -z "$_DATABASE_URL" ]; then
+        if [ -z "$DB_URL" ]; then
           echo "ERROR: _DATABASE_URL substitution is empty — cannot run migrations"
           exit 1
         fi
+        cd /workspace
+        echo "Installing pg client..."
+        npm install pg@8 --no-save --silent --no-audit --no-fund
         echo "Applying migrations from /workspace/migrations/ ..."
-        for f in /workspace/migrations/*.sql; do
-          echo "→ $f"
-          PGSSLMODE=require psql "$_DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f"
-        done
-        echo "✓ All migrations applied"
+        node -e "
+          const { Client } = require('pg');
+          const fs = require('fs');
+          const path = require('path');
+          (async () => {
+            const client = new Client({
+              connectionString: process.env.DB_URL,
+              ssl: { rejectUnauthorized: false },
+            });
+            await client.connect();
+            const dir = '/workspace/migrations';
+            const files = fs.readdirSync(dir).filter(f => f.endsWith('.sql')).sort();
+            for (const f of files) {
+              console.log('\u2192 ' + f);
+              const sql = fs.readFileSync(path.join(dir, f), 'utf8');
+              await client.query(sql);
+            }
+            await client.end();
+            console.log('\u2713 All migrations applied');
+          })().catch(e => { console.error('Migration failed:', e.message); process.exit(1); });
+        "
 
   # ── Step 4: Deploy to Cloud Run ─────────────────────────────────────────────
   # Uses --env-vars-file to avoid shell quoting/delimiter issues with special
