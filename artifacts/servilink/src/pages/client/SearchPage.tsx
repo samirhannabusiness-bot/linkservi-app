@@ -9,156 +9,335 @@ import { WorkerMap } from "@/components/ui/WorkerMap";
 import { useGeolocation, haversineDistance, formatDistance } from "@/hooks/useGeolocation";
 import { useBcvRate } from "@/hooks/useBcvRate";
 import {
-  Search, Shield, SlidersHorizontal, Map, List, Zap, MapPin, Navigation,
-  Star, ChevronDown, LocateFixed, RefreshCw, AlertCircle, CheckCircle2, Crown,
-  TrendingUp, Filter, BadgeCheck, MessageSquare
+  Search, Shield, Map as MapIcon, List, Zap, MapPin, Navigation,
+  Star, ChevronDown, ChevronRight, LocateFixed, RefreshCw, AlertCircle, CheckCircle2,
+  Crown, Flame, BadgeCheck, X, SlidersHorizontal, ArrowRight,
 } from "lucide-react";
 import { VENEZUELA_STATES, getCitiesForState } from "@/lib/venezuela-locations";
 import { useAuth } from "@/lib/auth-context";
 import { getRequestOptions, track } from "@/lib/api";
 
+const PAGE_SIZE = 12;
+
+// ─── Small UI atoms ────────────────────────────────────────────────────────
 function PremiumBadge() {
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-0.5 rounded-full font-black tracking-widest uppercase"
-      style={{
-        background: "linear-gradient(90deg, rgba(251,191,36,0.15) 0%, rgba(245,158,11,0.05) 100%)",
-        border: "1px solid rgba(251,191,36,0.3)",
-        color: "#FBBF24",
-        textShadow: "0 0 10px rgba(251,191,36,0.4)",
-      }}>
-      <Crown className="w-3 h-3 text-amber-400" fill="currentColor" /> Premium
+    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider uppercase"
+      style={{ background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.3)", color: "#FBBF24" }}>
+      <Crown className="w-3 h-3" fill="currentColor" /> Premium
     </span>
   );
 }
-
 function TopProfileBadge() {
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-0.5 rounded-full font-black tracking-widest uppercase"
-      style={{
-        background: "linear-gradient(90deg, rgba(239,68,68,0.15) 0%, rgba(249,115,22,0.08) 100%)",
-        border: "1px solid rgba(239,68,68,0.35)",
-        color: "#F87171",
-        textShadow: "0 0 8px rgba(239,68,68,0.35)",
-      }}>
-      🔥 Perfil destacado
+    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md font-bold tracking-wider uppercase"
+      style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", color: "#F87171" }}>
+      <Flame className="w-3 h-3" /> Destacado
     </span>
   );
 }
-
-function VerifiedPremiumSeal() {
-  return (
-    <div className="flex items-center gap-2 mb-3 pb-3 border-b border-amber-500/20">
-      <div className="w-5 h-5 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center shadow-[0_0_10px_rgba(245,158,11,0.2)]">
-        <CheckCircle2 className="w-3 h-3 text-amber-400" />
-      </div>
-      <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Profesional Verificado</span>
-      <span className="ml-auto flex items-center gap-1 text-[10px] font-semibold text-amber-500/60 uppercase tracking-wider">
-        <Shield className="w-3 h-3" /> Alta prioridad
-      </span>
-    </div>
-  );
-}
-
 function DistanceBadge({ km }: { km: number }) {
   const isNear = km < 5;
   const isClose = km < 25;
   return (
-    <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg font-bold tracking-wide ${
+    <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md font-semibold ${
       isNear ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
       isClose ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20" :
       "bg-white/5 text-white/50 border border-white/10"
     }`}>
-      <MapPin className="w-3 h-3 flex-shrink-0" />
-      A {formatDistance(km)}
+      <MapPin className="w-3 h-3" /> A {formatDistance(km)}
     </span>
   );
 }
 
+// ─── Speed-Matching banner ────────────────────────────────────────────────
+function SpeedMatchingBanner() {
+  return (
+    <div
+      className="flex items-start sm:items-center gap-3 px-4 sm:px-5 py-3.5 rounded-2xl"
+      style={{
+        background: "linear-gradient(90deg, rgba(6,182,212,0.10), rgba(59,130,246,0.06))",
+        border: "1px solid rgba(6,182,212,0.25)",
+      }}
+    >
+      <div className="w-9 h-9 rounded-xl grid place-items-center flex-shrink-0"
+        style={{ background: "rgba(6,182,212,0.18)", border: "1px solid rgba(6,182,212,0.3)" }}>
+        <Zap className="w-4 h-4 text-cyan-300" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-bold text-white leading-tight">
+          Speed-Matching activo
+        </p>
+        <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.6)" }}>
+          Los profesionales cercanos están recibiendo tu alerta para ofrecerte disponibilidad inmediata.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Filter Sidebar (reusable for desktop sidebar + mobile drawer) ────────
+interface FilterState {
+  availability: "all" | "now" | "scheduled";
+  minRating: number;
+  priceMin: string;
+  priceMax: string;
+  verifiedOnly: boolean;
+  state: string;
+  city: string;
+}
+const DEFAULT_FILTERS: FilterState = {
+  availability: "all",
+  minRating: 0,
+  priceMin: "",
+  priceMax: "",
+  verifiedOnly: false,
+  state: "",
+  city: "",
+};
+
+function FiltersPanel({
+  filters, setFilters, onApply, onClear, onClose, isMobile,
+}: {
+  filters: FilterState;
+  setFilters: (f: FilterState) => void;
+  onApply: () => void;
+  onClear: () => void;
+  onClose?: () => void;
+  isMobile?: boolean;
+}) {
+  const cities = filters.state ? getCitiesForState(filters.state) : [];
+  return (
+    <div
+      className="rounded-3xl p-5 space-y-5 h-fit"
+      style={{
+        background: "rgba(255,255,255,0.04)",
+        backdropFilter: "blur(20px)",
+        border: "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
+      <div className="flex items-center justify-between">
+        <h3 className="text-base font-bold text-white">Filtros</h3>
+        {isMobile && onClose && (
+          <button onClick={onClose} aria-label="Cerrar"
+            className="w-8 h-8 rounded-full grid place-items-center"
+            style={{ background: "rgba(255,255,255,0.06)" }}>
+            <X className="w-4 h-4 text-white/70" />
+          </button>
+        )}
+      </div>
+
+      {/* Disponibilidad */}
+      <div>
+        <p className="text-[11px] font-bold text-white/45 uppercase tracking-wider mb-2">Disponibilidad</p>
+        <div className="space-y-1.5">
+          {([
+            { v: "all", l: "Cualquiera" },
+            { v: "now", l: "Ahora (urgencias)" },
+            { v: "scheduled", l: "Programado" },
+          ] as const).map((o) => (
+            <label key={o.v} className="flex items-center gap-2.5 cursor-pointer text-sm text-white/80">
+              <input
+                type="radio"
+                name="avail"
+                checked={filters.availability === o.v}
+                onChange={() => setFilters({ ...filters, availability: o.v })}
+                className="accent-cyan-500"
+              />
+              {o.l}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Calificación */}
+      <div>
+        <p className="text-[11px] font-bold text-white/45 uppercase tracking-wider mb-2">Calificación mínima</p>
+        <div className="flex flex-wrap gap-1.5">
+          {[0, 3, 4, 4.5].map((r) => {
+            const active = filters.minRating === r;
+            return (
+              <button
+                key={r}
+                onClick={() => setFilters({ ...filters, minRating: r })}
+                className="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition"
+                style={
+                  active
+                    ? { background: "rgba(6,182,212,0.18)", border: "1px solid rgba(6,182,212,0.4)", color: "#22d3ee" }
+                    : { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }
+                }
+              >
+                {r === 0 ? "Cualquiera" : (
+                  <>
+                    {r}+ <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                  </>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Rango de precio */}
+      <div>
+        <p className="text-[11px] font-bold text-white/45 uppercase tracking-wider mb-2">Rango de precio (visita)</p>
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <p className="text-[10px] text-white/40 mb-1">Mín</p>
+            <input
+              type="number"
+              inputMode="numeric"
+              placeholder="$0"
+              value={filters.priceMin}
+              onChange={(e) => setFilters({ ...filters, priceMin: e.target.value })}
+              className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+            />
+          </div>
+          <div className="flex-1">
+            <p className="text-[10px] text-white/40 mb-1">Máx</p>
+            <input
+              type="number"
+              inputMode="numeric"
+              placeholder="$150+"
+              value={filters.priceMax}
+              onChange={(e) => setFilters({ ...filters, priceMax: e.target.value })}
+              className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Confianza */}
+      <div>
+        <p className="text-[11px] font-bold text-white/45 uppercase tracking-wider mb-2">Confianza</p>
+        <label className="flex items-center gap-2.5 cursor-pointer text-sm text-white/80">
+          <input
+            type="checkbox"
+            checked={filters.verifiedOnly}
+            onChange={(e) => setFilters({ ...filters, verifiedOnly: e.target.checked })}
+            className="accent-cyan-500"
+          />
+          <Shield className="w-4 h-4 text-cyan-400" />
+          Solo profesionales verificados
+        </label>
+      </div>
+
+      {/* Ubicación (Venezuela) */}
+      <div>
+        <p className="text-[11px] font-bold text-white/45 uppercase tracking-wider mb-2">Ubicación</p>
+        <div className="space-y-2">
+          <div className="relative">
+            <select
+              value={filters.state}
+              onChange={(e) => setFilters({ ...filters, state: e.target.value, city: "" })}
+              className="w-full pl-3 pr-8 py-2 rounded-lg text-sm text-white appearance-none outline-none"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+            >
+              <option value="" className="bg-[#0B0F19]">Todos los estados</option>
+              {VENEZUELA_STATES.map((s) => (
+                <option key={s.name} value={s.name} className="bg-[#0B0F19]">{s.name}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+          </div>
+          {filters.state && (
+            <div className="relative">
+              <select
+                value={filters.city}
+                onChange={(e) => setFilters({ ...filters, city: e.target.value })}
+                className="w-full pl-3 pr-8 py-2 rounded-lg text-sm text-white appearance-none outline-none"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+              >
+                <option value="" className="bg-[#0B0F19]">Todas las ciudades</option>
+                {cities.map((c) => (
+                  <option key={c} value={c} className="bg-[#0B0F19]">{c}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-2 pt-1">
+        <button
+          onClick={() => { onApply(); onClose?.(); }}
+          className="w-full py-3 rounded-xl text-sm font-bold text-white transition"
+          style={{
+            background: "linear-gradient(135deg, #06b6d4, #3b82f6)",
+            boxShadow: "0 6px 18px -6px rgba(6,182,212,0.45)",
+          }}
+        >
+          Aplicar filtros
+        </button>
+        <button
+          onClick={onClear}
+          className="w-full py-2 rounded-xl text-xs font-semibold text-white/60 hover:text-white transition"
+        >
+          Limpiar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── GeoBar (compact) ─────────────────────────────────────────────────────
 function GeoBar({
-  permission, loading, error, rawPosition, filteredCount, nearCount, clientState, clientCity, onRequest, onRefresh
+  permission, loading, error, rawPosition, onRequest, onRefresh,
 }: {
   permission: string; loading: boolean; error: string | null;
-  rawPosition: any; filteredCount: number; nearCount: number;
-  clientState: string | null; clientCity: string | null;
-  onRequest: () => void; onRefresh: () => void;
+  rawPosition: any; onRequest: () => void; onRefresh: () => void;
 }) {
   if (permission === "denied") {
     return (
-      <div className="flex items-start gap-3 px-5 py-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex-wrap">
-        <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-red-400 mb-1">Ubicación GPS desactivada</p>
-          <p className="text-xs font-medium text-red-400/70">Activa el permiso en la configuración de tu navegador para ver profesionales cercanos.{clientState ? ` Mostrando resultados de ${clientCity || clientState}.` : ""}</p>
+      <div className="flex items-start gap-3 px-4 py-3 rounded-2xl"
+        style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)" }}>
+        <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+        <div className="text-xs">
+          <p className="font-bold text-red-300">Ubicación GPS desactivada</p>
+          <p className="text-red-300/70 mt-0.5">Actívala en tu navegador para ver profesionales cercanos.</p>
         </div>
       </div>
     );
   }
-
   if (!rawPosition && permission !== "granted") {
     return (
       <button
         onClick={onRequest}
         disabled={loading}
-        className="w-full group flex items-center gap-4 px-6 py-5 rounded-2xl glass border border-cyan-500/30 hover:border-cyan-400/50 hover:bg-cyan-500/5 transition-all text-left shadow-[0_0_20px_rgba(6,182,212,0.1)] hover:shadow-[0_0_30px_rgba(6,182,212,0.2)]"
+        className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition"
+        style={{ background: "rgba(6,182,212,0.06)", border: "1px solid rgba(6,182,212,0.25)" }}
       >
-        <div className="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-          {loading
-            ? <RefreshCw className="w-5 h-5 text-cyan-400 animate-spin" />
-            : <LocateFixed className="w-5 h-5 text-cyan-400" />}
+        <div className="w-9 h-9 rounded-xl grid place-items-center"
+          style={{ background: "rgba(6,182,212,0.15)" }}>
+          {loading ? <RefreshCw className="w-4 h-4 text-cyan-300 animate-spin" /> : <LocateFixed className="w-4 h-4 text-cyan-300" />}
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-base font-bold text-white mb-0.5">Permite tu ubicación GPS</p>
-          <p className="text-sm font-medium text-cyan-400/60">Para mostrar profesionales cerca de ti al instante</p>
+        <div className="flex-1">
+          <p className="text-sm font-bold text-white">Activa tu ubicación GPS</p>
+          <p className="text-xs text-cyan-200/70">Para ver profesionales cerca de ti</p>
         </div>
-        <span className="text-sm text-cyan-400 font-bold flex-shrink-0 group-hover:translate-x-1 transition-transform">Activar →</span>
+        <span className="text-xs font-bold text-cyan-300">Activar</span>
       </button>
     );
   }
-
   return (
-    <div className={`flex items-center gap-3 px-5 py-4 rounded-2xl border flex-wrap shadow-lg ${
-      rawPosition
-        ? "glass border-emerald-500/30 bg-emerald-500/5"
-        : "glass border-cyan-500/30 bg-cyan-500/5"
-    }`}>
-      {loading
-        ? <RefreshCw className="w-5 h-5 text-cyan-400 animate-spin flex-shrink-0" />
-        : rawPosition
-          ? <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-          : <Navigation className="w-5 h-5 text-cyan-400 flex-shrink-0" />}
-      <span className="text-sm flex-1 min-w-0 font-bold">
-        {loading ? <span className="text-cyan-400">Obteniendo señal GPS...</span> :
-          rawPosition ? (
-            <span className="text-emerald-400">
-              Señal GPS Activa <span className="text-emerald-400/50 font-medium">· {nearCount} a menos de 25 km</span>
-              {clientState ? <span className="text-emerald-400/50 font-medium"> · {clientCity || clientState}</span> : ""}
-            </span>
-          ) : (
-            <span className="text-cyan-400">
-              {filteredCount} profesional{filteredCount !== 1 ? "es" : ""} encontrado{filteredCount !== 1 ? "s" : ""}
-              {clientState ? <span className="text-cyan-400/50 font-medium"> en {clientCity || clientState}</span> : ""}
-            </span>
-          )
-        }
+    <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl"
+      style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.25)" }}>
+      {loading ? <RefreshCw className="w-4 h-4 text-cyan-300 animate-spin" /> : <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+      <span className="text-xs font-bold text-emerald-300 flex-1">
+        {loading ? "Obteniendo señal..." : "Señal GPS activa"}
       </span>
-      {error && <span className="text-xs font-bold text-red-400 flex-shrink-0">{error}</span>}
-      <button
-        onClick={rawPosition ? onRefresh : onRequest}
-        disabled={loading}
-        className={`text-xs font-bold uppercase tracking-wider flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all disabled:opacity-50 ${
-          rawPosition
-            ? "text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20"
-            : "text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20"
-        }`}
-      >
-        {rawPosition
-          ? <><RefreshCw className="w-3.5 h-3.5" /> Actualizar</>
-          : <><LocateFixed className="w-3.5 h-3.5" /> Buscar GPS</>}
+      {error && <span className="text-[11px] text-red-400">{error}</span>}
+      <button onClick={onRefresh} className="text-[11px] font-bold text-emerald-300 hover:text-emerald-200 flex items-center gap-1">
+        <RefreshCw className="w-3 h-3" /> Actualizar
       </button>
     </div>
   );
 }
 
+// ─── Main Page ────────────────────────────────────────────────────────────
 export function SearchPage() {
   const [, navigate] = useLocation();
   const searchString = useSearch();
@@ -167,7 +346,6 @@ export function SearchPage() {
   const [loginWallReturnTo, setLoginWallReturnTo] = useState<string | undefined>();
   const opts = getRequestOptions();
 
-  // Read ?category= from URL on mount
   const urlCategoryId = useMemo(() => {
     const params = new URLSearchParams(searchString);
     const v = params.get("category");
@@ -176,46 +354,38 @@ export function SearchPage() {
 
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState<number | undefined>(urlCategoryId);
-  const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [sortBy, setSortBy] = useState<"smart" | "distance" | "rating" | "price">("smart");
   const sortLockedRef = useRef(false);
-  const [filterState, setFilterState] = useState<string>("");
-  const [filterCity, setFilterCity] = useState<string>("");
+  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
+  const [appliedFilters, setAppliedFilters] = useState<FilterState>(DEFAULT_FILTERS);
+  const [filtersDrawer, setFiltersDrawer] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  // Sync if user navigates to a different category URL
-  useEffect(() => {
-    setCategoryId(urlCategoryId);
-  }, [urlCategoryId]);
+  useEffect(() => { setCategoryId(urlCategoryId); }, [urlCategoryId]);
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [appliedFilters, search, categoryId, sortBy]);
 
-  const { position, rawPosition, permission, loading: geoLoading, error: geoError, request: requestGeo, refresh: refreshGeo } = useGeolocation("user");
+  const { position: _pos, rawPosition, permission, loading: geoLoading, error: geoError, request: requestGeo, refresh: refreshGeo }
+    = useGeolocation("user");
 
-  // Auto-switch to distance sort when GPS becomes available (only once, unless user manually changed)
   useEffect(() => {
     if (rawPosition && !sortLockedRef.current) {
       setSortBy("distance");
       sortLockedRef.current = true;
     }
   }, [rawPosition]);
-  const { data: bcvData, formatBs } = useBcvRate();
 
+  const { data: bcvData, formatBs } = useBcvRate();
   const { data: categories = [] } = useListCategories();
 
-  // Pass GPS coordinates to API for server-side priority sorting
   const { data: workers = [], isLoading } = useListWorkers({
     ...(categoryId ? { categoryId } : {}),
-    ...(onlyAvailable ? { available: true } : {}),
-    ...(filterState ? { state: filterState } : {}),
-    ...(filterCity ? { city: filterCity } : {}),
+    ...(appliedFilters.availability === "now" ? { available: true } : {}),
+    ...(appliedFilters.state ? { state: appliedFilters.state } : {}),
+    ...(appliedFilters.city ? { city: appliedFilters.city } : {}),
     ...(rawPosition ? { lat: rawPosition.lat, lng: rawPosition.lng } : {}),
   });
 
-  const filterCities = filterState ? getCitiesForState(filterState) : [];
-
-  const clientState = filterState || (user as any)?.state || null;
-  const clientCity = filterCity || (user as any)?.city || null;
-
-  // Compute client-side distance for all workers
   const workersWithDistance = useMemo(() => {
     return (workers as any[]).map((w: any) => {
       const computedDistance = rawPosition && w.lat && w.lng
@@ -226,425 +396,397 @@ export function SearchPage() {
   }, [workers, rawPosition]);
 
   const filtered = useMemo(() => {
-    let result = workersWithDistance.filter((w: any) =>
-      !search || w.name?.toLowerCase().includes(search.toLowerCase()) || w.categoryName?.toLowerCase().includes(search.toLowerCase())
-    );
+    let result = workersWithDistance.filter((w: any) => {
+      // text search
+      if (search) {
+        const s = search.toLowerCase();
+        if (!(w.name?.toLowerCase().includes(s) || w.categoryName?.toLowerCase().includes(s))) return false;
+      }
+      // rating
+      if (appliedFilters.minRating > 0 && (w.rating ?? 0) < appliedFilters.minRating) return false;
+      // verified
+      if (appliedFilters.verifiedOnly && !w.isVerified) return false;
+      // price
+      const price = Number(w.basePrice ?? w.hourlyRate ?? 0);
+      const min = appliedFilters.priceMin ? Number(appliedFilters.priceMin) : null;
+      const max = appliedFilters.priceMax ? Number(appliedFilters.priceMax) : null;
+      if (min !== null && !Number.isNaN(min) && price < min) return false;
+      if (max !== null && !Number.isNaN(max) && price > max) return false;
+      return true;
+    });
 
     if (sortBy === "distance") {
-      result = [...result].sort((a: any, b: any) => {
-        const da = a.computedDistance ?? 9999;
-        const db_ = b.computedDistance ?? 9999;
-        return da - db_;
-      });
+      result = [...result].sort((a, b) => (a.computedDistance ?? 9999) - (b.computedDistance ?? 9999));
     } else if (sortBy === "rating") {
-      result = [...result].sort((a: any, b: any) => (b.rating ?? 0) - (a.rating ?? 0));
+      result = [...result].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     } else if (sortBy === "price") {
-      result = [...result].sort((a: any, b: any) => (a.basePrice ?? a.hourlyRate ?? 0) - (b.basePrice ?? b.hourlyRate ?? 0));
+      result = [...result].sort((a, b) => (a.basePrice ?? a.hourlyRate ?? 0) - (b.basePrice ?? b.hourlyRate ?? 0));
     }
-    // "smart" → server already sorted by GPS priority
-
     return result;
-  }, [workersWithDistance, search, sortBy]);
+  }, [workersWithDistance, search, appliedFilters, sortBy]);
 
-  const nearCount = useMemo(() =>
-    filtered.filter((w: any) => w.computedDistance !== null && w.computedDistance < 25).length,
-    [filtered]
-  );
+  const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
+  const hasMore = filtered.length > visibleCount;
+
+  const currentCategory = (categories as any[]).find((c: any) => c.id === categoryId);
+  const breadcrumbCategory = currentCategory?.name ?? (search ? `“${search}”` : "Todos los servicios");
+
+  const applyFilters = () => setAppliedFilters(filters);
+  const clearFilters = () => { setFilters(DEFAULT_FILTERS); setAppliedFilters(DEFAULT_FILTERS); };
+
+  const goToWorker = (w: any) => {
+    if (!user) navigate(`/workers/${w.id}`);
+    else navigate(`/client/worker/${w.id}`);
+  };
+  const contractWorker = (w: any) => {
+    track("contact_click", { workerId: w.id, source: "search_list" });
+    if (!user) {
+      setLoginWallReturnTo(`/workers/${w.id}`);
+      setShowLoginWall(true);
+      return;
+    }
+    navigate(`/client/book/${w.id}`);
+  };
 
   return (
     <AppLayout>
-      <div className="max-w-5xl mx-auto space-y-6 pb-10">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h1 className="text-3xl font-black text-white tracking-tight">Buscar Profesionales</h1>
-          <div className="flex items-center p-1 glass rounded-2xl border border-white/10 flex-shrink-0">
+      <div className="max-w-[1200px] mx-auto pb-10">
+
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-1.5 text-xs sm:text-sm mb-4" style={{ color: "rgba(255,255,255,0.45)" }}>
+          <button onClick={() => navigate("/client")} className="hover:text-white">Inicio</button>
+          <ChevronRight className="w-3.5 h-3.5" />
+          <span>Servicios</span>
+          <ChevronRight className="w-3.5 h-3.5" />
+          <span className="text-white font-semibold truncate max-w-[180px] sm:max-w-none">{breadcrumbCategory}</span>
+        </nav>
+
+        {/* Top: search + view toggle */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+            <input
+              type="search"
+              placeholder="¿Qué servicio necesitas hoy?"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-11 pr-4 py-3 rounded-2xl text-sm text-white outline-none"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+            />
+          </div>
+          <div className="relative sm:w-56">
+            <select
+              value={categoryId ?? ""}
+              onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : undefined)}
+              className="w-full pl-3 pr-9 py-3 rounded-2xl text-sm font-semibold text-white appearance-none outline-none"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+            >
+              <option value="" className="bg-[#0B0F19]">Todas las categorías</option>
+              {(categories as any[]).map((c: any) => (
+                <option key={c.id} value={c.id} className="bg-[#0B0F19]">{c.name}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+          </div>
+          <div className="flex items-center p-1 rounded-2xl"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
             <button
               onClick={() => setViewMode("list")}
-              className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold transition-all ${viewMode === "list" ? "bg-white/10 text-white shadow-sm" : "text-white/50 hover:text-white/80"}`}
+              aria-pressed={viewMode === "list"}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition"
+              style={viewMode === "list"
+                ? { background: "rgba(255,255,255,0.10)", color: "#fff" }
+                : { color: "rgba(255,255,255,0.5)" }}
             >
-              <List className="w-4 h-4" /> Lista
+              <List className="w-3.5 h-3.5" /> Lista
             </button>
             <button
               onClick={() => setViewMode("map")}
-              className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold transition-all ${viewMode === "map" ? "bg-white/10 text-white shadow-sm" : "text-white/50 hover:text-white/80"}`}
+              aria-pressed={viewMode === "map"}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition"
+              style={viewMode === "map"
+                ? { background: "rgba(255,255,255,0.10)", color: "#fff" }
+                : { color: "rgba(255,255,255,0.5)" }}
             >
-              <Map className="w-4 h-4" /> Mapa
+              <MapIcon className="w-3.5 h-3.5" /> Mapa
             </button>
           </div>
         </div>
 
-        {/* Geolocation bar */}
-        <GeoBar
-          permission={permission}
-          loading={geoLoading}
-          error={geoError}
-          rawPosition={rawPosition}
-          filteredCount={filtered.length}
-          nearCount={nearCount}
-          clientState={clientState}
-          clientCity={clientCity}
-          onRequest={() => requestGeo({ saveAs: "user" })}
-          onRefresh={() => refreshGeo({ saveAs: "user" })}
-        />
-
-        {/* Filter Controls */}
-        <div className="glass border border-white/10 rounded-3xl p-4 sm:p-5 space-y-4 shadow-lg">
-          {/* Search + Category */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-              <input
-                type="search"
-                placeholder="¿Qué servicio necesitas hoy?"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-11 pr-4 py-3.5 rounded-2xl input-glass font-medium text-base"
-              />
-            </div>
-            <div className="relative sm:w-64">
-              <select
-                value={categoryId ?? ""}
-                onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : undefined)}
-                className="w-full pl-4 pr-10 py-3.5 rounded-2xl input-glass appearance-none font-bold text-white bg-transparent"
-              >
-                <option value="" className="bg-[#0B0F19]">Todas las categorías</option>
-                {(categories as any[]).map((c: any) => (
-                  <option key={c.id} value={c.id} className="bg-[#0B0F19]">{c.name}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Quick category chips */}
-          <div className="flex flex-wrap gap-2">
-            {["Plomero", "Electricista", "Limpieza", "Aire acondicionado"].map(chip => (
-              <button
-                key={chip}
-                onClick={() => setSearch(search === chip ? "" : chip)}
-                className="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all"
-                style={
-                  search === chip
-                    ? { background: "rgba(6,182,212,0.18)", color: "#22d3ee", border: "1px solid rgba(6,182,212,0.40)" }
-                    : { background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.50)", border: "1px solid rgba(255,255,255,0.09)" }
-                }
-              >
-                {chip}
-              </button>
-            ))}
-          </div>
-
-          {/* Advanced Filters */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 min-w-[140px] max-w-[200px]">
-              <select
-                value={filterState}
-                onChange={(e) => { setFilterState(e.target.value); setFilterCity(""); }}
-                className="w-full pl-9 pr-8 py-2.5 rounded-xl input-glass text-sm font-medium appearance-none bg-transparent"
-              >
-                <option value="" className="bg-[#0B0F19]">📍 Estado</option>
-                {VENEZUELA_STATES.map((s) => (
-                  <option key={s.name} value={s.name} className="bg-[#0B0F19]">{s.name}</option>
-                ))}
-              </select>
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
-            </div>
-
-            {filterState && (
-              <div className="relative flex-1 min-w-[140px] max-w-[200px]">
-                <select
-                  value={filterCity}
-                  onChange={(e) => setFilterCity(e.target.value)}
-                  className="w-full pl-4 pr-8 py-2.5 rounded-xl input-glass text-sm font-medium appearance-none bg-transparent"
-                >
-                  <option value="" className="bg-[#0B0F19]">Ciudad</option>
-                  {filterCities.map((c) => (
-                    <option key={c} value={c} className="bg-[#0B0F19]">{c}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
-              </div>
-            )}
-
-            <div className="relative flex-1 min-w-[140px] max-w-[200px]">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
-                className="w-full pl-9 pr-8 py-2.5 rounded-xl input-glass text-sm font-bold appearance-none bg-transparent"
-              >
-                <option value="smart" className="bg-[#0B0F19]">⭐ Relevancia</option>
-                <option value="distance" className="bg-[#0B0F19]">📍 Distancia</option>
-                <option value="rating" className="bg-[#0B0F19]">🌟 Rating</option>
-                <option value="price" className="bg-[#0B0F19]">💲 Precio</option>
-              </select>
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
-            </div>
-
-            <button
-              onClick={() => setOnlyAvailable(!onlyAvailable)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-bold transition-all ${
-                onlyAvailable 
-                  ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.15)]" 
-                  : "glass border-white/10 text-white/60 hover:text-white"
-              }`}
-            >
-              <div className={`w-2 h-2 rounded-full ${onlyAvailable ? "bg-emerald-400 animate-pulse" : "bg-white/30"}`} />
-              Disponibles
-            </button>
-
-            {(filterState || filterCity) && (
-              <button
-                onClick={() => { setFilterState(""); setFilterCity(""); }}
-                className="px-4 py-2.5 rounded-xl font-bold text-sm text-white/40 hover:text-white hover:bg-white/5 transition-all ml-auto"
-              >
-                Limpiar filtros
-              </button>
-            )}
-          </div>
+        {/* Speed-Matching banner */}
+        <div className="mb-5">
+          <SpeedMatchingBanner />
         </div>
 
-        {/* Map view */}
-        {viewMode === "map" && (
-          <div className="glass rounded-3xl border border-white/10 overflow-hidden shadow-2xl p-1">
-            <WorkerMap
-              workers={filtered}
-              height="min(500px, 60dvh)"
-              centerLat={rawPosition?.lat ?? null}
-              centerLng={rawPosition?.lng ?? null}
+        {/* GeoBar (compact) */}
+        <div className="mb-5">
+          <GeoBar
+            permission={permission}
+            loading={geoLoading}
+            error={geoError}
+            rawPosition={rawPosition}
+            onRequest={() => requestGeo({ saveAs: "user" })}
+            onRefresh={() => refreshGeo({ saveAs: "user" })}
+          />
+        </div>
+
+        {/* Two-column layout: sidebar + results */}
+        <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-5">
+
+          {/* Desktop Sidebar */}
+          <aside className="hidden lg:block">
+            <FiltersPanel
+              filters={filters}
+              setFilters={setFilters}
+              onApply={applyFilters}
+              onClear={clearFilters}
             />
-          </div>
-        )}
+          </aside>
 
-        {/* List view */}
-        {viewMode === "list" && (
-          <div className="space-y-4">
-            {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-56 rounded-3xl bg-white/5 animate-pulse border border-white/5" />)}
+          {/* Results column */}
+          <section className="min-w-0">
+            {/* Results header: count + sort + mobile filter button */}
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="min-w-0">
+                <h2 className="text-base sm:text-lg font-bold text-white truncate">
+                  {currentCategory ? currentCategory.name : "Profesionales"}
+                </h2>
+                <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
+                  {isLoading ? "Buscando..." : `${filtered.length} resultado${filtered.length !== 1 ? "s" : ""}`}
+                </p>
               </div>
-            ) : filtered.length === 0 ? (
-              <div className="py-16 text-center glass border border-white/5 rounded-3xl space-y-4 px-6">
-                <div className="w-16 h-16 rounded-full glass border border-white/10 flex items-center justify-center mx-auto">
-                  <MapPin className="w-6 h-6 text-white/30" />
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={() => setFiltersDrawer(true)}
+                  className="lg:hidden flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5" /> Filtros
+                </button>
+                <div className="relative">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as any)}
+                    className="pl-3 pr-8 py-2 rounded-xl text-xs font-semibold text-white appearance-none outline-none"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                  >
+                    <option value="smart" className="bg-[#0B0F19]">Recomendados</option>
+                    <option value="distance" className="bg-[#0B0F19]">Distancia</option>
+                    <option value="rating" className="bg-[#0B0F19]">Calificación</option>
+                    <option value="price" className="bg-[#0B0F19]">Precio</option>
+                  </select>
+                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/50 pointer-events-none" />
                 </div>
-                {onlyAvailable ? (
-                  <>
-                    <div>
-                      <h3 className="text-xl font-bold text-white mb-2">Todos están ocupados ahora</h3>
-                      <p className="text-white/50 font-medium max-w-sm mx-auto">
-                        No hay disponibles en este momento, pero hay profesionales que pueden responder pronto.
-                      </p>
+              </div>
+            </div>
+
+            {/* Map view */}
+            {viewMode === "map" && (
+              <div className="rounded-3xl overflow-hidden p-1"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <WorkerMap
+                  workers={filtered}
+                  height="min(560px, 70dvh)"
+                  centerLat={rawPosition?.lat ?? null}
+                  centerLng={rawPosition?.lng ?? null}
+                />
+              </div>
+            )}
+
+            {/* List view */}
+            {viewMode === "list" && (
+              <>
+                {isLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="h-64 rounded-3xl animate-pulse"
+                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }} />
+                    ))}
+                  </div>
+                ) : filtered.length === 0 ? (
+                  <div className="py-16 text-center rounded-3xl px-6"
+                    style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div className="w-14 h-14 rounded-full grid place-items-center mx-auto mb-3"
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                      <MapPin className="w-5 h-5 text-white/30" />
                     </div>
+                    <h3 className="text-lg font-bold text-white mb-1">No encontramos resultados</h3>
+                    <p className="text-sm text-white/50 mb-4">Prueba con otra categoría o ajusta los filtros.</p>
                     <button
-                      onClick={() => setOnlyAvailable(false)}
-                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all hover:bg-white/5"
-                      style={{ border: "1px solid rgba(6,182,212,0.3)", color: "rgba(6,182,212,0.85)", background: "rgba(6,182,212,0.06)" }}
+                      onClick={clearFilters}
+                      className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-cyan-300"
+                      style={{ background: "rgba(6,182,212,0.10)", border: "1px solid rgba(6,182,212,0.3)" }}
                     >
-                      Ver todos los profesionales
+                      Limpiar filtros
                     </button>
-                  </>
+                  </div>
                 ) : (
                   <>
-                    <div>
-                      <h3 className="text-xl font-bold text-white mb-2">Amplía tu búsqueda</h3>
-                      <p className="text-white/50 font-medium">Intenta con otra categoría o elimina algunos filtros.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {visible.map((w: any) => (
+                        <article
+                          key={w.id}
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Ver perfil de ${w.name}`}
+                          onClick={() => goToWorker(w)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              goToWorker(w);
+                            }
+                          }}
+                          className="group flex flex-col p-4 rounded-3xl cursor-pointer transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60"
+                          style={{
+                            background: "rgba(255,255,255,0.04)",
+                            backdropFilter: "blur(20px)",
+                            border: w.isPremium
+                              ? "1px solid rgba(245,158,11,0.30)"
+                              : "1px solid rgba(255,255,255,0.08)",
+                          }}
+                        >
+                          {/* Header: avatar + name + rating */}
+                          <div className="flex items-start gap-3">
+                            <div className="relative flex-shrink-0">
+                              <div className="w-12 h-12 rounded-xl overflow-hidden grid place-items-center font-bold text-lg"
+                                style={{ background: "rgba(6,182,212,0.10)", border: "1px solid rgba(6,182,212,0.20)", color: "#22d3ee" }}>
+                                {w.avatarUrl ? (
+                                  <img
+                                    src={w.avatarUrl.startsWith("http") || w.avatarUrl.startsWith("/api/") ? w.avatarUrl : `/api/storage${w.avatarUrl}`}
+                                    alt={w.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : w.name?.charAt(0).toUpperCase()}
+                              </div>
+                              {w.isAvailable && (
+                                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#0B0F19]" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <p className="font-bold text-white truncate leading-tight">{w.name}</p>
+                                <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md flex-shrink-0"
+                                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                  <span className="text-[11px] font-bold text-white">{(w.rating ?? 0).toFixed(1)}</span>
+                                </div>
+                              </div>
+                              <p className="text-xs mt-0.5 truncate" style={{ color: "rgba(255,255,255,0.55)" }}>
+                                {w.categoryName ?? "Profesional"}
+                              </p>
+                              {w.isVerified && (
+                                <div className="flex items-center gap-1 mt-1.5 text-[11px] font-bold text-cyan-300">
+                                  <BadgeCheck className="w-3.5 h-3.5" /> VERIFICADO
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Badges row */}
+                          <div className="flex flex-wrap items-center gap-1.5 mt-3">
+                            {w.isPremium && <PremiumBadge />}
+                            {w.isTopProfile && !w.isPremium && <TopProfileBadge />}
+                            <WorkerLevelBadge completedJobs={w.completedJobs} rating={w.rating} isVerified={w.isVerified} />
+                          </div>
+
+                          {/* Description */}
+                          {w.description && (
+                            <p className="text-xs mt-2.5 line-clamp-2 leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
+                              {w.description}
+                            </p>
+                          )}
+
+                          {/* Distance + Price row */}
+                          <div className="mt-3 flex items-center justify-between gap-2">
+                            <div>
+                              {rawPosition && w.computedDistance !== null ? (
+                                <DistanceBadge km={w.computedDistance} />
+                              ) : w.city ? (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md"
+                                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>
+                                  <MapPin className="w-3 h-3" /> {w.city}
+                                </span>
+                              ) : null}
+                            </div>
+                            <div className="text-right">
+                              <div className="flex items-baseline gap-1 justify-end">
+                                <span className="text-base font-bold text-white">${w.basePrice ?? w.hourlyRate ?? 0}</span>
+                                <span className="text-[10px] text-white/45">/ visita</span>
+                              </div>
+                              {bcvData && (
+                                <p className="text-[10px] font-semibold text-emerald-400/80">
+                                  {formatBs(w.basePrice ?? w.hourlyRate ?? 0)}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Dual CTAs */}
+                          <div className="mt-3 grid grid-cols-2 gap-2 pt-3"
+                            style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); goToWorker(w); }}
+                              className="py-2 rounded-xl text-xs font-bold text-white/80 hover:text-white transition"
+                              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                            >
+                              Ver perfil
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); contractWorker(w); }}
+                              className="py-2 rounded-xl text-xs font-bold text-white inline-flex items-center justify-center gap-1 transition"
+                              style={{
+                                background: "linear-gradient(135deg, #06b6d4, #3b82f6)",
+                                boxShadow: "0 4px 14px -4px rgba(6,182,212,0.5)",
+                              }}
+                            >
+                              Contratar ahora <ArrowRight className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </article>
+                      ))}
                     </div>
-                    {(filterState || filterCity) && (
-                      <button onClick={() => { setFilterState(""); setFilterCity(""); }}
-                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl glass border border-white/10 text-sm font-bold hover:bg-white/5 transition-colors">
-                        Limpiar filtros de ubicación
-                      </button>
+
+                    {/* Cargar más */}
+                    {hasMore && (
+                      <div className="flex justify-center mt-6">
+                        <button
+                          onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                          className="px-6 py-2.5 rounded-xl text-sm font-bold text-white/80 hover:text-white transition"
+                          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.10)" }}
+                        >
+                          Cargar más profesionales
+                        </button>
+                      </div>
                     )}
                   </>
                 )}
-              </div>
-            ) : (
-              <>
-                <div className="flex items-start justify-between px-2 mb-2 gap-3">
-                  <div>
-                    <p className="text-sm font-bold text-white/50 uppercase tracking-widest">
-                      {filtered.length} Profesional{filtered.length !== 1 ? "es" : ""}
-                      {onlyAvailable ? " disponibles" : " en tu zona"}
-                    </p>
-                    <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.28)" }}>
-                      Recibe respuesta en minutos
-                    </p>
-                  </div>
-                  {sortBy === "smart" && (
-                    <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5 uppercase tracking-wider bg-amber-500/10 px-2 py-1 rounded-lg flex-shrink-0">
-                      <Star className="w-3 h-3 fill-amber-400" /> Relevancia + popularidad
-                    </span>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {filtered.map((w: any, idx: number) => {
-                    const isTop = idx === 0;
-                    return (
-                    <div
-                      key={w.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => {
-                        if (!user) navigate(`/workers/${w.id}`);
-                        else navigate(`/client/worker/${w.id}`);
-                      }}
-                      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { if (!user) navigate(`/workers/${w.id}`); else navigate(`/client/worker/${w.id}`); }}}
-                      className={`group flex flex-col p-6 rounded-3xl glass border text-left cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 shadow-xl ${
-                        w.isPremium 
-                          ? "border-amber-500/30 hover:border-amber-400/60 hover:shadow-[0_10px_40px_rgba(245,158,11,0.15)]" 
-                          : isTop
-                          ? "border-cyan-500/25 hover:border-cyan-500/50 hover:shadow-[0_10px_40px_rgba(6,182,212,0.12)]"
-                          : "border-white/10 hover:border-cyan-500/40 hover:shadow-[0_10px_40px_rgba(6,182,212,0.1)]"
-                      }`}
-                      style={isTop && !w.isPremium ? {
-                        boxShadow: "0 0 0 1px rgba(6,182,212,0.08), 0 4px 20px rgba(6,182,212,0.06)",
-                        background: "rgba(6,182,212,0.025)",
-                      } : undefined}
-                    >
-                      {w.isPremium && <VerifiedPremiumSeal />}
-
-                      <div className="flex items-start gap-4 mb-4">
-                        <div className="relative flex-shrink-0">
-                          <div className={`w-16 h-12 rounded-xl flex items-center justify-center font-black text-2xl border overflow-hidden ${
-                            w.isPremium 
-                              ? "bg-amber-500/10 text-amber-400 border-amber-500/20" 
-                              : "bg-cyan-500/10 text-cyan-400 border-cyan-500/20"
-                          }`}>
-                            {w.avatarUrl ? (
-                              <img src={w.avatarUrl.startsWith("http") ? w.avatarUrl : w.avatarUrl.startsWith("/api/") ? w.avatarUrl : `/api/storage${w.avatarUrl}`} alt={w.name} className="w-full h-full object-cover" />
-                            ) : w.name?.charAt(0).toUpperCase()}
-                          </div>
-                          {w.isAvailable && (
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#0B0F19]" />
-                          )}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0 pt-0.5">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <p className="text-xl font-bold text-white truncate">{w.name}</p>
-                            {w.isVerified && <BadgeCheck className="w-5 h-5 text-cyan-400 flex-shrink-0" />}
-                            {w.isPremium && <PremiumBadge />}
-                            {w.isTopProfile && !w.isPremium && <TopProfileBadge />}
-                          </div>
-                          <p className="text-sm font-bold text-white/50 uppercase tracking-widest truncate">{w.categoryName}</p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <div className="flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
-                              <StarRating rating={w.rating} />
-                              <span className="text-xs font-bold text-white/80">{w.rating?.toFixed(1)} <span className="text-white/40">({w.reviewCount})</span></span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Distance & Badges row */}
-                      <div className="flex flex-wrap items-center gap-2 mb-3">
-                        <WorkerLevelBadge completedJobs={w.completedJobs} rating={w.rating} isVerified={w.isVerified} />
-                        {rawPosition && w.computedDistance !== null ? (
-                          <DistanceBadge km={w.computedDistance} />
-                        ) : w.city && w.state ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/40 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
-                            <MapPin className="w-3 h-3" /> {w.city}
-                          </span>
-                        ) : null}
-                      </div>
-
-                      {/* Micro-stats */}
-                      <div className="flex flex-wrap items-center gap-2 mb-4">
-                        {(w as any).hasRecentContact && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md animate-pulse"
-                            style={{ background: "rgba(251,146,60,0.10)", color: "rgba(251,146,60,0.9)", border: "1px solid rgba(251,146,60,0.25)" }}>
-                            🔥 Respondiendo ahora
-                          </span>
-                        )}
-                        {(w as any).hasRecentActivity24h && !w.isAvailable && !(w as any).hasRecentContact && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md"
-                            style={{ background: "rgba(251,191,36,0.08)", color: "rgba(251,191,36,0.75)", border: "1px solid rgba(251,191,36,0.2)" }}>
-                            🟡 Activo hoy
-                          </span>
-                        )}
-                        {(w.completedJobs ?? 0) > 0 && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md"
-                            style={{ background: "rgba(6,182,212,0.08)", color: "rgba(6,182,212,0.75)", border: "1px solid rgba(6,182,212,0.15)" }}>
-                            <CheckCircle2 className="w-3 h-3" /> {w.completedJobs} trabajo{w.completedJobs !== 1 ? "s" : ""} completado{w.completedJobs !== 1 ? "s" : ""}
-                          </span>
-                        )}
-                        {(w.isAvailable || (w as any).hasRecentContact) && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md"
-                            style={{ background: "rgba(16,185,129,0.08)", color: "rgba(52,211,153,0.8)", border: "1px solid rgba(16,185,129,0.15)" }}>
-                            <Zap className="w-3 h-3" />
-                            {(w as any).avgResponseMinutes && (w as any).avgResponseMinutes < 180
-                              ? `Responde en ~${(w as any).avgResponseMinutes < 60 ? `${(w as any).avgResponseMinutes} min` : `${Math.round((w as any).avgResponseMinutes / 60)}h`}`
-                              : "Recibe respuesta en minutos"}
-                          </span>
-                        )}
-                      </div>
-
-                      {w.description && (
-                        <p className="text-sm text-white/60 line-clamp-2 mb-4 leading-relaxed font-medium">{w.description}</p>
-                      )}
-
-                      <div className="mt-auto pt-4 border-t flex flex-wrap items-center justify-between gap-3" style={{ borderColor: w.isPremium ? "rgba(245,158,11,0.15)" : "rgba(255,255,255,0.05)" }}>
-                        <div>
-                          <p className="text-sm font-medium text-white/40 mb-0.5 uppercase tracking-wider">Tarifa base</p>
-                          <div className="flex items-baseline gap-2">
-                            <p className="text-xl font-black text-white">${w.basePrice ?? w.hourlyRate ?? 0}</p>
-                            {bcvData && (
-                              <p className="text-xs font-bold text-emerald-400">
-                                {formatBs(w.basePrice ?? w.hourlyRate ?? 0)}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-lg"
-                            style={w.isAvailable
-                              ? { color: "rgba(52,211,153,0.9)", border: "1px solid rgba(52,211,153,0.2)", background: "rgba(52,211,153,0.08)" }
-                              : (w as any).hasRecentContact
-                              ? { color: "rgba(251,146,60,0.85)", border: "1px solid rgba(251,146,60,0.25)", background: "rgba(251,146,60,0.08)" }
-                              : (w as any).hasRecentActivity24h
-                              ? { color: "rgba(251,191,36,0.8)", border: "1px solid rgba(251,191,36,0.2)", background: "rgba(251,191,36,0.06)" }
-                              : { color: "rgba(255,255,255,0.40)", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)" }
-                            }>
-                            {w.isAvailable ? "Disponible"
-                              : (w as any).hasRecentContact ? "Respondiendo ahora"
-                              : (w as any).hasRecentActivity24h ? "Activo hoy"
-                              : "Ocupado"}
-                          </span>
-                          <button
-                            onClick={e => {
-                              e.stopPropagation();
-                              track("contact_click", { workerId: w.id, source: "search_list" });
-                              if (!user) {
-                                setLoginWallReturnTo(`/workers/${w.id}`);
-                                setShowLoginWall(true);
-                                return;
-                              }
-                              navigate(`/client/worker/${w.id}`);
-                            }}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
-                            style={{
-                              background: "rgba(6,182,212,0.12)",
-                              border: "1px solid rgba(6,182,212,0.3)",
-                              color: "#06B6D4",
-                            }}
-                          >
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            Contactar
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    );
-                  })}
-                </div>
               </>
             )}
-          </div>
-        )}
+          </section>
+        </div>
       </div>
+
+      {/* Mobile filters drawer */}
+      {filtersDrawer && (
+        <div
+          className="lg:hidden fixed inset-0 z-50 flex items-end"
+          style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)" }}
+          onClick={() => setFiltersDrawer(false)}
+        >
+          <div className="w-full max-h-[85dvh] overflow-y-auto rounded-t-3xl"
+            onClick={(e) => e.stopPropagation()}>
+            <FiltersPanel
+              filters={filters}
+              setFilters={setFilters}
+              onApply={applyFilters}
+              onClear={clearFilters}
+              onClose={() => setFiltersDrawer(false)}
+              isMobile
+            />
+          </div>
+        </div>
+      )}
+
       <LoginWallModal
         open={showLoginWall}
         onClose={() => { setShowLoginWall(false); setLoginWallReturnTo(undefined); }}
