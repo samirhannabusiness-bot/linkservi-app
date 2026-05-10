@@ -46,7 +46,7 @@ steps:
         npm pkg set type=module > /dev/null 2>&1
         npm install pg@8 --no-save --silent --no-audit --no-fund
         echo "Running migrations from /workspace/migrations ..."
-        DB_URL="$_DATABASE_URL" MIGRATIONS_DIR=/workspace/migrations node /workspace/scripts/run-migrations.mjs
+        DB_URL="$_DATABASE_URL" MIGRATIONS_DIR=/workspace/migrations NODE_TLS_REJECT_UNAUTHORIZED=0 node /workspace/scripts/run-migrations.mjs
 
   # ── Step 4: Deploy to Cloud Run ─────────────────────────────────────────────
   # Uses --env-vars-file to avoid shell quoting/delimiter issues with special
