@@ -59,6 +59,10 @@ export const walletTransactionsTable = pgTable("wallet_transactions", {
   description: text("description"),
   // Estado: posted | pending | reversed
   status: text("status").notNull().default("posted"),
+  // Clave de idempotencia (opcional). Para transferencias entre usuarios
+  // viene del header Idempotency-Key del cliente. Índice parcial UNIQUE
+  // sobre (user_id, idempotency_key) cuando NOT NULL — ver migración 0003.
+  idempotencyKey: text("idempotency_key"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   index("wallet_tx_user_idx").on(table.userId, table.createdAt),

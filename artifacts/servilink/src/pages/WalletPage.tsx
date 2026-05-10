@@ -307,6 +307,10 @@ function TransferModal({ balanceCents, hasPin, onClose, onDone }: TransferModalP
   const [needsPinSetup, setNeedsPinSetup] = useState(!hasPin);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  // Clave de idempotencia única por intento de transferencia: se genera al
+  // pasar al paso "confirm" y se reutiliza en cada reintento del mismo monto
+  // hacia el mismo destinatario, para que el servidor no duplique el cargo.
+  const [idemKey, setIdemKey] = useState("");
 
   // ── Setup PIN flow ──
   const [pinPassword, setPinPassword] = useState("");
@@ -333,6 +337,14 @@ function TransferModal({ balanceCents, hasPin, onClose, onDone }: TransferModalP
       if (!res.ok) { setErr(j.error || "No se pudo verificar"); return; }
       setPreview({ recipient: j.recipient, amountCents: j.amountCents });
       setNeedsPinSetup(!!j.needsPinSetup);
+      // Generamos una clave única para esta operación. Si el usuario hace
+      // doble click en "Confirmar" o reintenta tras un timeout, mandamos
+      // la misma clave y el backend la deduplicará.
+      setIdemKey(
+        (typeof crypto !== "undefined" && "randomUUID" in crypto)
+          ? crypto.randomUUID()
+          : `tx_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      );
       setStep(j.needsPinSetup ? "pin-setup" : "confirm");
     } catch (e: any) {
       setErr(e?.message || "Error de conexión");
@@ -377,7 +389,11 @@ function TransferModal({ balanceCents, hasPin, onClose, onDone }: TransferModalP
       const res = await fetch("/api/wallet/transfer", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json", ...getAuthHeader() },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": idemKey,
+          ...getAuthHeader(),
+        },
         body: JSON.stringify({
           email: email.trim(),
           amountCents: preview.amountCents,

@@ -57,10 +57,15 @@ async function ensureWallet(userId: number) {
   return row!;
 }
 
-/** Suma de transferencias salientes en las últimas 24h (en centavos). */
-async function dailyTransferredCents(userId: number): Promise<number> {
+/** Suma de transferencias salientes en las últimas 24h (en centavos).
+ *  Acepta opcionalmente un cliente de transacción para que el cálculo
+ *  ocurra dentro del mismo lock que el resto de la transferencia. */
+async function dailyTransferredCents(
+  userId: number,
+  client: typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0] = db,
+): Promise<number> {
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const [row] = await db
+  const [row] = await client
     .select({
       total: sql<number>`COALESCE(SUM(ABS(${walletTransactionsTable.amountCents})), 0)::int`,
     })
@@ -277,6 +282,33 @@ router.post("/wallet/transfer", authenticate, async (req, res): Promise<void> =>
     const { email, amountCents, pin, description } = req.body ?? {};
     const userId = req.user!.id;
 
+    // Idempotencia: si el cliente ya envió esta misma operación con la
+    // misma clave (doble-click, reintento por timeout), devolvemos el
+    // resultado anterior en vez de duplicar el cargo.
+    const idemHeader = req.header("Idempotency-Key") ?? req.header("idempotency-key");
+    const idemKey = typeof idemHeader === "string" && idemHeader.trim().length > 0 && idemHeader.length <= 200
+      ? idemHeader.trim()
+      : null;
+    if (idemKey) {
+      const [prev] = await db
+        .select()
+        .from(walletTransactionsTable)
+        .where(and(
+          eq(walletTransactionsTable.userId, userId),
+          eq(walletTransactionsTable.idempotencyKey, idemKey),
+        ))
+        .limit(1);
+      if (prev) {
+        res.json({
+          ok: true,
+          newBalanceCents: prev.balanceAfterCents,
+          amountCents: Math.abs(prev.amountCents),
+          replayed: true,
+        });
+        return;
+      }
+    }
+
     // ── Validaciones de entrada ────────────────────────────────────────────
     if (typeof email !== "string" || !email.trim()) {
       res.status(400).json({ error: "Correo del destinatario requerido" }); return;
@@ -307,21 +339,44 @@ router.post("/wallet/transfer", authenticate, async (req, res): Promise<void> =>
     }
     const pinOk = await bcrypt.compare(pin, senderWallet.pinHash);
     if (!pinOk) {
-      const newAttempts = (senderWallet.pinFailedAttempts ?? 0) + 1;
-      const shouldLock  = newAttempts >= MAX_PIN_ATTEMPTS;
-      await db
-        .update(walletsTable)
-        .set({
-          pinFailedAttempts: shouldLock ? 0 : newAttempts,
-          pinLockedUntil:    shouldLock ? new Date(Date.now() + PIN_LOCK_MINUTES * 60_000) : senderWallet.pinLockedUntil,
-        })
-        .where(eq(walletsTable.userId, userId));
+      // UPDATE atómico: incrementa contador y, si alcanza el máximo, lo
+      // resetea + setea pin_locked_until. Sin lectura previa → sin "lost
+      // update" entre intentos concurrentes.
+      const lockMs = PIN_LOCK_MINUTES * 60_000;
+      const result = await db.execute(sql`
+        UPDATE wallets
+        SET
+          pin_failed_attempts = CASE
+            WHEN pin_failed_attempts + 1 >= ${MAX_PIN_ATTEMPTS} THEN 0
+            ELSE pin_failed_attempts + 1
+          END,
+          pin_locked_until = CASE
+            WHEN pin_failed_attempts + 1 >= ${MAX_PIN_ATTEMPTS}
+              THEN NOW() + (${lockMs} || ' milliseconds')::interval
+            ELSE pin_locked_until
+          END
+        WHERE user_id = ${userId}
+        RETURNING pin_locked_until, pin_failed_attempts
+      `);
+      const rows = (result.rows ?? result) as Array<{
+        pin_locked_until: string | null; pin_failed_attempts: number;
+      }>;
+      const row = rows[0];
+      const isLocked = !!row?.pin_locked_until && new Date(row.pin_locked_until) > new Date();
       res.status(401).json({
-        error: shouldLock
+        error: isLocked
           ? `PIN incorrecto. Bloqueado por ${PIN_LOCK_MINUTES} minutos.`
-          : `PIN incorrecto. Te quedan ${MAX_PIN_ATTEMPTS - newAttempts} intentos.`,
+          : `PIN incorrecto. Te quedan ${MAX_PIN_ATTEMPTS - (row?.pin_failed_attempts ?? 1)} intentos.`,
       });
       return;
+    }
+    // PIN correcto: reset inmediato del contador (independiente del éxito
+    // de la transferencia) para que un usuario válido nunca quede bloqueado.
+    if ((senderWallet.pinFailedAttempts ?? 0) > 0 || senderWallet.pinLockedUntil) {
+      await db
+        .update(walletsTable)
+        .set({ pinFailedAttempts: 0, pinLockedUntil: null })
+        .where(eq(walletsTable.userId, userId));
     }
 
     // ── Buscar al destinatario ─────────────────────────────────────────────
@@ -336,16 +391,6 @@ router.post("/wallet/transfer", authenticate, async (req, res): Promise<void> =>
       res.status(400).json({ error: "No puedes transferirte a ti mismo" }); return;
     }
     await ensureWallet(recipient.id);
-
-    // ── Verificar límite diario ────────────────────────────────────────────
-    const dailyUsed = await dailyTransferredCents(userId);
-    if (dailyUsed + amount > DAILY_TRANSFER_LIMIT_CENTS) {
-      const remaining = Math.max(0, DAILY_TRANSFER_LIMIT_CENTS - dailyUsed);
-      res.status(400).json({
-        error: `Límite diario excedido. Disponible hoy: $${(remaining / 100).toFixed(2)}.`,
-      });
-      return;
-    }
 
     // ── Sanear descripción (opcional) ──────────────────────────────────────
     const note = typeof description === "string"
@@ -363,7 +408,7 @@ router.post("/wallet/transfer", authenticate, async (req, res): Promise<void> =>
           : [recipient.id, userId];
 
         const lockedRows = await tx.execute(sql`
-          SELECT user_id, balance_cents, hold_cents, pin_failed_attempts
+          SELECT user_id, balance_cents, hold_cents
           FROM wallets
           WHERE user_id IN (${first}, ${second})
           ORDER BY user_id ASC
@@ -383,44 +428,61 @@ router.post("/wallet/transfer", authenticate, async (req, res): Promise<void> =>
           throw new Error("INSUFFICIENT_FUNDS");
         }
 
+        // Re-validar límite diario DENTRO del lock para que dos requests
+        // simultáneos no puedan ambos pasar el chequeo y exceder el tope.
+        const dailyUsed = await dailyTransferredCents(userId, tx);
+        if (dailyUsed + amount > DAILY_TRANSFER_LIMIT_CENTS) {
+          throw new Error("DAILY_LIMIT_EXCEEDED");
+        }
+
         const newSenderBalance    = senderRow.balance_cents - amount;
         const newRecipientBalance = recipientRow.balance_cents + amount;
 
         // Update saldos
         await tx
           .update(walletsTable)
-          .set({ balanceCents: newSenderBalance, pinFailedAttempts: 0, pinLockedUntil: null })
+          .set({ balanceCents: newSenderBalance })
           .where(eq(walletsTable.userId, userId));
         await tx
           .update(walletsTable)
           .set({ balanceCents: newRecipientBalance })
           .where(eq(walletsTable.userId, recipient.id));
 
-        // Insertar las 2 filas del libro contable
-        await tx.insert(walletTransactionsTable).values([
-          {
-            userId,
-            type: "transfer_out",
-            amountCents: -amount,
-            balanceAfterCents: newSenderBalance,
-            holdAfterCents: senderRow.hold_cents,
-            refType: "user_transfer",
-            refId: recipient.id,
-            description: note ?? `Transferencia a ${recipient.name}`,
-            status: "posted",
-          },
-          {
-            userId: recipient.id,
-            type: "transfer_in",
-            amountCents: amount,
-            balanceAfterCents: newRecipientBalance,
-            holdAfterCents: recipientRow.hold_cents,
-            refType: "user_transfer",
-            refId: userId,
-            description: note ?? `Transferencia recibida`,
-            status: "posted",
-          },
-        ]);
+        // Insertar las 2 filas del libro contable. La fila del emisor lleva
+        // la idempotencyKey: si llega un retry con la misma key, el índice
+        // único parcial (user_id, idempotency_key) hará fallar este INSERT
+        // con error 23505 → atrapamos abajo y devolvemos resultado previo.
+        try {
+          await tx.insert(walletTransactionsTable).values([
+            {
+              userId,
+              type: "transfer_out",
+              amountCents: -amount,
+              balanceAfterCents: newSenderBalance,
+              holdAfterCents: senderRow.hold_cents,
+              refType: "user_transfer",
+              refId: recipient.id,
+              description: note ?? `Transferencia a ${recipient.name}`,
+              status: "posted",
+              idempotencyKey: idemKey,
+            },
+            {
+              userId: recipient.id,
+              type: "transfer_in",
+              amountCents: amount,
+              balanceAfterCents: newRecipientBalance,
+              holdAfterCents: recipientRow.hold_cents,
+              refType: "user_transfer",
+              refId: userId,
+              description: note ?? `Transferencia recibida`,
+              status: "posted",
+              idempotencyKey: null,
+            },
+          ]);
+        } catch (e: any) {
+          if (e?.code === "23505") throw new Error("IDEMPOTENT_REPLAY");
+          throw e;
+        }
 
         return { senderBalance: newSenderBalance, recipientName: recipient.name };
       });
@@ -428,6 +490,32 @@ router.post("/wallet/transfer", authenticate, async (req, res): Promise<void> =>
       if (e?.message === "INSUFFICIENT_FUNDS") {
         res.status(400).json({ error: "Saldo insuficiente al momento de confirmar" });
         return;
+      }
+      if (e?.message === "DAILY_LIMIT_EXCEEDED") {
+        res.status(400).json({
+          error: `Límite diario de $${(DAILY_TRANSFER_LIMIT_CENTS / 100).toFixed(2)} excedido.`,
+        });
+        return;
+      }
+      if (e?.message === "IDEMPOTENT_REPLAY" && idemKey) {
+        // Carrera con un retry simultáneo — devolvemos el resultado ya posteado.
+        const [prev] = await db
+          .select()
+          .from(walletTransactionsTable)
+          .where(and(
+            eq(walletTransactionsTable.userId, userId),
+            eq(walletTransactionsTable.idempotencyKey, idemKey),
+          ))
+          .limit(1);
+        if (prev) {
+          res.json({
+            ok: true,
+            newBalanceCents: prev.balanceAfterCents,
+            amountCents: Math.abs(prev.amountCents),
+            replayed: true,
+          });
+          return;
+        }
       }
       throw e;
     }
