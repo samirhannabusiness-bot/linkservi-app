@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, usersTable, workersTable, bookingsTable, categoriesTable, reviewsTable, storesTable, storeWithdrawalsTable, productRatingsTable, productsTable } from "@workspace/db";
-import { eq, and, or, ilike, sql, count, sum, inArray, desc } from "drizzle-orm";
+import { eq, and, or, ilike, sql, count, sum, inArray, desc, isNotNull } from "drizzle-orm";
 import { authenticate, requireRole, requireAdminRole, getEffectiveAdminRole } from "../lib/auth";
 import { createNotification } from "./notifications";
 import { logger } from "../lib/logger";
@@ -292,11 +292,20 @@ router.delete("/admin/users/:userId", authenticate, requireRole("admin"), async 
 });
 
 router.get("/admin/workers/pending", authenticate, requireRole("admin"), async (_req, res): Promise<void> => {
+  // Solo profesionales pendientes QUE YA HAYAN SUBIDO sus dos documentos.
+  // Antes mostrábamos a todos los pendientes (incluso sin documentos), lo
+  // que invitaba al admin a aprobarlos en blanco. La cola unificada
+  // (/admin/verifications) es la única fuente de verdad para KYC; este
+  // endpoint queda como vista complementaria solo para casos con docs.
   const rows = await db
     .select({ worker: workersTable, user: usersTable })
     .from(workersTable)
     .innerJoin(usersTable, eq(workersTable.userId, usersTable.id))
-    .where(eq(workersTable.verificationStatus, "pending"));
+    .where(and(
+      eq(workersTable.verificationStatus, "pending"),
+      isNotNull(workersTable.documentImageUrl),
+      isNotNull(workersTable.selfieImageUrl),
+    ));
   res.json(
     rows.map(({ worker: w, user: u }) => ({
       id: w.id,
@@ -332,6 +341,24 @@ router.post("/admin/workers/:workerId/verify", authenticate, requireRole("admin"
   const raw = Array.isArray(req.params.workerId) ? req.params.workerId[0] : req.params.workerId;
   const workerId = parseInt(raw, 10);
   const { approved, notes } = req.body;
+
+  // ── GUARDIA: NUNCA aprobar sin documentos ─────────────────────────────────
+  // Antes este endpoint permitía aprobar a un profesional que jamás subió
+  // documento ni selfie. Eso saltaba el sistema unificado de KYC y dejaba
+  // verificados a usuarios sin haber pasado por revisión real. Bug detectado
+  // en producción (Ramón, 5/10/26): activó rol pero su verificación se
+  // aprobó vacía. Ahora forzamos validar fotos antes de aprobar.
+  if (approved === true) {
+    const [w] = await db.select().from(workersTable).where(eq(workersTable.id, workerId));
+    if (!w) { res.status(404).json({ error: "Worker not found" }); return; }
+    if (!w.documentImageUrl || !w.selfieImageUrl) {
+      res.status(400).json({
+        error: "Este profesional no ha subido sus documentos. No puede ser aprobado hasta que complete su verificación de identidad (cédula + selfie).",
+      });
+      return;
+    }
+  }
+
   const [updated] = await db
     .update(workersTable)
     .set({
