@@ -18,6 +18,7 @@ import { useGeolocation, haversineDistance } from "@/hooks/useGeolocation";
 import { formatDistanceToNowStrict } from "date-fns";
 import { es } from "date-fns/locale";
 import { apiFetch, getAuthHeader, track } from "@/lib/api";
+import { mediaSrc } from "@/lib/media-url";
 import { LoginWallModal } from "@/components/ui/LoginWallModal";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "@/hooks/use-toast";
@@ -550,7 +551,7 @@ export function WorkerProfilePage() {
                   }}
                 >
                   <img
-                    src={`/api/storage${path}`}
+                    src={mediaSrc(path)}
                     alt={`Foto ${i + 1}`}
                     className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                     loading="lazy"
@@ -932,7 +933,7 @@ export function WorkerProfilePage() {
             >
               <img
                 key={lightboxIndex}
-                src={`/api/storage${photos[lightboxIndex]}`}
+                src={mediaSrc(photos[lightboxIndex])}
                 alt={`Foto ${lightboxIndex + 1}`}
                 className="w-full rounded-2xl object-contain"
                 style={{ maxHeight: "76vh", animation: "lbFadeIn 0.18s ease" }}

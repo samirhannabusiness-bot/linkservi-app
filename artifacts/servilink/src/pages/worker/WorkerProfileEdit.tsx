@@ -15,6 +15,7 @@ import { VENEZUELA_STATES, getCitiesForState } from "@/lib/venezuela-locations";
 import { BiometricSettings } from "@/components/ui/BiometricSettings";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "@/hooks/use-toast";
+import { mediaSrc } from "@/lib/media-url";
 
 const MAX_PHOTOS = 6;
 
@@ -847,7 +848,7 @@ export function WorkerProfileEdit() {
               {portfolioPhotos.map((path, i) => (
                 <div key={path} className="relative aspect-video rounded-2xl overflow-hidden bg-muted group">
                   <img
-                    src={`/api/storage${path}`}
+                    src={mediaSrc(path)}
                     alt={`Trabajo ${i + 1}`}
                     className="w-full h-full object-cover"
                     onError={e => { (e.target as HTMLImageElement).src = ""; }}
