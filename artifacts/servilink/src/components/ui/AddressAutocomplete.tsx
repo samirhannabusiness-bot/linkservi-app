@@ -236,13 +236,30 @@ export function AddressAutocomplete({
           },
         );
       });
-      const formatted = result?.formatted_address || `Ubicación: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-      setQuery(formatted);
-      onChange(formatted);
-      setSelected(true);
+      // Solo aceptamos un resultado real con dirección legible.
+      // Si Google solo devuelve "Plus Code" o coordenadas, dejamos el
+      // campo vacío para que el cliente escriba su dirección a mano.
+      const formatted = (result?.formatted_address ?? "").trim();
+      const looksLikePlusCode = /^[A-Z0-9]{4,}\+[A-Z0-9]{2,}/i.test(formatted);
+      const hasReadableAddress = formatted.length > 0 && !looksLikePlusCode;
+
+      if (hasReadableAddress) {
+        setQuery(formatted);
+        onChange(formatted);
+      } else {
+        setQuery("");
+        onChange("");
+        setErrorMsg(
+          "Ubicación capturada. Escribe tu dirección (urbanización, edificio, casa) para que el profesional sepa exactamente dónde llegar.",
+        );
+      }
+      setSelected(hasReadableAddress);
       setSuggestions([]);
       setOpen(false);
-      if (onSelect) onSelect({ address: formatted, lat, lng });
+      // Las coordenadas siempre se guardan, aunque la dirección esté vacía.
+      if (onSelect) {
+        onSelect({ address: hasReadableAddress ? formatted : "", lat, lng });
+      }
     } catch (err: any) {
       const code = err?.code;
       if (code === 1) setErrorMsg("Permite el acceso a tu ubicación en el navegador para usar esta función.");

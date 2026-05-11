@@ -49,6 +49,7 @@ export function BookingPage() {
   const [address, setAddress] = useState("");
   const [addressLat, setAddressLat] = useState<number | null>(null);
   const [addressLng, setAddressLng] = useState<number | null>(null);
+  const [addressDetails, setAddressDetails] = useState(""); // urbanización, casa, edificio, referencias
 
   // Step 3 — Cuándo
   const [scheduledAt, setScheduledAt] = useState<Date | undefined>(undefined);
@@ -92,7 +93,14 @@ export function BookingPage() {
       if (pricingMode === "bid" && (!clientBudget || clientBudget < 1)) return "Ingresa un presupuesto válido.";
     }
     if (s === 1) {
-      if (!address.trim()) return "Ingresa la dirección donde necesitas el servicio.";
+      const hasAddress = address.trim().length > 0;
+      const hasCoords = addressLat != null && addressLng != null;
+      const hasDetails = addressDetails.trim().length >= 5;
+      // Aceptamos: (a) una dirección escrita o seleccionada, o
+      // (b) ubicación GPS + detalles escritos a mano (urbanización, casa, etc.)
+      if (!hasAddress && !(hasCoords && hasDetails)) {
+        return "Escribe tu dirección o usa tu ubicación actual y añade los detalles (urbanización, casa, edificio).";
+      }
     }
     return null;
   };
@@ -113,11 +121,17 @@ export function BookingPage() {
   const handleSubmit = () => {
     setError("");
     if (!catId) { setError("Selecciona una categoría de servicio."); return; }
+    // Combinamos dirección base + detalles escritos por el cliente
+    // (urbanización, casa, edificio, referencias). El profesional ve un
+    // único texto claro, no coordenadas crudas.
+    const cleanAddress = address.trim();
+    const cleanDetails = addressDetails.trim();
+    const fullAddress = [cleanAddress, cleanDetails].filter(Boolean).join(" — ");
     const payload: Record<string, unknown> = {
       workerId: id,
       categoryId: catId,
       description: isUrgent ? `[URGENTE] ${description}` : description,
-      address,
+      address: fullAddress,
       scheduledAt: scheduledAt ? scheduledAt.toISOString() : undefined,
     };
     if (addressLat != null && addressLng != null) {
@@ -373,17 +387,41 @@ export function BookingPage() {
                 placeholder="Busca tu calle, urbanización o municipio..."
               />
               <p className="text-xs text-muted-foreground mt-2">
-                El profesional usará esta dirección para ir a tu ubicación.
+                Busca tu calle o usa tu ubicación actual. Luego añade los detalles abajo.
               </p>
             </div>
 
-            {address && addressLat != null && addressLng != null ? (
+            {/* Detalles adicionales — donde la gente escribe lo que el GPS no sabe */}
+            <div>
+              <label className="block text-sm font-semibold text-foreground mb-2">
+                Detalles del lugar <span className="text-xs font-normal text-muted-foreground">(urbanización, casa, edificio, referencias)</span>
+              </label>
+              <textarea
+                value={addressDetails}
+                onChange={(e) => setAddressDetails(e.target.value)}
+                placeholder="Ej: Zona Industrial, Residencias El Faro, Condominio Margarita, Calle 2, Casa 79"
+                rows={3}
+                className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                Añade número de casa, piso, color del portón o cualquier referencia que ayude al profesional a llegar.
+              </p>
+            </div>
+
+            {addressLat != null && addressLng != null ? (
               <div className="space-y-2">
                 <div className="flex items-start gap-3 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
                   <MapPin className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300 break-words">{address}</p>
-                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">
+                    {address && (
+                      <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300 break-words">{address}</p>
+                    )}
+                    {addressDetails.trim() && (
+                      <p className="text-sm text-emerald-700 dark:text-emerald-300/90 break-words mt-0.5">
+                        {addressDetails.trim()}
+                      </p>
+                    )}
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
                       Ubicación exacta confirmada · el profesional la verá en el mapa
                     </p>
                   </div>
