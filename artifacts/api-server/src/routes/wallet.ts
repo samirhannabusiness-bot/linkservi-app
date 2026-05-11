@@ -4,10 +4,11 @@ import {
   walletsTable,
   walletTransactionsTable,
   walletDepositsTable,
+  walletWithdrawalsTable,
   escrowHoldsTable,
   usersTable,
 } from "@workspace/db";
-import { and, desc, eq, or, gte, sql } from "drizzle-orm";
+import { and, desc, eq, or, gte, sql, inArray } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { authenticate, comparePassword } from "../lib/auth";
 import { createNotification } from "./notifications";
@@ -42,6 +43,18 @@ const MIN_MANUAL_DEPOSIT_CENTS = 500;     // $5.00 mínimo
 const MAX_DEPOSIT_CENTS        = 50_000;  // $500 máximo por operación
 const DAILY_DEPOSIT_LIMIT_CENTS = 200_000; // $2,000 USD/día por usuario
 
+// Retiros desde LinkWallet (Pago Móvil por ahora).
+const MIN_WITHDRAWAL_CENTS  = 500;     // $5.00 mínimo
+const MAX_WITHDRAWAL_CENTS  = 50_000;  // $500 máximo por operación
+const WITHDRAWAL_FEE_BPS    = 300;     // 3.00% (basis points). Editable.
+// Lista blanca de bancos venezolanos para validación de Pago Móvil.
+const VENEZUELAN_BANKS = [
+  "Banesco", "BDV", "Banco de Venezuela", "Mercantil", "Provincial", "BBVA",
+  "Bicentenario", "BNC", "Banco Nacional de Crédito", "Banco del Tesoro",
+  "Venezuela", "Activo", "Plaza", "Caroní", "Exterior", "Banplus",
+  "100% Banco", "Sofitasa", "Banfanb", "Tesoro", "Fondo Común", "Otro",
+];
+
 // Datos de cobro de LinkServi para los métodos manuales. En producción
 // se moverán a env vars; aquí los exponemos via /wallet/deposit/info para
 // que el frontend los muestre al usuario al iniciar la recarga.
@@ -70,6 +83,39 @@ async function ensureWallet(userId: number) {
     .where(eq(walletsTable.userId, userId))
     .limit(1);
   return row!;
+}
+
+/** Enriquecer una lista de wallet_transactions con nombre/email del
+ *  contraparte para movimientos type=transfer_in/transfer_out
+ *  (refType="user_transfer", refId=otherUserId). Hace UN solo query en
+ *  bulk para todos los IDs distintos. */
+async function enrichWithCounterparty<T extends {
+  type: string; refType: string | null; refId: number | null;
+}>(rows: T[]): Promise<Array<T & { counterparty?: { id: number; name: string; email: string } | null }>> {
+  const ids = new Set<number>();
+  for (const r of rows) {
+    if (r.refType === "user_transfer" && typeof r.refId === "number" &&
+        (r.type === "transfer_in" || r.type === "transfer_out")) {
+      ids.add(r.refId);
+    }
+  }
+  type CP = { id: number; name: string; email: string };
+  if (ids.size === 0) {
+    return rows.map((r) => ({ ...r, counterparty: null as CP | null }));
+  }
+  const users = await db
+    .select({ id: usersTable.id, name: usersTable.name, email: usersTable.email })
+    .from(usersTable)
+    .where(inArray(usersTable.id, Array.from(ids)));
+  const byId = new Map<number, CP>(users.map((u: CP) => [u.id, u]));
+  return rows.map((r) => ({
+    ...r,
+    counterparty:
+      r.refType === "user_transfer" && typeof r.refId === "number" &&
+      (r.type === "transfer_in" || r.type === "transfer_out")
+        ? (byId.get(r.refId) ?? null)
+        : null,
+  }));
 }
 
 /** Suma de transferencias salientes en las últimas 24h (en centavos).
@@ -120,6 +166,7 @@ router.get("/wallet/me", authenticate, async (req, res): Promise<void> => {
         .limit(20),
     ]);
 
+    const enrichedTx = await enrichWithCounterparty(recentTx);
     res.json({
       wallet: {
         balanceCents: wallet.balanceCents,
@@ -129,7 +176,7 @@ router.get("/wallet/me", authenticate, async (req, res): Promise<void> => {
         updatedAt: wallet.updatedAt,
         hasPin: !!wallet.pinHash,
       },
-      recentTransactions: recentTx,
+      recentTransactions: enrichedTx,
       activeHolds: activeHolds.map((h: typeof escrowHoldsTable.$inferSelect) => ({
         ...h,
         role: h.payerUserId === userId ? "payer" : "payee",
@@ -153,7 +200,8 @@ router.get("/wallet/transactions", authenticate, async (req, res): Promise<void>
       .where(eq(walletTransactionsTable.userId, userId))
       .orderBy(desc(walletTransactionsTable.createdAt))
       .limit(limit);
-    res.json({ transactions: rows });
+    const enriched = await enrichWithCounterparty(rows);
+    res.json({ transactions: enriched });
   } catch (err) {
     console.error("[wallet/transactions] error", err);
     res.status(500).json({ error: "No se pudieron cargar los movimientos" });
@@ -909,6 +957,524 @@ router.post("/admin/wallet/deposits/:id/reject", authenticate, async (req, res):
   } catch (err) {
     console.error("[admin/wallet/deposits/reject] error", err);
     res.status(500).json({ error: "No se pudo rechazar la recarga" });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RETIROS — el usuario saca dinero del LinkWallet a una cuenta bancaria.
+//
+// Por ahora solo Pago Móvil (BS). Comisión 3% configurable. Mínimo $5.
+//
+// Flujo:
+//   1. Usuario llama POST /wallet/withdraw con {amountCents, destinationData,
+//      pin}. Validamos PIN, debitamos el monto BRUTO (neto + comisión) del
+//      balance dentro de una transacción atómica, registramos la fila en
+//      wallet_withdrawals (status=pending) y dejamos un movimiento contable
+//      en wallet_transactions (type="withdrawal", refType="wallet_withdrawal").
+//   2. Admin ve la cola en GET /admin/wallet/withdrawals con todos los datos
+//      bancarios y hace la transferencia manual desde la cuenta operativa
+//      de LinkServi.
+//   3. Admin marca POST /admin/wallet/withdrawals/:id/complete cuando hizo
+//      la transferencia → notificamos al usuario.
+//   4. Si admin rechaza POST /admin/wallet/withdrawals/:id/reject →
+//      reembolsamos el monto bruto al balance del usuario y notificamos.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── GET /api/wallet/withdraw/info ──────────────────────────────────────────
+router.get("/wallet/withdraw/info", authenticate, async (_req, res): Promise<void> => {
+  res.json({
+    minUsd: MIN_WITHDRAWAL_CENTS / 100,
+    maxUsd: MAX_WITHDRAWAL_CENTS / 100,
+    feePct: WITHDRAWAL_FEE_BPS / 100,
+    methods: {
+      pago_movil: {
+        label: "Pago Móvil",
+        description: "Recibe en tu cuenta bancaria venezolana mediante Pago Móvil. Tarda hasta 24 horas hábiles.",
+        banks: VENEZUELAN_BANKS,
+      },
+    },
+  });
+});
+
+// ── POST /api/wallet/withdraw ──────────────────────────────────────────────
+router.post("/wallet/withdraw", authenticate, async (req, res): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const { amountCents, destinationData, pin, userNotes } = req.body ?? {};
+
+    // ── Idempotencia ────────────────────────────────────────────────────────
+    // Si el cliente reintenta (timeout, doble-click) con la misma
+    // Idempotency-Key, devolvemos el retiro ya creado en lugar de duplicar
+    // el cargo. Reutilizamos el índice parcial UNIQUE(user_id, idempotency_key)
+    // de wallet_transactions: el INSERT del movimiento dentro de la
+    // transacción fallará con 23505 si ya existe.
+    const idemHeader = req.header("Idempotency-Key") ?? req.header("idempotency-key");
+    const idemKey = typeof idemHeader === "string" && idemHeader.trim().length > 0 && idemHeader.length <= 200
+      ? idemHeader.trim()
+      : null;
+    if (idemKey) {
+      const [prevTx] = await db
+        .select()
+        .from(walletTransactionsTable)
+        .where(and(
+          eq(walletTransactionsTable.userId, userId),
+          eq(walletTransactionsTable.idempotencyKey, idemKey),
+        ))
+        .limit(1);
+      if (prevTx && prevTx.refType === "wallet_withdrawal" && prevTx.refId) {
+        const [prevW] = await db
+          .select()
+          .from(walletWithdrawalsTable)
+          .where(eq(walletWithdrawalsTable.id, prevTx.refId))
+          .limit(1);
+        if (prevW) {
+          res.json({
+            ok: true,
+            replayed: true,
+            withdrawal: {
+              id: prevW.id,
+              amountCents: prevW.amountCents,
+              feeCents: prevW.feeCents,
+              grossCents: prevW.grossCents,
+              status: prevW.status,
+              createdAt: prevW.createdAt,
+            },
+            message: "Retiro ya registrado.",
+          });
+          return;
+        }
+      }
+    }
+
+    // ── Validaciones de entrada ────────────────────────────────────────────
+    const amount = Number.isInteger(amountCents) ? amountCents : 0;
+    if (amount < MIN_WITHDRAWAL_CENTS) {
+      res.status(400).json({ error: `Monto mínimo $${(MIN_WITHDRAWAL_CENTS / 100).toFixed(2)}` });
+      return;
+    }
+    if (amount > MAX_WITHDRAWAL_CENTS) {
+      res.status(400).json({ error: `Monto máximo $${(MAX_WITHDRAWAL_CENTS / 100).toFixed(2)} por operación` });
+      return;
+    }
+    if (typeof pin !== "string" || !/^\d{4}$/.test(pin)) {
+      res.status(400).json({ error: "PIN de 4 dígitos requerido" });
+      return;
+    }
+    if (!destinationData || typeof destinationData !== "object") {
+      res.status(400).json({ error: "Datos bancarios requeridos" });
+      return;
+    }
+    const banco   = String(destinationData.banco   ?? "").trim();
+    const telefono = String(destinationData.telefono ?? "").trim().replace(/\s+/g, "");
+    const cedula   = String(destinationData.cedula   ?? "").trim().replace(/\s+/g, "");
+    const titular  = String(destinationData.titular  ?? "").trim();
+    if (!banco)   { res.status(400).json({ error: "Selecciona el banco" }); return; }
+    if (!/^0?4(12|14|16|24|26)\d{7}$/.test(telefono)) {
+      res.status(400).json({ error: "Teléfono Pago Móvil inválido (formato: 0414XXXXXXX)" });
+      return;
+    }
+    if (!/^[VEJG]?-?\d{6,9}$/i.test(cedula)) {
+      res.status(400).json({ error: "Cédula inválida (ej: V12345678)" });
+      return;
+    }
+    if (!titular || titular.length < 3) {
+      res.status(400).json({ error: "Nombre del titular requerido" });
+      return;
+    }
+    const cleanDestination = { banco, telefono, cedula, titular };
+
+    // Calcular fee y bruto.
+    const feeCents   = Math.ceil((amount * WITHDRAWAL_FEE_BPS) / 10000);
+    const grossCents = amount + feeCents;
+
+    // ── Validar PIN (fuera de tx para no mantener locks durante bcrypt) ────
+    const senderWallet = await ensureWallet(userId);
+    if (!senderWallet.pinHash) {
+      res.status(400).json({ error: "Debes configurar tu PIN antes de retirar" });
+      return;
+    }
+    if (senderWallet.pinLockedUntil && new Date(senderWallet.pinLockedUntil) > new Date()) {
+      res.status(423).json({
+        error: `PIN bloqueado por ${PIN_LOCK_MINUTES} minutos por intentos fallidos.`,
+      });
+      return;
+    }
+    const pinOk = await bcrypt.compare(pin, senderWallet.pinHash);
+    if (!pinOk) {
+      const lockMs = PIN_LOCK_MINUTES * 60_000;
+      const result = await db.execute(sql`
+        UPDATE wallets
+        SET
+          pin_failed_attempts = CASE
+            WHEN pin_failed_attempts + 1 >= ${MAX_PIN_ATTEMPTS} THEN 0
+            ELSE pin_failed_attempts + 1
+          END,
+          pin_locked_until = CASE
+            WHEN pin_failed_attempts + 1 >= ${MAX_PIN_ATTEMPTS}
+              THEN NOW() + (${lockMs} || ' milliseconds')::interval
+            ELSE pin_locked_until
+          END
+        WHERE user_id = ${userId}
+        RETURNING pin_locked_until, pin_failed_attempts
+      `);
+      const rows = (result.rows ?? result) as Array<{
+        pin_locked_until: string | null; pin_failed_attempts: number;
+      }>;
+      const row = rows[0];
+      const isLocked = !!row?.pin_locked_until && new Date(row.pin_locked_until) > new Date();
+      res.status(401).json({
+        error: isLocked
+          ? `PIN incorrecto. Bloqueado por ${PIN_LOCK_MINUTES} minutos.`
+          : `PIN incorrecto. Te quedan ${MAX_PIN_ATTEMPTS - (row?.pin_failed_attempts ?? 1)} intentos.`,
+      });
+      return;
+    }
+    // PIN ok: reset contador.
+    if ((senderWallet.pinFailedAttempts ?? 0) > 0 || senderWallet.pinLockedUntil) {
+      await db
+        .update(walletsTable)
+        .set({ pinFailedAttempts: 0, pinLockedUntil: null })
+        .where(eq(walletsTable.userId, userId));
+    }
+
+    // ── Transacción atómica: lock + check + debit + insert ─────────────────
+    let withdrawalRow: typeof walletWithdrawalsTable.$inferSelect;
+    try {
+      withdrawalRow = await db.transaction(async (tx) => {
+        const lockedW = await tx.execute(sql`
+          SELECT user_id, balance_cents, hold_cents
+          FROM wallets WHERE user_id = ${userId} FOR UPDATE
+        `);
+        const wRows = (lockedW.rows ?? lockedW) as Array<{
+          user_id: number; balance_cents: number; hold_cents: number;
+        }>;
+        const w = wRows[0];
+        if (!w) throw new Error("WALLET_NOT_FOUND");
+        if (w.balance_cents < grossCents) throw new Error("INSUFFICIENT_FUNDS");
+
+        const newBalance = w.balance_cents - grossCents;
+        await tx.update(walletsTable)
+          .set({ balanceCents: newBalance })
+          .where(eq(walletsTable.userId, userId));
+
+        const [wr] = await tx.insert(walletWithdrawalsTable).values({
+          userId,
+          amountCents: amount,
+          feeCents,
+          grossCents,
+          method: "pago_movil",
+          destinationData: cleanDestination,
+          status: "pending",
+          userNotes: typeof userNotes === "string" ? userNotes.trim().slice(0, 500) : null,
+        }).returning();
+
+        try {
+          await tx.insert(walletTransactionsTable).values({
+            userId,
+            type: "withdrawal",
+            amountCents: -grossCents,
+            balanceAfterCents: newBalance,
+            holdAfterCents: w.hold_cents,
+            refType: "wallet_withdrawal",
+            refId: wr.id,
+            description: `Solicitud de retiro Pago Móvil · ${cleanDestination.banco}`,
+            status: "pending",
+            idempotencyKey: idemKey,
+          });
+        } catch (e: any) {
+          // Conflicto con un reintento simultáneo que ya posteó el movimiento.
+          if (e?.code === "23505") throw new Error("IDEMPOTENT_REPLAY");
+          throw e;
+        }
+
+        return wr;
+      });
+    } catch (e: any) {
+      if (e?.message === "INSUFFICIENT_FUNDS") {
+        res.status(400).json({ error: "Saldo insuficiente para el retiro (incluye comisión)" });
+        return;
+      }
+      if (e?.message === "WALLET_NOT_FOUND") {
+        res.status(404).json({ error: "Billetera no encontrada" });
+        return;
+      }
+      if (e?.message === "IDEMPOTENT_REPLAY" && idemKey) {
+        // Carrera con otro retry: devolvemos el retiro ya creado.
+        const [prevTx] = await db
+          .select()
+          .from(walletTransactionsTable)
+          .where(and(
+            eq(walletTransactionsTable.userId, userId),
+            eq(walletTransactionsTable.idempotencyKey, idemKey),
+          ))
+          .limit(1);
+        if (prevTx?.refType === "wallet_withdrawal" && prevTx.refId) {
+          const [prevW] = await db
+            .select()
+            .from(walletWithdrawalsTable)
+            .where(eq(walletWithdrawalsTable.id, prevTx.refId))
+            .limit(1);
+          if (prevW) {
+            res.json({
+              ok: true, replayed: true,
+              withdrawal: {
+                id: prevW.id, amountCents: prevW.amountCents,
+                feeCents: prevW.feeCents, grossCents: prevW.grossCents,
+                status: prevW.status, createdAt: prevW.createdAt,
+              },
+              message: "Retiro ya registrado.",
+            });
+            return;
+          }
+        }
+        res.status(409).json({ error: "Retiro duplicado" });
+        return;
+      }
+      throw e;
+    }
+
+    res.json({
+      ok: true,
+      withdrawal: {
+        id: withdrawalRow.id,
+        amountCents: withdrawalRow.amountCents,
+        feeCents: withdrawalRow.feeCents,
+        grossCents: withdrawalRow.grossCents,
+        status: withdrawalRow.status,
+        createdAt: withdrawalRow.createdAt,
+      },
+      message: "Retiro solicitado. Te transferiremos en menos de 24 horas hábiles.",
+    });
+  } catch (err) {
+    console.error("[wallet/withdraw] error", err);
+    res.status(500).json({ error: "No se pudo registrar el retiro" });
+  }
+});
+
+// ── GET /api/wallet/withdrawals — historial del usuario ────────────────────
+router.get("/wallet/withdrawals", authenticate, async (req, res): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const limit = Math.min(Math.max(Number(req.query.limit) || 30, 1), 100);
+    const rows = await db
+      .select()
+      .from(walletWithdrawalsTable)
+      .where(eq(walletWithdrawalsTable.userId, userId))
+      .orderBy(desc(walletWithdrawalsTable.createdAt))
+      .limit(limit);
+    res.json({ withdrawals: rows });
+  } catch (err) {
+    console.error("[wallet/withdrawals] error", err);
+    res.status(500).json({ error: "No se pudieron cargar los retiros" });
+  }
+});
+
+// ── GET /api/wallet/recent-recipients ──────────────────────────────────────
+// Últimos 6 destinatarios distintos a los que el usuario ha transferido,
+// ordenados por la fecha del envío más reciente.
+router.get("/wallet/recent-recipients", authenticate, async (req, res): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const result = await db.execute(sql`
+      SELECT DISTINCT ON (u.id) u.id, u.name, u.email, t.created_at AS last_at
+      FROM wallet_transactions t
+      INNER JOIN users u ON u.id = t.ref_id
+      WHERE t.user_id = ${userId}
+        AND t.type = 'transfer_out'
+        AND t.ref_type = 'user_transfer'
+        AND t.status = 'posted'
+      ORDER BY u.id, t.created_at DESC
+    `);
+    const rows = (result.rows ?? result) as Array<{
+      id: number; name: string; email: string; last_at: string;
+    }>;
+    rows.sort((a, b) => new Date(b.last_at).getTime() - new Date(a.last_at).getTime());
+    res.json({
+      recipients: rows.slice(0, 6).map((r) => ({
+        id: r.id, name: r.name, email: r.email, lastAt: r.last_at,
+      })),
+    });
+  } catch (err) {
+    console.error("[wallet/recent-recipients] error", err);
+    res.status(500).json({ error: "No se pudieron cargar destinatarios recientes" });
+  }
+});
+
+// ── GET /api/admin/wallet/withdrawals ──────────────────────────────────────
+router.get("/admin/wallet/withdrawals", authenticate, async (req, res): Promise<void> => {
+  if (req.user!.role !== "admin") { res.status(403).json({ error: "Acceso denegado" }); return; }
+  try {
+    const rows = await db
+      .select({
+        w: walletWithdrawalsTable,
+        user: { id: usersTable.id, name: usersTable.name, email: usersTable.email, phone: usersTable.phone },
+      })
+      .from(walletWithdrawalsTable)
+      .innerJoin(usersTable, eq(walletWithdrawalsTable.userId, usersTable.id))
+      .orderBy(desc(walletWithdrawalsTable.createdAt))
+      .limit(500);
+    res.json(rows.map(({ w, user }) => ({
+      ...w,
+      userName: user.name,
+      userEmail: user.email,
+      userPhone: user.phone,
+    })));
+  } catch (err) {
+    console.error("[admin/wallet/withdrawals] error", err);
+    res.status(500).json({ error: "No se pudieron cargar los retiros" });
+  }
+});
+
+// ── POST /api/admin/wallet/withdrawals/:id/complete ────────────────────────
+router.post("/admin/wallet/withdrawals/:id/complete", authenticate, async (req, res): Promise<void> => {
+  if (req.user!.role !== "admin") { res.status(403).json({ error: "Acceso denegado" }); return; }
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) { res.status(400).json({ error: "ID inválido" }); return; }
+    const adminNotes = typeof req.body?.notes === "string" ? req.body.notes.trim().slice(0, 500) : null;
+
+    const updated = await db.transaction(async (tx) => {
+      const lockedRes = await tx.execute(sql`
+        SELECT id, status, user_id, amount_cents
+        FROM wallet_withdrawals WHERE id = ${id} FOR UPDATE
+      `);
+      const wRows = (lockedRes.rows ?? lockedRes) as Array<{
+        id: number; status: string; user_id: number; amount_cents: number;
+      }>;
+      const w = wRows[0];
+      if (!w) throw new Error("NOT_FOUND");
+      if (w.status !== "pending") throw new Error("ALREADY_PROCESSED");
+
+      await tx.update(walletWithdrawalsTable)
+        .set({
+          status: "completed",
+          adminNotes,
+          processedById: req.user!.id,
+          processedAt: new Date(),
+        })
+        .where(eq(walletWithdrawalsTable.id, id));
+
+      // Cambiar el movimiento contable de pending → posted.
+      await tx.update(walletTransactionsTable)
+        .set({ status: "posted" })
+        .where(and(
+          eq(walletTransactionsTable.refType, "wallet_withdrawal"),
+          eq(walletTransactionsTable.refId, id),
+        ));
+
+      return { userId: w.user_id, amountCents: w.amount_cents };
+    });
+
+    try {
+      await createNotification(
+        updated.userId,
+        "wallet_withdrawal_completed",
+        "Retiro completado",
+        `Transferimos $${(updated.amountCents / 100).toFixed(2)} a tu cuenta de Pago Móvil.${adminNotes ? ` Ref: ${adminNotes}` : ""}`,
+        undefined, undefined, "/wallet",
+      );
+    } catch (e) { console.warn("[withdraw/complete] notify error", e); }
+
+    res.json({ ok: true });
+  } catch (err: any) {
+    if (err?.message === "NOT_FOUND") { res.status(404).json({ error: "Retiro no encontrado" }); return; }
+    if (err?.message === "ALREADY_PROCESSED") {
+      res.status(409).json({ error: "Este retiro ya fue procesado" }); return;
+    }
+    console.error("[admin/wallet/withdrawals/complete] error", err);
+    res.status(500).json({ error: "No se pudo marcar como completado" });
+  }
+});
+
+// ── POST /api/admin/wallet/withdrawals/:id/reject ──────────────────────────
+// Reembolsa el monto BRUTO (incluyendo comisión) al balance del usuario.
+router.post("/admin/wallet/withdrawals/:id/reject", authenticate, async (req, res): Promise<void> => {
+  if (req.user!.role !== "admin") { res.status(403).json({ error: "Acceso denegado" }); return; }
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) { res.status(400).json({ error: "ID inválido" }); return; }
+    const adminNotes = typeof req.body?.notes === "string" ? req.body.notes.trim().slice(0, 500) : null;
+
+    const result = await db.transaction(async (tx) => {
+      const lockedRes = await tx.execute(sql`
+        SELECT id, status, user_id, gross_cents, amount_cents
+        FROM wallet_withdrawals WHERE id = ${id} FOR UPDATE
+      `);
+      const wRows = (lockedRes.rows ?? lockedRes) as Array<{
+        id: number; status: string; user_id: number; gross_cents: number; amount_cents: number;
+      }>;
+      const w = wRows[0];
+      if (!w) throw new Error("NOT_FOUND");
+      if (w.status !== "pending") throw new Error("ALREADY_PROCESSED");
+
+      // Lock + reembolso del bruto al balance.
+      const lockedW = await tx.execute(sql`
+        SELECT user_id, balance_cents, hold_cents
+        FROM wallets WHERE user_id = ${w.user_id} FOR UPDATE
+      `);
+      const wallRows = (lockedW.rows ?? lockedW) as Array<{
+        user_id: number; balance_cents: number; hold_cents: number;
+      }>;
+      const wall = wallRows[0];
+      if (!wall) throw new Error("WALLET_NOT_FOUND");
+
+      const newBalance = wall.balance_cents + w.gross_cents;
+      await tx.update(walletsTable)
+        .set({ balanceCents: newBalance })
+        .where(eq(walletsTable.userId, w.user_id));
+
+      // Marcar retiro como rechazado.
+      await tx.update(walletWithdrawalsTable)
+        .set({
+          status: "rejected",
+          adminNotes,
+          processedById: req.user!.id,
+          processedAt: new Date(),
+        })
+        .where(eq(walletWithdrawalsTable.id, id));
+
+      // El movimiento original queda como "void" + insertamos uno de reembolso.
+      await tx.update(walletTransactionsTable)
+        .set({ status: "void" })
+        .where(and(
+          eq(walletTransactionsTable.refType, "wallet_withdrawal"),
+          eq(walletTransactionsTable.refId, id),
+        ));
+      await tx.insert(walletTransactionsTable).values({
+        userId: w.user_id,
+        type: "refund",
+        amountCents: w.gross_cents,
+        balanceAfterCents: newBalance,
+        holdAfterCents: wall.hold_cents,
+        refType: "wallet_withdrawal",
+        refId: id,
+        description: `Reembolso de retiro rechazado${adminNotes ? `: ${adminNotes}` : ""}`,
+        status: "posted",
+      });
+
+      return { userId: w.user_id, amountCents: w.amount_cents };
+    });
+
+    try {
+      await createNotification(
+        result.userId,
+        "wallet_withdrawal_rejected",
+        "Retiro rechazado",
+        adminNotes
+          ? `No procesamos tu retiro: ${adminNotes}. Devolvimos el saldo a tu LinkWallet.`
+          : `Tu retiro fue rechazado y devolvimos el saldo a tu LinkWallet.`,
+        undefined, undefined, "/wallet",
+      );
+    } catch (e) { console.warn("[withdraw/reject] notify error", e); }
+
+    res.json({ ok: true });
+  } catch (err: any) {
+    if (err?.message === "NOT_FOUND") { res.status(404).json({ error: "Retiro no encontrado" }); return; }
+    if (err?.message === "ALREADY_PROCESSED") {
+      res.status(409).json({ error: "Este retiro ya fue procesado" }); return;
+    }
+    console.error("[admin/wallet/withdrawals/reject] error", err);
+    res.status(500).json({ error: "No se pudo rechazar el retiro" });
   }
 });
 

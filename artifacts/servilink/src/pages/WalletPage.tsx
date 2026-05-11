@@ -45,6 +45,7 @@ type WalletData = {
     createdAt: string;
     refType: string | null;
     refId: number | null;
+    counterparty?: { id: number; name: string; email: string } | null;
   }>;
   activeHolds: Array<{
     id: number;
@@ -92,6 +93,7 @@ export default function WalletPage() {
   const [error, setError] = useState<string>("");
   const [showTransfer, setShowTransfer] = useState(false);
   const [showRecharge, setShowRecharge] = useState(false);
+  const [showWithdraw, setShowWithdraw] = useState(false);
 
   async function load() {
     try {
@@ -194,16 +196,15 @@ export default function WalletPage() {
             Transferir
           </button>
           <button
-            disabled
-            className="flex flex-col items-center justify-center gap-1 border border-border text-foreground font-semibold py-3 rounded-xl opacity-60 cursor-not-allowed text-xs"
-            title="Próximamente"
+            onClick={() => setShowWithdraw(true)}
+            className="flex flex-col items-center justify-center gap-1 bg-primary text-primary-foreground font-semibold py-3 rounded-xl text-xs hover:bg-primary/90 transition"
           >
             <ArrowUpToLine className="w-4 h-4" />
             Retirar
           </button>
         </div>
         <p className="text-[11px] text-muted-foreground text-center -mt-2">
-          Recargas sin comisión. Las transferencias entre usuarios LinkServi también son gratis.
+          Recargas y transferencias entre usuarios LinkServi sin comisión. Retiros con 3% de comisión.
         </p>
 
         {/* Active holds */}
@@ -253,17 +254,35 @@ export default function WalletPage() {
             <div className="space-y-2">
               {data.recentTransactions.map((tx) => {
                 const positive = tx.amountCents >= 0;
+                // Para transferencias mostramos el nombre del otro lado de la
+                // operación: emisor en transfer_in, destinatario en transfer_out.
+                const counterpartyLine = tx.counterparty
+                  ? (tx.type === "transfer_in"
+                      ? `De ${tx.counterparty.name}`
+                      : tx.type === "transfer_out"
+                        ? `A ${tx.counterparty.name}`
+                        : null)
+                  : null;
                 return (
                   <div key={tx.id} className="flex items-center justify-between text-sm border-b border-border/50 last:border-0 pb-2 last:pb-0">
                     <div className="min-w-0">
                       <p className="text-foreground truncate">
                         {TYPE_LABELS[tx.type] ?? tx.type}
+                        {tx.status === "pending" ? (
+                          <span className="ml-2 text-[10px] uppercase tracking-wide text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">Pendiente</span>
+                        ) : null}
+                        {tx.status === "void" ? (
+                          <span className="ml-2 text-[10px] uppercase tracking-wide text-muted-foreground bg-muted px-1.5 py-0.5 rounded line-through">Anulada</span>
+                        ) : null}
                       </p>
+                      {counterpartyLine ? (
+                        <p className="text-xs text-foreground/80 truncate font-medium">{counterpartyLine}</p>
+                      ) : null}
                       <p className="text-xs text-muted-foreground truncate">
                         {tx.description || (tx.refType ? `${tx.refType} #${tx.refId}` : "")} · {fmtDate(tx.createdAt)}
                       </p>
                     </div>
-                    <div className={`font-semibold ${positive ? "text-emerald-400" : "text-red-400"}`}>
+                    <div className={`font-semibold ${tx.status === "void" ? "text-muted-foreground line-through" : positive ? "text-emerald-400" : "text-red-400"}`}>
                       {positive ? "+" : ""}{fmtUsd(tx.amountCents)}
                     </div>
                   </div>
@@ -299,6 +318,15 @@ export default function WalletPage() {
         <RechargeModal
           onClose={() => setShowRecharge(false)}
           onDone={() => { setShowRecharge(false); void load(); }}
+        />
+      ) : null}
+
+      {showWithdraw ? (
+        <WithdrawModal
+          balanceCents={data?.wallet.balanceCents ?? 0}
+          hasPin={!!data?.wallet.hasPin}
+          onClose={() => setShowWithdraw(false)}
+          onDone={() => { setShowWithdraw(false); void load(); }}
         />
       ) : null}
     </AppLayout>
@@ -664,6 +692,24 @@ function TransferModal({ balanceCents, hasPin, onClose, onDone }: TransferModalP
   const [needsPinSetup, setNeedsPinSetup] = useState(!hasPin);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+
+  // Destinatarios recientes (últimos 6 distintos a quienes este usuario ha
+  // enviado dinero). Mostramos chips para reenvío rápido.
+  const [recentRecipients, setRecentRecipients] = useState<Array<{ id: number; name: string; email: string }>>([]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch("/api/wallet/recent-recipients", {
+          credentials: "include",
+          headers: { ...getAuthHeader() },
+        });
+        const j = await r.json();
+        if (!cancelled && r.ok && Array.isArray(j.recipients)) setRecentRecipients(j.recipients);
+      } catch { /* silencio: chips son opcionales */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
   // Clave de idempotencia única por intento de transferencia: se genera al
   // pasar al paso "confirm" y se reutiliza en cada reintento del mismo monto
   // hacia el mismo destinatario, para que el servidor no duplique el cargo.
@@ -808,6 +854,35 @@ function TransferModal({ balanceCents, hasPin, onClose, onDone }: TransferModalP
 
         {step === "form" ? (
           <form onSubmit={handlePreview} className="space-y-3">
+            {recentRecipients.length > 0 ? (
+              <div>
+                <label className="block text-xs text-muted-foreground mb-1.5">Recientes</label>
+                <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+                  {recentRecipients.map((r) => {
+                    const initials = r.name
+                      .split(" ").filter(Boolean).slice(0, 2)
+                      .map((p) => p[0]?.toUpperCase() ?? "").join("");
+                    const active = email.trim().toLowerCase() === r.email.toLowerCase();
+                    return (
+                      <button
+                        key={r.id}
+                        type="button"
+                        onClick={() => setEmail(r.email)}
+                        className={`flex-shrink-0 flex flex-col items-center gap-1 px-2 py-2 rounded-xl border transition w-[72px] ${active ? "border-primary bg-primary/10" : "border-border bg-background hover:bg-muted/30"}`}
+                        title={r.email}
+                      >
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold ${active ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
+                          {initials || "?"}
+                        </div>
+                        <span className="text-[11px] text-foreground truncate w-full text-center leading-tight">
+                          {r.name.split(" ")[0]}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
             <div>
               <label className="block text-xs text-muted-foreground mb-1">Correo del destinatario</label>
               <input
@@ -920,6 +995,7 @@ function TransferModal({ balanceCents, hasPin, onClose, onDone }: TransferModalP
         ) : null}
 
         {step === "confirm" && preview ? (
+          /* ── Confirmar transferencia ── */
           <form onSubmit={handleConfirm} className="space-y-3">
             <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 space-y-1">
               <p className="text-xs text-muted-foreground">Vas a enviar</p>
@@ -967,6 +1043,284 @@ function TransferModal({ balanceCents, hasPin, onClose, onDone }: TransferModalP
             </div>
           </form>
         ) : null}
+      </div>
+    </div>
+  );
+}
+
+// ── Retirar modal ────────────────────────────────────────────────────────────
+type WithdrawModalProps = {
+  balanceCents: number;
+  hasPin: boolean;
+  onClose: () => void;
+  onDone: () => void;
+};
+
+type WithdrawInfo = {
+  minUsd: number;
+  maxUsd: number;
+  feePct: number;
+  methods: { pago_movil: { label: string; description: string; banks: string[] } };
+};
+
+function WithdrawModal({ balanceCents, hasPin, onClose, onDone }: WithdrawModalProps) {
+  // hasPin se usa solo para alertar arriba; el PIN real se valida en el
+  // backend al confirmar, igual que en TransferModal.
+  void hasPin;
+  const [info, setInfo] = useState<WithdrawInfo | null>(null);
+  const [step, setStep] = useState<"form" | "confirm" | "done">("form");
+  const [amount, setAmount] = useState("");
+  const [banco, setBanco] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [cedulaPrefix, setCedulaPrefix] = useState("V");
+  const [cedulaNum, setCedulaNum] = useState("");
+  const [titular, setTitular] = useState("");
+  const [pin, setPin] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  // Clave idempotente: se genera al pasar a "confirm" y se reutiliza en cada
+  // reintento para que doble-click o timeouts no dupliquen el cargo.
+  const [idemKey, setIdemKey] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch("/api/wallet/withdraw/info", {
+          credentials: "include", headers: { ...getAuthHeader() },
+        });
+        if (r.ok) setInfo(await r.json());
+      } catch { /* noop */ }
+    })();
+  }, []);
+
+  const amountUsd   = parseFloat(amount.replace(",", "."));
+  const amountCents = Number.isFinite(amountUsd) ? Math.round(amountUsd * 100) : 0;
+  const minUsd = info?.minUsd ?? 5;
+  const maxUsd = info?.maxUsd ?? 500;
+  const feePct = info?.feePct ?? 3;
+  const feeCents   = Math.ceil((amountCents * Math.round(feePct * 100)) / 10000);
+  const grossCents = amountCents + feeCents;
+  const amountValid =
+    amountCents >= Math.round(minUsd * 100) &&
+    amountCents <= Math.round(maxUsd * 100) &&
+    grossCents <= balanceCents;
+
+  function handleNext(e: React.FormEvent) {
+    e.preventDefault();
+    setErr("");
+    if (amountCents < Math.round(minUsd * 100)) {
+      setErr(`Monto mínimo $${minUsd.toFixed(2)}`); return;
+    }
+    if (amountCents > Math.round(maxUsd * 100)) {
+      setErr(`Monto máximo $${maxUsd.toFixed(0)} por operación`); return;
+    }
+    if (grossCents > balanceCents) {
+      setErr(`Saldo insuficiente. El total a debitar es ${fmtUsd(grossCents)} (incluye comisión).`); return;
+    }
+    if (!banco) { setErr("Selecciona el banco"); return; }
+    if (!/^0?4(12|14|16|24|26)\d{7}$/.test(telefono.replace(/\s+/g, ""))) {
+      setErr("Teléfono Pago Móvil inválido (ej: 04141234567)"); return;
+    }
+    if (!/^\d{6,9}$/.test(cedulaNum)) {
+      setErr("Cédula inválida (entre 6 y 9 dígitos)"); return;
+    }
+    if (titular.trim().length < 3) {
+      setErr("Nombre completo del titular requerido"); return;
+    }
+    setIdemKey(
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `wd-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    );
+    setStep("confirm");
+  }
+
+  async function handleConfirm(e: React.FormEvent) {
+    e.preventDefault();
+    setErr("");
+    if (!/^\d{4}$/.test(pin)) { setErr("PIN de 4 dígitos requerido"); return; }
+    setBusy(true);
+    try {
+      const res = await fetch("/api/wallet/withdraw", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          ...(idemKey ? { "Idempotency-Key": idemKey } : {}),
+          ...getAuthHeader(),
+        },
+        body: JSON.stringify({
+          amountCents,
+          pin,
+          destinationData: {
+            banco,
+            telefono: telefono.replace(/\s+/g, ""),
+            cedula: `${cedulaPrefix}${cedulaNum}`,
+            titular: titular.trim(),
+          },
+        }),
+      });
+      const j = await res.json();
+      if (!res.ok) { setErr(j.error || "No se pudo procesar el retiro"); return; }
+      setStep("done");
+    } catch (e: any) {
+      setErr(e?.message || "Error de conexión");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-end md:items-center justify-center p-0 md:p-4" onClick={onClose}>
+      <div className="bg-card border border-border rounded-t-2xl md:rounded-2xl w-full max-w-md p-5 space-y-4 max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold flex items-center gap-2 text-foreground">
+            <ArrowUpToLine className="w-5 h-5 text-primary" />
+            {step === "done" ? "Retiro solicitado" : step === "confirm" ? "Confirmar retiro" : "Retirar dinero"}
+          </h2>
+          <button onClick={onClose} className="p-1 rounded hover:bg-muted text-muted-foreground">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <p className="text-xs text-muted-foreground">
+          Saldo disponible: <strong className="text-foreground">{fmtUsd(balanceCents)}</strong>
+        </p>
+
+        {err && (
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm">{err}</div>
+        )}
+
+        {step === "form" && info && (
+          <form onSubmit={handleNext} className="space-y-3">
+            <div className="bg-primary/10 border border-primary/30 rounded-xl p-3 text-xs text-foreground space-y-1">
+              <p className="font-semibold flex items-center gap-1.5">
+                <Smartphone className="w-3.5 h-3.5 text-primary" />
+                Pago Móvil — bolívares
+              </p>
+              <p className="text-muted-foreground">
+                {info.methods.pago_movil.description} Comisión {feePct.toFixed(2)}%.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1">Monto a recibir (USD)</label>
+              <input type="number" inputMode="decimal" step="0.01" min={minUsd} max={maxUsd}
+                value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="20.00"
+                className="w-full bg-background border border-border rounded-lg px-3 py-3 text-2xl font-semibold text-foreground text-center" />
+              <p className="text-[11px] text-muted-foreground mt-1 text-center">
+                Mínimo ${minUsd.toFixed(2)} — máximo ${maxUsd.toFixed(0)} por operación.
+              </p>
+            </div>
+
+            {amountCents > 0 && (
+              <div className="bg-muted/40 border border-border rounded-xl p-3 text-xs space-y-1">
+                <div className="flex justify-between"><span className="text-muted-foreground">Recibes</span><span className="font-medium text-foreground">{fmtUsd(amountCents)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Comisión ({feePct.toFixed(2)}%)</span><span className="font-medium text-amber-400">{fmtUsd(feeCents)}</span></div>
+                <div className="flex justify-between border-t border-border pt-1 mt-1"><span className="text-foreground font-semibold">Se debita de tu saldo</span><span className="font-bold text-foreground">{fmtUsd(grossCents)}</span></div>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1">Banco destino</label>
+              <select value={banco} onChange={(e) => setBanco(e.target.value)} required
+                className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground">
+                <option value="">Selecciona el banco</option>
+                {info.methods.pago_movil.banks.map((b) => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1">Teléfono Pago Móvil</label>
+              <input type="tel" inputMode="numeric" value={telefono}
+                onChange={(e) => setTelefono(e.target.value.replace(/[^\d]/g, "").slice(0, 11))}
+                placeholder="04141234567"
+                className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground"
+                required />
+            </div>
+
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1">Cédula del titular</label>
+              <div className="flex gap-2">
+                <select value={cedulaPrefix} onChange={(e) => setCedulaPrefix(e.target.value)}
+                  className="bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground">
+                  <option value="V">V</option><option value="E">E</option>
+                  <option value="J">J</option><option value="G">G</option>
+                </select>
+                <input type="text" inputMode="numeric" value={cedulaNum}
+                  onChange={(e) => setCedulaNum(e.target.value.replace(/[^\d]/g, "").slice(0, 9))}
+                  placeholder="12345678" required
+                  className="flex-1 bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1">Nombre del titular</label>
+              <input type="text" value={titular} onChange={(e) => setTitular(e.target.value)}
+                placeholder="Juan Pérez" maxLength={120} required
+                className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground" />
+            </div>
+
+            <button type="submit" disabled={!amountValid}
+              className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-xl disabled:opacity-50">
+              Continuar
+            </button>
+          </form>
+        )}
+
+        {step === "confirm" && (
+          <form onSubmit={handleConfirm} className="space-y-3">
+            <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 space-y-1.5">
+              <p className="text-xs text-muted-foreground">Vas a recibir</p>
+              <p className="text-3xl font-bold text-foreground">{fmtUsd(amountCents)}</p>
+              <p className="text-xs text-muted-foreground border-t border-border/50 pt-2 mt-2">
+                Se debita de tu saldo <strong className="text-foreground">{fmtUsd(grossCents)}</strong> (incluye comisión {fmtUsd(feeCents)}).
+              </p>
+            </div>
+            <div className="bg-muted/40 rounded-xl p-3 space-y-1 text-xs">
+              <div className="flex justify-between"><span className="text-muted-foreground">Banco</span><span className="font-medium text-foreground">{banco}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Teléfono</span><span className="font-medium text-foreground">{telefono}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Cédula</span><span className="font-medium text-foreground">{cedulaPrefix}{cedulaNum}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Titular</span><span className="font-medium text-foreground">{titular}</span></div>
+            </div>
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1">Tu PIN de billetera (4 dígitos)</label>
+              <input type="password" inputMode="numeric" pattern="\d{4}" maxLength={4}
+                value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+                autoFocus required
+                className="w-full bg-background border border-border rounded-lg px-3 py-3 text-center text-2xl tracking-[0.5em] text-foreground" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => { setStep("form"); setPin(""); }} disabled={busy}
+                className="border border-border text-foreground font-medium py-3 rounded-xl disabled:opacity-50">
+                Atrás
+              </button>
+              <button type="submit" disabled={busy || pin.length !== 4}
+                className="bg-primary text-primary-foreground font-semibold py-3 rounded-xl disabled:opacity-50">
+                {busy ? "Procesando…" : "Solicitar retiro"}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {step === "done" && (
+          <div className="text-center space-y-3 py-2">
+            <CheckCircle2 className="w-14 h-14 text-emerald-400 mx-auto" />
+            <h3 className="text-lg font-bold text-foreground">Retiro en proceso</h3>
+            <p className="text-sm text-muted-foreground">
+              Recibirás <strong className="text-foreground">{fmtUsd(amountCents)}</strong> en tu Pago Móvil
+              <br />de <strong className="text-foreground">{banco}</strong> en menos de 24 horas hábiles.
+              Te avisaremos cuando hagamos la transferencia.
+            </p>
+            <button onClick={onDone}
+              className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-xl mt-2">
+              Entendido
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
