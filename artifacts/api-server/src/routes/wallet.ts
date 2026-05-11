@@ -164,6 +164,10 @@ router.get("/wallet/transactions", authenticate, async (req, res): Promise<void>
 router.get("/wallet/pin/status", authenticate, async (req, res): Promise<void> => {
   try {
     const wallet = await ensureWallet(req.user!.id);
+    const [user] = await db
+      .select({ provider: usersTable.provider })
+      .from(usersTable)
+      .where(eq(usersTable.id, req.user!.id));
     const lockedUntil = wallet.pinLockedUntil ? new Date(wallet.pinLockedUntil) : null;
     const isLocked = !!lockedUntil && lockedUntil > new Date();
     res.json({
@@ -171,6 +175,9 @@ router.get("/wallet/pin/status", authenticate, async (req, res): Promise<void> =
       isLocked,
       lockedUntil: isLocked ? lockedUntil!.toISOString() : null,
       failedAttempts: wallet.pinFailedAttempts,
+      // Para que el frontend sepa si debe pedir contraseña al configurar el PIN.
+      // Usuarios OAuth (Google) no tienen contraseña real.
+      isOAuthUser: !!user && user.provider !== "email",
     });
   } catch (err) {
     console.error("[wallet/pin/status] error", err);
@@ -182,13 +189,15 @@ router.get("/wallet/pin/status", authenticate, async (req, res): Promise<void> =
 // Para crear o cambiar el PIN, exigimos la contraseña de la cuenta. Esto
 // evita que alguien con sesión robada en un café internet le cambie el PIN
 // y vacíe la billetera.
+//
+// Excepción: usuarios que entraron con Google (u otro proveedor OAuth) NO
+// tienen contraseña — al registrarse les guardamos un placeholderHash
+// aleatorio que nadie conoce nunca. Para ellos saltamos la verificación de
+// password (su identidad ya está probada por la sesión OAuth activa) y
+// permitimos crear el PIN solo con la sesión.
 router.post("/wallet/pin/set", authenticate, async (req, res): Promise<void> => {
   try {
     const { password, pin } = req.body ?? {};
-    if (typeof password !== "string" || !password) {
-      res.status(400).json({ error: "Contraseña de la cuenta requerida" });
-      return;
-    }
     if (typeof pin !== "string" || !/^\d{4}$/.test(pin)) {
       res.status(400).json({ error: "El PIN debe ser de exactamente 4 dígitos" });
       return;
@@ -196,8 +205,20 @@ router.post("/wallet/pin/set", authenticate, async (req, res): Promise<void> => 
 
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, req.user!.id));
     if (!user) { res.status(404).json({ error: "Usuario no encontrado" }); return; }
-    const ok = await comparePassword(password, user.passwordHash);
-    if (!ok) { res.status(401).json({ error: "Contraseña incorrecta" }); return; }
+
+    const isOAuthUser = user.provider !== "email";
+
+    if (!isOAuthUser) {
+      // Usuario clásico email+contraseña: exigir contraseña real.
+      if (typeof password !== "string" || !password) {
+        res.status(400).json({ error: "Contraseña de la cuenta requerida" });
+        return;
+      }
+      const ok = await comparePassword(password, user.passwordHash);
+      if (!ok) { res.status(401).json({ error: "Contraseña incorrecta" }); return; }
+    }
+    // Usuario OAuth (Google, etc.): la sesión ya prueba su identidad — no
+    // tiene una contraseña que nosotros podamos verificar.
 
     const pinHash = await bcrypt.hash(pin, 10);
     await ensureWallet(req.user!.id);

@@ -639,6 +639,23 @@ type TransferModalProps = {
 
 function TransferModal({ balanceCents, hasPin, onClose, onDone }: TransferModalProps) {
   const [step, setStep] = useState<"form" | "confirm" | "pin-setup">(hasPin ? "form" : "form");
+  // Detectamos si el usuario entró con Google. En ese caso NO le pedimos
+  // contraseña al configurar el PIN porque nunca la tuvo.
+  const [isOAuthUser, setIsOAuthUser] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch("/api/wallet/pin/status", {
+          credentials: "include",
+          headers: { ...getAuthHeader() },
+        });
+        const j = await r.json();
+        if (!cancelled && r.ok) setIsOAuthUser(!!j.isOAuthUser);
+      } catch { /* silencio: caemos al flujo con contraseña */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
   const [email, setEmail] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
@@ -698,14 +715,19 @@ function TransferModal({ balanceCents, hasPin, onClose, onDone }: TransferModalP
     setErr("");
     if (!/^\d{4}$/.test(pinNew)) { setErr("El PIN debe ser de 4 dígitos"); return; }
     if (pinNew !== pinConfirm) { setErr("Los PINs no coinciden"); return; }
-    if (!pinPassword) { setErr("Confirma tu contraseña"); return; }
+    // Solo exigimos contraseña si el usuario tiene una real (login email).
+    if (!isOAuthUser && !pinPassword) { setErr("Confirma tu contraseña"); return; }
     setBusy(true);
     try {
       const res = await fetch("/api/wallet/pin/set", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json", ...getAuthHeader() },
-        body: JSON.stringify({ password: pinPassword, pin: pinNew }),
+        body: JSON.stringify(
+          isOAuthUser
+            ? { pin: pinNew }
+            : { password: pinPassword, pin: pinNew },
+        ),
       });
       const j = await res.json();
       if (!res.ok) { setErr(j.error || "No se pudo guardar el PIN"); return; }
@@ -839,19 +861,26 @@ function TransferModal({ balanceCents, hasPin, onClose, onDone }: TransferModalP
           <form onSubmit={handleSetupPin} className="space-y-3">
             <div className="bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-lg p-3 text-xs flex items-start gap-2">
               <KeyRound className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span>Es la primera vez que mueves dinero en LinkWallet. Crea un PIN de 4 dígitos para autorizar esta y futuras transferencias.</span>
+              <span>
+                Es la primera vez que mueves dinero en LinkWallet. Crea un PIN de 4 dígitos para autorizar esta y futuras transferencias.
+                {isOAuthUser ? (
+                  <> Como entraste con Google, no necesitas contraseña — tu sesión ya confirma tu identidad.</>
+                ) : null}
+              </span>
             </div>
-            <div>
-              <label className="block text-xs text-muted-foreground mb-1">Tu contraseña de LinkServi</label>
-              <input
-                type="password"
-                value={pinPassword}
-                onChange={(e) => setPinPassword(e.target.value)}
-                autoComplete="current-password"
-                className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground"
-                required
-              />
-            </div>
+            {!isOAuthUser ? (
+              <div>
+                <label className="block text-xs text-muted-foreground mb-1">Tu contraseña de LinkServi</label>
+                <input
+                  type="password"
+                  value={pinPassword}
+                  onChange={(e) => setPinPassword(e.target.value)}
+                  autoComplete="current-password"
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground"
+                  required
+                />
+              </div>
+            ) : null}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs text-muted-foreground mb-1">Nuevo PIN (4 dígitos)</label>
