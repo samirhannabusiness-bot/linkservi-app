@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { Car, MapPin, Loader2, Navigation, RefreshCw } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useGeolocation, formatDistance } from "@/hooks/useGeolocation";
 import { useAuth } from "@/lib/auth-context";
 import { getSocket, joinRoom, leaveRoom } from "@/lib/socket";
-import { loadMapsLib, loadMarkerLib, DARK_MAP_STYLE } from "@/lib/google-maps";
+import { StaticMapCanvas } from "@/components/ui/StaticMapCanvas";
+import { CARACAS_CENTER, GPS_ZOOM } from "@/lib/static-maps";
 
 interface NearbyDriver {
   driverId: number;
@@ -24,29 +25,16 @@ interface RideResponse {
   driversNotified?: number;
 }
 
-const CARACAS = { lat: 10.4806, lng: -66.9036 };
-
 function injectStyles() {
+  if (typeof document === "undefined") return;
   if (document.getElementById("transport-map-styles")) return;
   const s = document.createElement("style");
   s.id = "transport-map-styles";
-  s.textContent = `@keyframes tmap-spin{to{transform:rotate(360deg)}}`;
+  s.textContent = `
+    @keyframes tmap-spin{to{transform:rotate(360deg)}}
+    @keyframes tmap-pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.6);opacity:0}}
+  `;
   document.head.appendChild(s);
-}
-
-function buildUserMarkerEl(): HTMLDivElement {
-  const el = document.createElement("div");
-  el.style.cssText =
-    "width:20px;height:20px;border-radius:50%;background:#38bdf8;box-shadow:0 0 0 6px rgba(56,189,248,0.25);border:2px solid white;";
-  return el;
-}
-
-function buildDriverMarkerEl(): HTMLDivElement {
-  const el = document.createElement("div");
-  el.style.cssText =
-    "width:36px;height:36px;border-radius:50%;background:#0f172a;border:2px solid #38bdf8;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:pointer;";
-  el.innerHTML = "🚗";
-  return el;
 }
 
 export function TransportRequestPage() {
@@ -59,115 +47,13 @@ export function TransportRequestPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeRideId, setActiveRideId] = useState<number | null>(null);
-  const [mapReady, setMapReady] = useState(false);
 
-  const mapDivRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const userMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
-  const driverMarkersRef = useRef<Map<number, google.maps.marker.AdvancedMarkerElement>>(new Map());
+  useEffect(() => { injectStyles(); }, []);
 
   const center = useMemo(() => {
     if (position) return { lat: position.lat, lng: position.lng };
-    return CARACAS;
+    return CARACAS_CENTER;
   }, [position]);
-
-  // ── Init map once ─────────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!mapDivRef.current) return;
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    if (!apiKey) return;
-
-    injectStyles();
-    let destroyed = false;
-
-    (async () => {
-      try {
-        const [{ Map }, { AdvancedMarkerElement }] = await Promise.all([
-          loadMapsLib(),
-          loadMarkerLib(),
-        ]);
-        if (destroyed || !mapDivRef.current) return;
-
-        const map = new Map(mapDivRef.current, {
-          center,
-          zoom: 13,
-          mapId: "DEMO_MAP_ID",
-          disableDefaultUI: true,
-          zoomControl: true,
-          zoomControlOptions: { position: 9 },
-          gestureHandling: "greedy",
-          styles: DARK_MAP_STYLE,
-        });
-
-        mapRef.current = map;
-        if (!destroyed) setMapReady(true);
-      } catch {
-        /* map unavailable */
-      }
-    })();
-
-    return () => {
-      destroyed = true;
-      driverMarkersRef.current.forEach(m => { m.map = null; });
-      driverMarkersRef.current.clear();
-      if (userMarkerRef.current) { userMarkerRef.current.map = null; userMarkerRef.current = null; }
-      mapRef.current = null;
-      setMapReady(false);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // ── Pan + user marker when position arrives ───────────────────────────────────
-  useEffect(() => {
-    if (!position || !mapRef.current) return;
-    mapRef.current.panTo({ lat: position.lat, lng: position.lng });
-    mapRef.current.setZoom(14);
-
-    loadMarkerLib().then(({ AdvancedMarkerElement }) => {
-      if (userMarkerRef.current) { userMarkerRef.current.map = null; userMarkerRef.current = null; }
-      const map = mapRef.current;
-      if (!map) return;
-      userMarkerRef.current = new AdvancedMarkerElement({
-        map,
-        position: { lat: position.lat, lng: position.lng },
-        content: buildUserMarkerEl(),
-        title: "Mi ubicación",
-        zIndex: 9999,
-      });
-    });
-  }, [position]);
-
-  // ── Driver markers ────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    loadMarkerLib().then(({ AdvancedMarkerElement }) => {
-      const seen = new Set<number>();
-      drivers.forEach((d) => {
-        seen.add(d.driverId);
-        const existing = driverMarkersRef.current.get(d.driverId);
-        if (existing) {
-          existing.position = { lat: d.lat, lng: d.lng };
-        } else {
-          const m = new AdvancedMarkerElement({
-            map,
-            position: { lat: d.lat, lng: d.lng },
-            content: buildDriverMarkerEl(),
-            title: d.name,
-          });
-          driverMarkersRef.current.set(d.driverId, m);
-        }
-      });
-
-      driverMarkersRef.current.forEach((m, id) => {
-        if (!seen.has(id)) {
-          m.map = null;
-          driverMarkersRef.current.delete(id);
-        }
-      });
-    });
-  }, [drivers]);
 
   // ── Fetch nearby drivers ──────────────────────────────────────────────────────
   const fetchNearby = async () => {
@@ -276,13 +162,64 @@ export function TransportRequestPage() {
 
   return (
     <div className="relative h-[calc(100vh-64px)] w-full overflow-hidden">
-      <div ref={mapDivRef} className="absolute inset-0" />
+      <StaticMapCanvas
+        centerLat={center.lat}
+        centerLng={center.lng}
+        zoom={position ? 14 : GPS_ZOOM}
+        dark
+        className="absolute inset-0"
+        style={{ width: "100%", height: "100%" }}
+        loadingFallback={
+          <div className="absolute inset-0 bg-[#040c1a] flex items-center justify-center">
+            <div style={{ width: 32, height: 32, border: "3px solid #38bdf8", borderTopColor: "transparent", borderRadius: "50%", animation: "tmap-spin 0.8s linear infinite" }} />
+          </div>
+        }
+        fallback={
+          <div className="absolute inset-0 flex items-center justify-center text-white/60 text-sm p-4 text-center">
+            Mapa no disponible. Puedes seguir solicitando un viaje.
+          </div>
+        }
+      >
+        {(project) => (
+          <>
+            {/* User location pulse */}
+            {position && (() => {
+              const p = project(position.lat, position.lng);
+              return (
+                <div style={{ position: "absolute", left: p.x - 12, top: p.y - 12, width: 24, height: 24, pointerEvents: "none", zIndex: 50 }}>
+                  <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "rgba(56,189,248,.3)", animation: "tmap-pulse 2s ease-out infinite" }} />
+                  <div style={{ position: "absolute", inset: 4, borderRadius: "50%", background: "#38bdf8", border: "2px solid #fff", boxShadow: "0 0 10px rgba(56,189,248,.9)" }} />
+                </div>
+              );
+            })()}
 
-      {!mapReady && (
-        <div className="absolute inset-0 bg-[#040c1a] flex items-center justify-center">
-          <div style={{ width: 32, height: 32, border: "3px solid #38bdf8", borderTopColor: "transparent", borderRadius: "50%", animation: "tmap-spin 0.8s linear infinite" }} />
-        </div>
-      )}
+            {/* Driver markers */}
+            {drivers.map((d) => {
+              const p = project(d.lat, d.lng);
+              return (
+                <div
+                  key={d.driverId}
+                  title={d.name}
+                  style={{
+                    position: "absolute",
+                    left: p.x - 18, top: p.y - 18,
+                    width: 36, height: 36, borderRadius: "50%",
+                    background: "#0f172a",
+                    border: "2px solid #38bdf8",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 18,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+                    cursor: "pointer",
+                    zIndex: 100,
+                  }}
+                >
+                  🚗
+                </div>
+              );
+            })}
+          </>
+        )}
+      </StaticMapCanvas>
 
       <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between">
         <div className="glass rounded-2xl px-4 py-2 flex items-center gap-2 text-white">

@@ -1,83 +1,18 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { MarkerClusterer } from "@googlemaps/markerclusterer";
-import { loadMapsLib, loadMarkerLib } from "@/lib/google-maps";
-import { Star, MapPin, CheckCircle, X, ChevronRight, Clock } from "lucide-react";
-
-const CARACAS_CENTER = { lat: 10.4806, lng: -66.9036 };
-const CARACAS_ZOOM = 10;
-const GPS_ZOOM = 13;
-
-function injectStyles() {
-  if (document.getElementById("wmap-styles")) return;
-  const s = document.createElement("style");
-  s.id = "wmap-styles";
-  s.textContent = `
-    @keyframes wmap-pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.8);opacity:0}}
-    @keyframes wmap-popup{from{opacity:0;transform:scale(.94) translateY(-8px)}to{opacity:1;transform:scale(1) translateY(0)}}
-    @keyframes wmap-spin{to{transform:rotate(360deg)}}
-  `;
-  document.head.appendChild(s);
-}
-
-function buildGpsEl(): HTMLDivElement {
-  injectStyles();
-  const w = document.createElement("div");
-  w.style.cssText = "position:relative;width:24px;height:24px";
-  const ring = document.createElement("div");
-  ring.style.cssText =
-    "position:absolute;inset:0;border-radius:50%;background:rgba(59,130,246,.28);animation:wmap-pulse 2s ease-out infinite";
-  const dot = document.createElement("div");
-  dot.style.cssText =
-    "position:absolute;inset:4px;border-radius:50%;background:#3b82f6;border:2px solid #fff;box-shadow:0 0 10px rgba(59,130,246,.9)";
-  w.appendChild(ring);
-  w.appendChild(dot);
-  return w;
-}
-
-function buildWorkerEl(initial: string, isAvailable: boolean, isVerified: boolean): HTMLDivElement {
-  injectStyles();
-  const outer = document.createElement("div");
-  outer.style.cssText = "position:relative;width:44px;height:44px;cursor:pointer";
-
-  const circle = document.createElement("div");
-  circle.style.cssText = `
-    width:44px;height:44px;border-radius:50%;
-    background:${isAvailable ? "#1e3a5f" : "#1e293b"};
-    border:3px solid ${isVerified ? "#0ea5e9" : "#94a3b8"};
-    display:flex;align-items:center;justify-content:center;
-    font-size:16px;font-weight:800;
-    color:${isAvailable && isVerified ? "#38bdf8" : "#cbd5e1"};
-    box-shadow:0 4px 12px rgba(0,0,0,.35);
-  `;
-  circle.textContent = initial;
-
-  if (isAvailable) {
-    const dot = document.createElement("div");
-    dot.style.cssText =
-      "position:absolute;bottom:2px;right:2px;width:11px;height:11px;border-radius:50%;background:#10b981;border:2px solid #fff";
-    outer.appendChild(dot);
-  }
-
-  outer.appendChild(circle);
-  return outer;
-}
-
-function buildClusterEl(count: number): HTMLDivElement {
-  const bg = count >= 30 ? "#a855f7" : count >= 10 ? "#6366f1" : "#0ea5e9";
-  const size = count >= 30 ? 52 : count >= 10 ? 46 : 38;
-  const el = document.createElement("div");
-  el.style.cssText = `
-    display:flex;align-items:center;justify-content:center;
-    width:${size}px;height:${size}px;border-radius:50%;
-    background:${bg};color:#fff;font-size:13px;font-weight:800;
-    border:2.5px solid #fff;
-    box-shadow:0 4px 14px rgba(99,102,241,.4);
-    cursor:pointer;
-  `;
-  el.textContent = count > 99 ? "99+" : String(count);
-  return el;
-}
+import { Star, MapPin, CheckCircle, X, ChevronRight, Clock, Plus, Minus } from "lucide-react";
+import {
+  CARACAS_CENTER,
+  CITY_ZOOM,
+  GPS_ZOOM,
+  buildStaticMapUrl,
+  clampMapSize,
+  coverTransform,
+  fanOutOverlappingPoints,
+  hasApiKey,
+  latLngToPixel,
+  useContainerSize,
+} from "@/lib/static-maps";
 
 interface Worker {
   id: number;
@@ -99,6 +34,55 @@ interface WorkerMapProps {
   onRequestLocation?: () => void;
 }
 
+const MIN_ZOOM = 8;
+const MAX_ZOOM = 18;
+
+function injectStyles() {
+  if (typeof document === "undefined") return;
+  if (document.getElementById("wmap-static-styles")) return;
+  const s = document.createElement("style");
+  s.id = "wmap-static-styles";
+  s.textContent = `
+    @keyframes wmaps-pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.8);opacity:0}}
+    @keyframes wmaps-popup{from{opacity:0;transform:scale(.94) translateY(-8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    @keyframes wmaps-spin{to{transform:rotate(360deg)}}
+  `;
+  document.head.appendChild(s);
+}
+
+function WorkerPin({
+  worker,
+  onClick,
+}: {
+  worker: Worker;
+  onClick: (e: React.MouseEvent) => void;
+}) {
+  const initial = worker.name.charAt(0).toUpperCase();
+  return (
+    <div
+      onClick={onClick}
+      style={{ position: "relative", width: 44, height: 44, cursor: "pointer", userSelect: "none" }}
+    >
+      <div
+        style={{
+          width: 44, height: 44, borderRadius: "50%",
+          background: worker.isAvailable ? "#1e3a5f" : "#1e293b",
+          border: `3px solid ${worker.isVerified ? "#0ea5e9" : "#94a3b8"}`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 16, fontWeight: 800,
+          color: worker.isAvailable && worker.isVerified ? "#38bdf8" : "#cbd5e1",
+          boxShadow: "0 4px 12px rgba(0,0,0,.35)",
+        }}
+      >
+        {initial}
+      </div>
+      {worker.isAvailable && (
+        <div style={{ position: "absolute", bottom: 2, right: 2, width: 11, height: 11, borderRadius: "50%", background: "#10b981", border: "2px solid #fff" }} />
+      )}
+    </div>
+  );
+}
+
 function WorkerCard({
   worker, onClose, onNavigate,
 }: { worker: Worker; onClose: () => void; onNavigate: () => void; }) {
@@ -110,7 +94,7 @@ function WorkerCard({
         background: "rgba(255,255,255,0.97)", borderRadius: 16, overflow: "hidden",
         boxShadow: "0 20px 60px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.06)",
         backdropFilter: "blur(16px)",
-        animation: "wmap-popup .2s cubic-bezier(.34,1.56,.64,1)",
+        animation: "wmaps-popup .2s cubic-bezier(.34,1.56,.64,1)",
       }}
     >
       <div style={{
@@ -166,182 +150,69 @@ function WorkerCard({
 export function WorkerMap({ workers, height = "400px", centerLat, centerLng, onRequestLocation }: WorkerMapProps) {
   const [, navigate] = useLocation();
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const gpsMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
-  const markersRef = useRef<Map<number, google.maps.marker.AdvancedMarkerElement>>(new Map());
-  const clustererRef = useRef<MarkerClusterer | null>(null);
-  const [ready, setReady] = useState(false);
-  const [mapError, setMapError] = useState(false);
-  const [locating, setLocating] = useState(false);
+  const { w: containerW, h: containerH } = useContainerSize(containerRef);
+
   const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
+  const [imgError, setImgError] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [locating, setLocating] = useState(false);
 
   const hasGps = typeof centerLat === "number" && typeof centerLng === "number";
-  const workersRef = useRef<Worker[]>(workers);
-  workersRef.current = workers;
 
-  // ── Init map ──────────────────────────────────────────────────────────────────
+  const [mapCenterLat, setMapCenterLat] = useState<number>(hasGps ? centerLat! : CARACAS_CENTER.lat);
+  const [mapCenterLng, setMapCenterLng] = useState<number>(hasGps ? centerLng! : CARACAS_CENTER.lng);
+  const [zoom, setZoom] = useState<number>(hasGps ? GPS_ZOOM : CITY_ZOOM);
+
+  // Recenter when external GPS changes
   useEffect(() => {
-    if (!containerRef.current) return;
-    const HIDE_POI_STYLES: google.maps.MapTypeStyle[] = [
-      { featureType: "poi", stylers: [{ visibility: "off" }] },
-      { featureType: "poi.business", stylers: [{ visibility: "off" }] },
-      { featureType: "transit", stylers: [{ visibility: "off" }] },
-      { featureType: "transit.station", stylers: [{ visibility: "off" }] },
-    ];
-
-    injectStyles();
-    let destroyed = false;
-
-    (async () => {
-      try {
-        const [{ Map }, { AdvancedMarkerElement }] = await Promise.all([
-          loadMapsLib(),
-          loadMarkerLib(),
-        ]);
-        if (destroyed || !containerRef.current) return;
-
-        const map = new Map(containerRef.current, {
-          center: hasGps ? { lat: centerLat!, lng: centerLng! } : CARACAS_CENTER,
-          zoom: hasGps ? GPS_ZOOM : CARACAS_ZOOM,
-          mapId: "DEMO_MAP_ID",
-          disableDefaultUI: true,
-          zoomControl: true,
-          zoomControlOptions: { position: 9 },
-          gestureHandling: "greedy",
-          clickableIcons: false,
-          styles: HIDE_POI_STYLES,
-        } as google.maps.MapOptions);
-
-        map.addListener("click", () => setSelectedWorker(null));
-
-        // Create worker markers
-        const markers: google.maps.marker.AdvancedMarkerElement[] = [];
-        for (const w of workersRef.current) {
-          if (w.lat == null || w.lng == null) continue;
-          const el = buildWorkerEl(w.name.charAt(0).toUpperCase(), w.isAvailable, w.isVerified);
-          const m = new AdvancedMarkerElement({
-            position: { lat: w.lat, lng: w.lng },
-            content: el,
-            title: w.name,
-          });
-          m.addListener("click", () => {
-            const worker = workersRef.current.find(x => x.id === w.id) ?? null;
-            setSelectedWorker(worker);
-            if (worker?.lat != null && worker?.lng != null) {
-              map.panTo({ lat: worker.lat!, lng: worker.lng! });
-              if ((map.getZoom() ?? 0) < 13) map.setZoom(13);
-              map.panBy(-60, 0);
-            }
-          });
-          markersRef.current.set(w.id, m);
-          markers.push(m);
-        }
-
-        const clusterer = new MarkerClusterer({
-          map,
-          markers,
-          renderer: {
-            render: ({ count, position }) => new AdvancedMarkerElement({
-              position,
-              content: buildClusterEl(count),
-              zIndex: 1000 + count,
-            }),
-          },
-        });
-        clusterer.addListener("click", (cluster: { markers?: google.maps.marker.AdvancedMarkerElement[] }) => {
-          if (cluster.markers?.length) {
-            const bounds = new google.maps.LatLngBounds();
-            cluster.markers.forEach(m => { if (m.position) bounds.extend(m.position); });
-            map.fitBounds(bounds, 80);
-          }
-        });
-
-        clustererRef.current = clusterer;
-        mapRef.current = map;
-        if (!destroyed) setReady(true);
-      } catch {
-        if (!destroyed) setMapError(true);
-      }
-    })();
-
-    return () => {
-      destroyed = true;
-      clustererRef.current?.clearMarkers();
-      clustererRef.current?.setMap(null);
-      clustererRef.current = null;
-      markersRef.current.forEach(m => { m.map = null; });
-      markersRef.current.clear();
-      if (gpsMarkerRef.current) { gpsMarkerRef.current.map = null; gpsMarkerRef.current = null; }
-      mapRef.current = null;
-      setReady(false);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // ── Update markers when workers change ───────────────────────────────────────
-  useEffect(() => {
-    const map = mapRef.current;
-    const clusterer = clustererRef.current;
-    if (!map || !clusterer || !ready) return;
-
-    loadMarkerLib().then(({ AdvancedMarkerElement }) => {
-      clusterer.clearMarkers();
-      markersRef.current.forEach(m => { m.map = null; });
-      markersRef.current.clear();
-
-      const markers: google.maps.marker.AdvancedMarkerElement[] = [];
-      for (const w of workers) {
-        if (w.lat == null || w.lng == null) continue;
-        const el = buildWorkerEl(w.name.charAt(0).toUpperCase(), w.isAvailable, w.isVerified);
-        const m = new AdvancedMarkerElement({
-          position: { lat: w.lat, lng: w.lng },
-          content: el,
-          title: w.name,
-        });
-        m.addListener("click", () => {
-          const worker = workersRef.current.find(x => x.id === w.id) ?? null;
-          setSelectedWorker(worker);
-          if (worker?.lat != null && worker?.lng != null) {
-            map.panTo({ lat: worker.lat!, lng: worker.lng! });
-            if ((map.getZoom() ?? 0) < 13) map.setZoom(13);
-            map.panBy(-60, 0);
-          }
-        });
-        markersRef.current.set(w.id, m);
-        markers.push(m);
-      }
-      clusterer.addMarkers(markers);
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workers, ready]);
-
-  // ── Pan to GPS ────────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !hasGps) return;
-    map.panTo({ lat: centerLat!, lng: centerLng! });
-    map.setZoom(GPS_ZOOM);
+    if (hasGps) {
+      setMapCenterLat(centerLat!);
+      setMapCenterLng(centerLng!);
+      setZoom(z => (z < GPS_ZOOM ? GPS_ZOOM : z));
+    }
   }, [centerLat, centerLng, hasGps]);
 
-  // ── GPS pulse marker ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!hasGps) return;
-    loadMarkerLib().then(({ AdvancedMarkerElement }) => {
-      if (gpsMarkerRef.current) { gpsMarkerRef.current.map = null; gpsMarkerRef.current = null; }
-      const map = mapRef.current;
-      if (!map) return;
-      gpsMarkerRef.current = new AdvancedMarkerElement({
-        map,
-        position: { lat: centerLat!, lng: centerLng! },
-        content: buildGpsEl(),
-        title: "Mi ubicación",
-        zIndex: 9999,
-      });
+  useEffect(() => { injectStyles(); }, []);
+
+  const mapUrl = useMemo(() => {
+    if (!containerW || !containerH || !hasApiKey()) return null;
+    setImgLoaded(false);
+    setImgError(false);
+    return buildStaticMapUrl({
+      centerLat: mapCenterLat,
+      centerLng: mapCenterLng,
+      zoom,
+      width: containerW,
+      height: containerH,
+      dark: true,
     });
-    return () => {
-      if (gpsMarkerRef.current) { gpsMarkerRef.current.map = null; gpsMarkerRef.current = null; }
-    };
-  }, [centerLat, centerLng, hasGps]);
+  }, [mapCenterLat, mapCenterLng, zoom, containerW, containerH]);
+
+  const pins = useMemo(() => {
+    const withCoords = workers
+      .filter(w => w.lat != null && w.lng != null)
+      .map(w => ({ ...w, lat: w.lat!, lng: w.lng! }));
+    return fanOutOverlappingPoints(withCoords);
+  }, [workers]);
+
+  const pinPositions = useMemo(() => {
+    if (!containerW || !containerH) return [];
+    const { safeW, safeH } = clampMapSize(containerW, containerH);
+    const t = coverTransform(safeW, safeH, containerW, containerH);
+    return pins.map(w => {
+      const imgPx = latLngToPixel(w.displayLat, w.displayLng, mapCenterLat, mapCenterLng, zoom, safeW, safeH);
+      const px = { x: imgPx.x * t.scale + t.offsetX, y: imgPx.y * t.scale + t.offsetY };
+      return { worker: w, px };
+    });
+  }, [pins, mapCenterLat, mapCenterLng, zoom, containerW, containerH]);
+
+  const gpsPos = useMemo(() => {
+    if (!hasGps || !containerW || !containerH) return null;
+    const { safeW, safeH } = clampMapSize(containerW, containerH);
+    const t = coverTransform(safeW, safeH, containerW, containerH);
+    const imgPx = latLngToPixel(centerLat!, centerLng!, mapCenterLat, mapCenterLng, zoom, safeW, safeH);
+    return { x: imgPx.x * t.scale + t.offsetX, y: imgPx.y * t.scale + t.offsetY };
+  }, [hasGps, centerLat, centerLng, mapCenterLat, mapCenterLng, zoom, containerW, containerH]);
 
   const handleLocate = useCallback(() => {
     if (onRequestLocation) {
@@ -355,38 +226,95 @@ export function WorkerMap({ workers, height = "400px", centerLat, centerLng, onR
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setLocating(false);
-        mapRef.current?.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        mapRef.current?.setZoom(GPS_ZOOM);
+        setMapCenterLat(pos.coords.latitude);
+        setMapCenterLng(pos.coords.longitude);
+        setZoom(GPS_ZOOM);
       },
       () => setLocating(false),
       { timeout: 10000 },
     );
   }, [onRequestLocation]);
 
-  if (mapError) {
+  const handlePinClick = useCallback((w: Worker) => {
+    setSelectedWorker(w);
+    if (w.lat != null && w.lng != null) {
+      setMapCenterLat(w.lat);
+      setMapCenterLng(w.lng);
+      setZoom(z => (z < 13 ? 13 : z));
+    }
+  }, []);
+
+  if (!hasApiKey() || imgError) {
     return (
       <div style={{ height, width: "100%", borderRadius: 12, background: "linear-gradient(135deg,#f8fafc,#f1f5f9)", border: "1px solid rgba(0,0,0,.08)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 24, textAlign: "center" }}>
         <span style={{ fontSize: 32 }}>🗺️</span>
         <p style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", margin: 0 }}>No se pudo cargar el mapa</p>
         <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>Puedes seguir viendo los resultados en lista.</p>
-        <button onClick={() => setMapError(false)} style={{ marginTop: 4, padding: "8px 20px", borderRadius: 10, background: "linear-gradient(135deg,#0ea5e9,#2563eb)", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer" }}>
-          Reintentar
-        </button>
       </div>
     );
   }
 
   return (
-    <div style={{ height, width: "100%", borderRadius: 12, overflow: "hidden", position: "relative" }}>
-      <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
+    <div
+      ref={containerRef}
+      style={{ height, width: "100%", borderRadius: 12, overflow: "hidden", position: "relative", background: "#0d1422" }}
+      onClick={() => setSelectedWorker(null)}
+    >
+      {mapUrl && (
+        <img
+          src={mapUrl}
+          alt="Mapa"
+          onLoad={() => setImgLoaded(true)}
+          onError={() => setImgError(true)}
+          draggable={false}
+          style={{
+            position: "absolute", inset: 0,
+            width: "100%", height: "100%",
+            objectFit: "cover",
+            opacity: imgLoaded ? 1 : 0,
+            transition: "opacity .25s ease",
+            userSelect: "none", pointerEvents: "none",
+          }}
+        />
+      )}
 
-      {!ready && (
-        <div style={{ position: "absolute", inset: 0, background: "#f0f4f8", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12 }}>
-          <div style={{ width: 32, height: 32, border: "3px solid #0ea5e9", borderTopColor: "transparent", borderRadius: "50%", animation: "wmap-spin 0.8s linear infinite" }} />
+      {!imgLoaded && (
+        <div style={{ position: "absolute", inset: 0, background: "#0d1422", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: 32, height: 32, border: "3px solid #0ea5e9", borderTopColor: "transparent", borderRadius: "50%", animation: "wmaps-spin 0.8s linear infinite" }} />
         </div>
       )}
 
-      {ready && selectedWorker && (
+      {/* GPS pulse */}
+      {imgLoaded && gpsPos && (
+        <div style={{ position: "absolute", left: gpsPos.x - 12, top: gpsPos.y - 12, width: 24, height: 24, pointerEvents: "none", zIndex: 5 }}>
+          <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "rgba(59,130,246,.28)", animation: "wmaps-pulse 2s ease-out infinite" }} />
+          <div style={{ position: "absolute", inset: 4, borderRadius: "50%", background: "#3b82f6", border: "2px solid #fff", boxShadow: "0 0 10px rgba(59,130,246,.9)" }} />
+        </div>
+      )}
+
+      {/* Worker pins */}
+      {imgLoaded && pinPositions.map(({ worker, px }) => {
+        if (px.x < -50 || px.x > containerW + 50 || px.y < -50 || px.y > containerH + 50) return null;
+        const isSelected = selectedWorker?.id === worker.id;
+        return (
+          <div
+            key={worker.id}
+            style={{
+              position: "absolute",
+              left: px.x - 22, top: px.y - 22,
+              zIndex: isSelected ? 200 : 100,
+            }}
+          >
+            <WorkerPin
+              worker={worker}
+              onClick={(e) => { e.stopPropagation(); handlePinClick(worker); }}
+            />
+          </div>
+        );
+      })}
+
+      {/* Worker card */}
+      {imgLoaded && selectedWorker && (
         <WorkerCard
           worker={selectedWorker}
           onClose={() => setSelectedWorker(null)}
@@ -394,13 +322,39 @@ export function WorkerMap({ workers, height = "400px", centerLat, centerLng, onR
         />
       )}
 
-      {ready && (
-        <button onClick={handleLocate} title="Usar mi ubicación"
-          style={{ position: "absolute", bottom: 52, left: 12, zIndex: 10, width: 40, height: 40, borderRadius: 10, background: locating ? "rgba(14,165,233,0.15)" : "rgba(255,255,255,0.96)", border: "1px solid rgba(0,0,0,.1)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,.12)", transition: "all 0.2s ease", fontSize: 18 }}>
+      {/* Locate button */}
+      {imgLoaded && (
+        <button
+          onClick={(e) => { e.stopPropagation(); handleLocate(); }}
+          title="Usar mi ubicación"
+          style={{ position: "absolute", bottom: 52, left: 12, zIndex: 10, width: 40, height: 40, borderRadius: 10, background: locating ? "rgba(14,165,233,0.15)" : "rgba(255,255,255,0.96)", border: "1px solid rgba(0,0,0,.1)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,.12)", fontSize: 18 }}
+        >
           {locating ? (
-            <div style={{ width: 16, height: 16, border: "2px solid #0ea5e9", borderTopColor: "transparent", borderRadius: "50%", animation: "wmap-spin 0.8s linear infinite" }} />
+            <div style={{ width: 16, height: 16, border: "2px solid #0ea5e9", borderTopColor: "transparent", borderRadius: "50%", animation: "wmaps-spin 0.8s linear infinite" }} />
           ) : "📍"}
         </button>
+      )}
+
+      {/* Zoom controls */}
+      {imgLoaded && (
+        <div style={{ position: "absolute", bottom: 12, right: 12, zIndex: 10, display: "flex", flexDirection: "column", borderRadius: 10, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,.12)", border: "1px solid rgba(0,0,0,.1)" }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); setZoom(z => Math.min(MAX_ZOOM, z + 1)); }}
+            disabled={zoom >= MAX_ZOOM}
+            title="Acercar"
+            style={{ width: 36, height: 36, border: "none", background: "rgba(255,255,255,.96)", cursor: zoom >= MAX_ZOOM ? "not-allowed" : "pointer", borderBottom: "1px solid rgba(0,0,0,.08)", display: "flex", alignItems: "center", justifyContent: "center", color: "#0f172a" }}
+          >
+            <Plus style={{ width: 16, height: 16 }} />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setZoom(z => Math.max(MIN_ZOOM, z - 1)); }}
+            disabled={zoom <= MIN_ZOOM}
+            title="Alejar"
+            style={{ width: 36, height: 36, border: "none", background: "rgba(255,255,255,.96)", cursor: zoom <= MIN_ZOOM ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#0f172a" }}
+          >
+            <Minus style={{ width: 16, height: 16 }} />
+          </button>
+        </div>
       )}
     </div>
   );

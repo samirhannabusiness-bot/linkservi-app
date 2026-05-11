@@ -9,7 +9,8 @@ import { useAuth } from "@/lib/auth-context";
 import { getSocket, joinRoom, leaveRoom } from "@/lib/socket";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { C2PModal, type C2PSuccessPayload } from "@/components/payments/C2PModal";
-import { loadMapsLib, loadMarkerLib, DARK_MAP_STYLE } from "@/lib/google-maps";
+import { StaticMapCanvas } from "@/components/ui/StaticMapCanvas";
+import { computeBoundsZoom } from "@/lib/static-maps";
 
 interface RideDetails {
   id: number;
@@ -62,24 +63,15 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 function injectStyles() {
+  if (typeof document === "undefined") return;
   if (document.getElementById("ride-map-styles")) return;
   const s = document.createElement("style");
   s.id = "ride-map-styles";
-  s.textContent = `@keyframes ride-spin{to{transform:rotate(360deg)}}`;
+  s.textContent = `
+    @keyframes ride-spin{to{transform:rotate(360deg)}}
+    @keyframes ride-pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.6);opacity:0}}
+  `;
   document.head.appendChild(s);
-}
-
-function buildDotEl(color: string): HTMLDivElement {
-  const el = document.createElement("div");
-  el.style.cssText = `width:14px;height:14px;border-radius:50%;background:${color};border:2px solid white;`;
-  return el;
-}
-
-function buildDriverDotEl(): HTMLDivElement {
-  const el = document.createElement("div");
-  el.style.cssText =
-    "width:18px;height:18px;border-radius:50%;background:#facc15;border:2px solid white;box-shadow:0 0 0 4px rgba(250,204,21,0.25);";
-  return el;
 }
 
 export function ActiveRidePage() {
@@ -107,9 +99,22 @@ export function ActiveRidePage() {
   const [chatBusy, setChatBusy] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
-  const mapDivRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const driverMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const mapBoxRef = useRef<HTMLDivElement | null>(null);
+  const [mapBoxSize, setMapBoxSize] = useState({ w: 0, h: 0 });
+
+  useEffect(() => { injectStyles(); }, []);
+
+  useEffect(() => {
+    const el = mapBoxRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver((entries) => {
+      const r = entries[0]?.contentRect;
+      if (r) setMapBoxSize({ w: Math.round(r.width), h: Math.round(r.height) });
+    });
+    ro.observe(el);
+    setMapBoxSize({ w: el.clientWidth, h: el.clientHeight });
+    return () => ro.disconnect();
+  }, []);
 
   const isDriver = !!ride && ride.driverId === user?.id;
   const isClient = !!ride && ride.clientId === user?.id;
@@ -146,88 +151,18 @@ export function ActiveRidePage() {
   useEffect(() => { if (ride?.status === "completed") loadRatings(); /* eslint-disable-next-line */ }, [ride?.status]);
   useEffect(() => { if (ride?.id && ride.driverId) loadMessages(); /* eslint-disable-next-line */ }, [ride?.id, ride?.driverId]);
 
-  // ── Init map ─────────────────────────────────────────────────────────────────
-  const center = useMemo(() => {
-    if (!ride) return { lat: 10.4806, lng: -66.9036 };
-    return { lat: ride.pickupLat, lng: ride.pickupLng };
-  }, [ride]);
-
-  useEffect(() => {
-    if (!mapDivRef.current || mapRef.current || !ride) return;
-
-    injectStyles();
-    let destroyed = false;
-
-    (async () => {
-      try {
-        const [{ Map, LatLngBounds }, { AdvancedMarkerElement }] = await Promise.all([
-          loadMapsLib(),
-          loadMarkerLib(),
-        ]);
-        if (destroyed || !mapDivRef.current) return;
-
-        const map = new Map(mapDivRef.current, {
-          center,
-          zoom: 13,
-          mapId: "DEMO_MAP_ID",
-          disableDefaultUI: true,
-          zoomControl: false,
-          gestureHandling: "none",
-          styles: DARK_MAP_STYLE,
-        });
-
-        new AdvancedMarkerElement({
-          map,
-          position: { lat: ride.pickupLat, lng: ride.pickupLng },
-          content: buildDotEl("#38bdf8"),
-          title: "Recogida",
-          zIndex: 10,
-        });
-
-        new AdvancedMarkerElement({
-          map,
-          position: { lat: ride.dropoffLat, lng: ride.dropoffLng },
-          content: buildDotEl("#34d399"),
-          title: "Destino",
-          zIndex: 10,
-        });
-
-        const bounds = new LatLngBounds();
-        bounds.extend({ lat: ride.pickupLat, lng: ride.pickupLng });
-        bounds.extend({ lat: ride.dropoffLat, lng: ride.dropoffLng });
-        map.fitBounds(bounds, { top: 60, right: 20, bottom: 200, left: 20 });
-
-        mapRef.current = map;
-      } catch { /* map unavailable */ }
-    })();
-
-    return () => {
-      destroyed = true;
-      if (driverMarkerRef.current) { driverMarkerRef.current.map = null; driverMarkerRef.current = null; }
-      mapRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ride?.id]);
-
-  // ── Driver location marker ────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!mapRef.current || !driverPos) return;
-    loadMarkerLib().then(({ AdvancedMarkerElement }) => {
-      const map = mapRef.current;
-      if (!map) return;
-      if (!driverMarkerRef.current) {
-        driverMarkerRef.current = new AdvancedMarkerElement({
-          map,
-          position: { lat: driverPos.lat, lng: driverPos.lng },
-          content: buildDriverDotEl(),
-          title: "Conductor",
-          zIndex: 100,
-        });
-      } else {
-        driverMarkerRef.current.position = { lat: driverPos.lat, lng: driverPos.lng };
-      }
-    });
-  }, [driverPos]);
+  // ── Compute static map center+zoom to fit pickup+dropoff ────────────────────
+  const mapView = useMemo(() => {
+    if (!ride || !mapBoxSize.w || !mapBoxSize.h) {
+      return { centerLat: ride?.pickupLat ?? 10.4806, centerLng: ride?.pickupLng ?? -66.9036, zoom: 13 };
+    }
+    return computeBoundsZoom(
+      ride.pickupLat, ride.pickupLng,
+      ride.dropoffLat, ride.dropoffLng,
+      mapBoxSize.w, mapBoxSize.h,
+      80,
+    );
+  }, [ride?.id, ride?.pickupLat, ride?.pickupLng, ride?.dropoffLat, ride?.dropoffLng, mapBoxSize.w, mapBoxSize.h]);
 
   // ── Socket ────────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -372,7 +307,81 @@ export function ActiveRidePage() {
   return (
     <AppLayout>
       <div className="relative h-[calc(100vh-64px)] w-full overflow-hidden">
-        <div ref={mapDivRef} className="absolute inset-0" />
+        <div ref={mapBoxRef} className="absolute inset-0">
+          <StaticMapCanvas
+            centerLat={mapView.centerLat}
+            centerLng={mapView.centerLng}
+            zoom={mapView.zoom}
+            dark
+            className="absolute inset-0"
+            style={{ width: "100%", height: "100%" }}
+            loadingFallback={
+              <div className="absolute inset-0 bg-[#040c1a] flex items-center justify-center">
+                <div style={{ width: 32, height: 32, border: "3px solid #38bdf8", borderTopColor: "transparent", borderRadius: "50%", animation: "ride-spin 0.8s linear infinite" }} />
+              </div>
+            }
+            fallback={
+              <div className="absolute inset-0 flex items-center justify-center text-white/50 text-sm p-6 text-center">
+                Mapa no disponible
+              </div>
+            }
+          >
+            {(project) => (
+              <>
+                {/* Pickup */}
+                {(() => {
+                  const p = project(ride.pickupLat, ride.pickupLng);
+                  return (
+                    <div
+                      title="Recogida"
+                      style={{
+                        position: "absolute", left: p.x - 9, top: p.y - 9,
+                        width: 18, height: 18, borderRadius: "50%",
+                        background: "#38bdf8", border: "2px solid white",
+                        boxShadow: "0 2px 6px rgba(0,0,0,.4)",
+                        zIndex: 30, pointerEvents: "none",
+                      }}
+                    />
+                  );
+                })()}
+
+                {/* Dropoff */}
+                {(() => {
+                  const p = project(ride.dropoffLat, ride.dropoffLng);
+                  return (
+                    <div
+                      title="Destino"
+                      style={{
+                        position: "absolute", left: p.x - 9, top: p.y - 9,
+                        width: 18, height: 18, borderRadius: "50%",
+                        background: "#34d399", border: "2px solid white",
+                        boxShadow: "0 2px 6px rgba(0,0,0,.4)",
+                        zIndex: 30, pointerEvents: "none",
+                      }}
+                    />
+                  );
+                })()}
+
+                {/* Driver live position */}
+                {driverPos && (() => {
+                  const p = project(driverPos.lat, driverPos.lng);
+                  return (
+                    <div
+                      title="Conductor"
+                      style={{
+                        position: "absolute", left: p.x - 14, top: p.y - 14,
+                        width: 28, height: 28, pointerEvents: "none", zIndex: 100,
+                      }}
+                    >
+                      <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "rgba(250,204,21,.35)", animation: "ride-pulse 1.8s ease-out infinite" }} />
+                      <div style={{ position: "absolute", inset: 5, borderRadius: "50%", background: "#facc15", border: "2px solid white", boxShadow: "0 0 8px rgba(250,204,21,.8)" }} />
+                    </div>
+                  );
+                })()}
+              </>
+            )}
+          </StaticMapCanvas>
+        </div>
 
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
           <div className="bg-[#040c1a]/90 backdrop-blur px-3 py-2 rounded-xl border border-white/10 pointer-events-auto" data-testid="ride-status-badge">

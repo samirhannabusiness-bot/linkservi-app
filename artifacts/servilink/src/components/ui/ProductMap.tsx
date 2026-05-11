@@ -1,21 +1,17 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { MarkerClusterer } from "@googlemaps/markerclusterer";
-import { loadMapsLib, loadMarkerLib } from "@/lib/google-maps";
-import { ShoppingBag, Truck, MapPin, X, ShoppingCart, Store, Tag } from "lucide-react";
-
-const CARACAS = { lat: 10.4806, lng: -66.9036 };
-const GPS_ZOOM = 13;
-const CITY_ZOOM = 10;
-
-// Esconder negocios, transporte y otros POI ajenos a la app del mapa de Google.
-// Solo conservamos la geografía base (calles, agua, parques) para que los pines
-// de productos/profesionales sean los únicos puntos resaltados.
-const HIDE_POI_STYLES: google.maps.MapTypeStyle[] = [
-  { featureType: "poi", stylers: [{ visibility: "off" }] },
-  { featureType: "poi.business", stylers: [{ visibility: "off" }] },
-  { featureType: "transit", stylers: [{ visibility: "off" }] },
-  { featureType: "transit.station", stylers: [{ visibility: "off" }] },
-];
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { ShoppingBag, Truck, MapPin, X, ShoppingCart, Store, Plus, Minus } from "lucide-react";
+import {
+  CARACAS_CENTER,
+  CITY_ZOOM,
+  GPS_ZOOM,
+  buildStaticMapUrl,
+  clampMapSize,
+  coverTransform,
+  fanOutOverlappingPoints,
+  hasApiKey,
+  latLngToPixel,
+  useContainerSize,
+} from "@/lib/static-maps";
 
 interface Product {
   id: number;
@@ -51,10 +47,13 @@ interface ProductMapProps {
   onVisibleProductsChange?: (ids: number[]) => void;
 }
 
+const MIN_ZOOM = 8;
+const MAX_ZOOM = 18;
+
 function distanceKm(lat1: number, lng1: number, lat2: number, lng2: number) {
   const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
@@ -65,108 +64,81 @@ function formatDist(km: number) {
 }
 
 function injectStyles() {
-  if (document.getElementById("productmap-styles")) return;
+  if (typeof document === "undefined") return;
+  if (document.getElementById("productmap-static-styles")) return;
   const s = document.createElement("style");
-  s.id = "productmap-styles";
+  s.id = "productmap-static-styles";
   s.textContent = `
-    @keyframes pm-spin { to { transform:rotate(360deg) } }
-    @keyframes pm-pulse { 0%{transform:scale(1);opacity:.7} 100%{transform:scale(2.8);opacity:0} }
-    @keyframes pm-in { from{opacity:0;transform:scale(.88) translateY(6px)} to{opacity:1;transform:scale(1) translateY(0)} }
+    @keyframes pms-spin { to { transform:rotate(360deg) } }
+    @keyframes pms-pulse { 0%{transform:scale(1);opacity:.7} 100%{transform:scale(2.8);opacity:0} }
+    @keyframes pms-in { from{opacity:0;transform:scale(.88) translateY(6px)} to{opacity:1;transform:scale(1) translateY(0)} }
   `;
   document.head.appendChild(s);
 }
 
-function buildGpsEl(): HTMLDivElement {
-  injectStyles();
-  const w = document.createElement("div");
-  w.style.cssText = "position:relative;width:24px;height:24px";
-  const ring = document.createElement("div");
-  ring.style.cssText =
-    "position:absolute;inset:0;border-radius:50%;background:rgba(59,130,246,.28);animation:pm-pulse 2s ease-out infinite";
-  const dot = document.createElement("div");
-  dot.style.cssText =
-    "position:absolute;inset:4px;border-radius:50%;background:#3b82f6;border:2px solid #fff;box-shadow:0 0 10px rgba(59,130,246,.9)";
-  w.appendChild(ring);
-  w.appendChild(dot);
-  return w;
-}
-
-function buildPricePill(
-  product: Product,
-  isSelected: boolean,
-  isSuccess: boolean,
-  onClick: () => void,
-): HTMLDivElement {
+function PricePill({
+  product,
+  isSelected,
+  isSuccess,
+  onClick,
+}: {
+  product: Product;
+  isSelected: boolean;
+  isSuccess: boolean;
+  onClick: (e: React.MouseEvent) => void;
+}) {
   const isRental = product.listingType === "rental";
-  const price = isRental && product.rentalPricePerDay != null
-    ? product.rentalPricePerDay
-    : product.priceUsd;
+  const price =
+    isRental && product.rentalPricePerDay != null ? product.rentalPricePerDay : product.priceUsd;
   const suffix = isRental ? "/d" : "";
 
-  injectStyles();
-
-  const wrapper = document.createElement("div");
-  wrapper.style.cssText =
-    "cursor:pointer;position:relative;animation:pm-in .2s cubic-bezier(.34,1.56,.64,1);display:inline-flex;flex-direction:column;align-items:center;";
-
-  const pill = document.createElement("div");
-
-  let bg: string, color: string, border: string, shadow: string, scale: string;
+  let bg: string, color: string, border: string, shadow: string, scale: number;
   if (isSuccess) {
     bg = "#10b981"; color = "#fff";
-    border = "2px solid #059669"; shadow = "0 4px 16px rgba(16,185,129,.5)"; scale = "scale(1.08)";
+    border = "2px solid #059669"; shadow = "0 4px 16px rgba(16,185,129,.5)"; scale = 1.08;
   } else if (isSelected) {
     bg = "#0f172a"; color = "#fff";
-    border = "2px solid #0f172a"; shadow = "0 6px 20px rgba(0,0,0,.35)"; scale = "scale(1.12)";
+    border = "2px solid #0f172a"; shadow = "0 6px 20px rgba(0,0,0,.35)"; scale = 1.12;
   } else if (isRental) {
     bg = "#fff"; color = "#7c3aed";
-    border = "2px solid #7c3aed"; shadow = "0 2px 10px rgba(124,58,237,.25)"; scale = "scale(1)";
+    border = "2px solid #7c3aed"; shadow = "0 2px 10px rgba(124,58,237,.25)"; scale = 1;
   } else {
     bg = "#fff"; color = "#0f172a";
-    border = "2px solid transparent"; shadow = "0 2px 8px rgba(0,0,0,.18)"; scale = "scale(1)";
+    border = "2px solid transparent"; shadow = "0 2px 8px rgba(0,0,0,.18)"; scale = 1;
   }
 
-  pill.style.cssText = `
-    display:inline-flex;align-items:center;gap:4px;
-    padding:5px 10px;border-radius:100px;
-    background:${bg};color:${color};
-    font-size:12px;font-weight:800;
-    white-space:nowrap;user-select:none;
-    border:${border};
-    box-shadow:${shadow};
-    transform:${scale};
-    transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s ease,background .18s ease;
-  `;
-  pill.textContent = `${isSuccess ? "✓ " : ""}$${price.toFixed(0)}${suffix}`;
-
-  const tip = document.createElement("div");
-  tip.style.cssText = `
-    width:6px;height:6px;border-radius:50%;margin:2px auto 0;
-    background:${isSelected ? "#0f172a" : isRental ? "#7c3aed" : "#94a3b8"};
-    box-shadow:0 2px 4px rgba(0,0,0,.15);
-    transition:background .18s ease;
-  `;
-
-  wrapper.appendChild(pill);
-  wrapper.appendChild(tip);
-  wrapper.addEventListener("click", (e) => { e.stopPropagation(); onClick(); });
-  return wrapper;
-}
-
-function buildClusterEl(count: number): HTMLDivElement {
-  const el = document.createElement("div");
-  el.style.cssText = `
-    display:flex;align-items:center;justify-content:center;
-    width:${count > 99 ? 44 : 36}px;height:${count > 99 ? 44 : 36}px;
-    border-radius:50%;
-    background:linear-gradient(135deg,#6366f1,#4f46e5);
-    color:#fff;font-size:13px;font-weight:800;
-    border:2.5px solid #fff;
-    box-shadow:0 4px 14px rgba(99,102,241,.45);
-    cursor:pointer;user-select:none;
-  `;
-  el.textContent = count > 99 ? "99+" : String(count);
-  return el;
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        cursor: "pointer", position: "relative",
+        animation: "pms-in .2s cubic-bezier(.34,1.56,.64,1)",
+        display: "inline-flex", flexDirection: "column", alignItems: "center",
+        userSelect: "none",
+      }}
+    >
+      <div
+        style={{
+          display: "inline-flex", alignItems: "center", gap: 4,
+          padding: "5px 10px", borderRadius: 100,
+          background: bg, color,
+          fontSize: 12, fontWeight: 800, whiteSpace: "nowrap",
+          border, boxShadow: shadow,
+          transform: `scale(${scale})`,
+          transition: "transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s ease,background .18s ease",
+        }}
+      >
+        {isSuccess ? "✓ " : ""}${price.toFixed(0)}{suffix}
+      </div>
+      <div
+        style={{
+          width: 6, height: 6, borderRadius: "50%", marginTop: 2,
+          background: isSelected ? "#0f172a" : isRental ? "#7c3aed" : "#94a3b8",
+          boxShadow: "0 2px 4px rgba(0,0,0,.15)",
+        }}
+      />
+    </div>
+  );
 }
 
 function FloatingProductCard({
@@ -201,13 +173,13 @@ function FloatingProductCard({
   const PAD = 10;
 
   const isRental = product.listingType === "rental";
-  const displayPrice = isRental && product.rentalPricePerDay != null
-    ? product.rentalPricePerDay : product.priceUsd;
+  const displayPrice = isRental && product.rentalPricePerDay != null ? product.rentalPricePerDay : product.priceUsd;
   const priceVes = bcvRate > 0 ? Math.round(displayPrice * bcvRate) : null;
   const condColor = product.condition === "used" ? "#f59e0b" : "#10b981";
   const condLabel = product.condition === "used" ? "Usado" : "Nuevo";
-  const dist = userLat && userLng && product.latitude && product.longitude
-    ? distanceKm(userLat, userLng, product.latitude, product.longitude) : null;
+  const dist = userLat != null && userLng != null && product.latitude != null && product.longitude != null
+    ? distanceKm(userLat, userLng, product.latitude, product.longitude)
+    : null;
 
   let left = pos.x - CARD_W / 2;
   let top = pos.y - CARD_H - MARKER_OFFSET - ARROW;
@@ -228,31 +200,21 @@ function FloatingProductCard({
           borderRadius: 16, background: "#fff",
           boxShadow: "0 8px 28px rgba(0,0,0,.22), 0 1px 4px rgba(0,0,0,.08)",
           overflow: "visible",
-          animation: "pm-in .2s cubic-bezier(.34,1.56,.64,1)",
-          pointerEvents: "all",
+          animation: "pms-in .2s cubic-bezier(.34,1.56,.64,1)",
         }}
       >
-        {/* Arrow pointing to marker */}
         {!placeBelow && (
-          <div style={{
-            position: "absolute", bottom: -7, left: arrowLeft,
-            width: 14, height: 8, overflow: "hidden", zIndex: 1,
-          }}>
-            <div style={{ width: 14, height: 14, background: "#fff", transform: "rotate(45deg)", marginTop: -7, marginLeft: 0, boxShadow: "2px 2px 4px rgba(0,0,0,.1)" }} />
+          <div style={{ position: "absolute", bottom: -7, left: arrowLeft, width: 14, height: 8, overflow: "hidden", zIndex: 1 }}>
+            <div style={{ width: 14, height: 14, background: "#fff", transform: "rotate(45deg)", marginTop: -7, boxShadow: "2px 2px 4px rgba(0,0,0,.1)" }} />
           </div>
         )}
         {placeBelow && (
-          <div style={{
-            position: "absolute", top: -7, left: arrowLeft,
-            width: 14, height: 8, overflow: "hidden", zIndex: 1,
-          }}>
-            <div style={{ width: 14, height: 14, background: "#fff", transform: "rotate(45deg)", marginTop: 1, marginLeft: 0, boxShadow: "-1px -1px 3px rgba(0,0,0,.08)" }} />
+          <div style={{ position: "absolute", top: -7, left: arrowLeft, width: 14, height: 8, overflow: "hidden", zIndex: 1 }}>
+            <div style={{ width: 14, height: 14, background: "#fff", transform: "rotate(45deg)", marginTop: 1, boxShadow: "-1px -1px 3px rgba(0,0,0,.08)" }} />
           </div>
         )}
 
-        {/* Card inner — rounded with clip */}
         <div style={{ borderRadius: 16, overflow: "hidden" }}>
-          {/* Image */}
           <div style={{ width: "100%", height: 108, background: "#f1f5f9", position: "relative" }}>
             {product.image ? (
               <img src={product.image} alt={product.name} loading="lazy"
@@ -263,12 +225,10 @@ function FloatingProductCard({
                 <ShoppingBag style={{ width: 28, height: 28, color: "#cbd5e1" }} />
               </div>
             )}
-            {/* Close */}
             <button onClick={e => { e.stopPropagation(); onClose(); }}
               style={{ position: "absolute", top: 7, right: 7, width: 26, height: 26, borderRadius: 8, background: "rgba(255,255,255,.9)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.15)" }}>
               <X style={{ width: 12, height: 12, color: "#475569" }} />
             </button>
-            {/* Tags overlay */}
             <div style={{ position: "absolute", bottom: 7, left: 7, display: "flex", gap: 4 }}>
               <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 20, background: `${condColor}ee`, color: "#fff", fontWeight: 700 }}>
                 {condLabel}
@@ -281,7 +241,6 @@ function FloatingProductCard({
             </div>
           </div>
 
-          {/* Info */}
           <div style={{ padding: "9px 11px 11px" }}>
             <p style={{ fontSize: 12, fontWeight: 700, color: "#0f172a", lineHeight: 1.35, margin: "0 0 5px", overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const }}>
               {product.name}
@@ -319,7 +278,6 @@ function FloatingProductCard({
               )}
             </div>
 
-            {/* Badges row */}
             {(product.hasDelivery || dist != null || product.storeName) && (
               <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 6 }}>
                 {product.hasDelivery && (
@@ -346,278 +304,108 @@ function FloatingProductCard({
   );
 }
 
-function debounce<T extends (...args: unknown[]) => void>(fn: T, ms: number): T {
-  let timer: ReturnType<typeof setTimeout>;
-  return ((...args: unknown[]) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), ms);
-  }) as T;
-}
-
 export function ProductMap({
   products, userLat, userLng, bcvRate, onBuy, canBuy, successId, onRequestLocation,
   selectedProductId, onProductSelect, onVisibleProductsChange,
 }: ProductMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const gpsMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
-  const markersRef = useRef<Record<number, google.maps.marker.AdvancedMarkerElement>>({});
-  const clustererRef = useRef<MarkerClusterer | null>(null);
-  const [ready, setReady] = useState(false);
-  const [mapError, setMapError] = useState(false);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const { w: containerW, h: containerH } = useContainerSize(containerRef);
+
+  const [internalSelected, setInternalSelected] = useState<number | null>(null);
+  const selectedId = selectedProductId !== undefined ? selectedProductId : internalSelected;
+
+  const [imgError, setImgError] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
   const [locating, setLocating] = useState(false);
-  const [cardPos, setCardPos] = useState<{ x: number; y: number } | null>(null);
-  const [containerSize, setContainerSize] = useState({ w: 0, h: 0 });
 
   const hasGps = typeof userLat === "number" && typeof userLng === "number";
-  const initCenter = hasGps ? { lat: userLat!, lng: userLng! } : CARACAS;
-  const initZoom = hasGps ? GPS_ZOOM : CITY_ZOOM;
 
-  const withCoords = products.filter(p => p.latitude != null && p.longitude != null);
+  const [centerLat, setCenterLat] = useState<number>(hasGps ? userLat! : CARACAS_CENTER.lat);
+  const [centerLng, setCenterLng] = useState<number>(hasGps ? userLng! : CARACAS_CENTER.lng);
+  const [zoom, setZoom] = useState<number>(hasGps ? GPS_ZOOM : CITY_ZOOM);
 
-  const selectedIdRef = useRef<number | null>(null);
-  const successIdRef = useRef<number | null>(null);
-  selectedIdRef.current = selectedId;
-  successIdRef.current = successId;
-
-  const productsRef = useRef<Product[]>(products);
-  productsRef.current = products;
-
-  const onProductSelectRef = useRef(onProductSelect);
-  onProductSelectRef.current = onProductSelect;
-  const onVisibleRef = useRef(onVisibleProductsChange);
-  onVisibleRef.current = onVisibleProductsChange;
-
+  // Recenter when GPS becomes available
   useEffect(() => {
-    if (selectedProductId !== undefined) setSelectedId(selectedProductId ?? null);
-  }, [selectedProductId]);
-
-  const selectProduct = useCallback((id: number | null) => {
-    setSelectedId(id);
-    onProductSelectRef.current?.(id);
-  }, []);
-
-  const emitVisible = useCallback(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    const bounds = map.getBounds();
-    if (!bounds) return;
-    const ids = productsRef.current
-      .filter(p => p.latitude != null && p.longitude != null)
-      .filter(p => bounds.contains({ lat: p.latitude!, lng: p.longitude! }))
-      .map(p => p.id);
-    onVisibleRef.current?.(ids);
-  }, []);
-
-  const emitVisibleDebounced = useRef(debounce(emitVisible as (...args: unknown[]) => void, 250)).current;
-
-  const updateCardPos = useCallback((sid: number | null) => {
-    if (!sid || !mapRef.current || !containerRef.current) { setCardPos(null); return; }
-    const product = productsRef.current.find(p => p.id === sid);
-    if (!product?.latitude || !product?.longitude) { setCardPos(null); return; }
-
-    const map = mapRef.current;
-    const projection = map.getProjection();
-    const bounds = map.getBounds();
-    if (!projection || !bounds) { setCardPos(null); return; }
-
-    const scale = Math.pow(2, map.getZoom() ?? CITY_ZOOM);
-    const ne = projection.fromLatLngToPoint(bounds.getNorthEast())!;
-    const sw = projection.fromLatLngToPoint(bounds.getSouthWest())!;
-    const wp = projection.fromLatLngToPoint(
-      new google.maps.LatLng(product.latitude, product.longitude)
-    )!;
-
-    const x = (wp.x - sw.x) * scale;
-    const y = (wp.y - ne.y) * scale;
-
-    const rect = containerRef.current.getBoundingClientRect();
-    setContainerSize({ w: rect.width, h: rect.height });
-    setCardPos({ x, y });
-  }, []);
-
-  const updateCardPosDebounced = useRef(debounce(((sid: unknown) => updateCardPos(sid as number | null)) as (...args: unknown[]) => void, 80)).current;
-
-  // ── Init map ─────────────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!containerRef.current) return;
-    injectStyles();
-    let destroyed = false;
-
-    (async () => {
-      try {
-        const [{ Map }, { AdvancedMarkerElement }] = await Promise.all([
-          loadMapsLib(),
-          loadMarkerLib(),
-        ]);
-        if (destroyed || !containerRef.current) return;
-
-        const map = new Map(containerRef.current, {
-          center: initCenter,
-          zoom: initZoom,
-          mapId: "DEMO_MAP_ID",
-          disableDefaultUI: true,
-          zoomControl: true,
-          zoomControlOptions: { position: 9 },
-          gestureHandling: "greedy",
-          clickableIcons: false,
-          styles: HIDE_POI_STYLES,
-        } as google.maps.MapOptions);
-
-        map.addListener("click", () => selectProduct(null));
-        map.addListener("idle", () => {
-          emitVisible();
-          updateCardPosDebounced(selectedIdRef.current);
-        });
-        map.addListener("bounds_changed", () => {
-          emitVisibleDebounced();
-          updateCardPosDebounced(selectedIdRef.current);
-        });
-
-        const markers: google.maps.marker.AdvancedMarkerElement[] = [];
-        for (const p of productsRef.current) {
-          if (p.latitude == null || p.longitude == null) continue;
-          const el = buildPricePill(p, false, false, () => {
-            selectProduct(selectedIdRef.current === p.id ? null : p.id);
-          });
-          const m = new AdvancedMarkerElement({
-            position: { lat: p.latitude, lng: p.longitude },
-            content: el,
-            title: p.name,
-          });
-          markersRef.current[p.id] = m;
-          markers.push(m);
-        }
-
-        const clusterer = new MarkerClusterer({
-          map,
-          markers,
-          renderer: {
-            render: ({ count, position }) => new AdvancedMarkerElement({
-              position,
-              content: buildClusterEl(count),
-              zIndex: 1000 + count,
-            }),
-          },
-        });
-        clustererRef.current = clusterer;
-        mapRef.current = map;
-        if (!destroyed) setReady(true);
-      } catch {
-        if (!destroyed) setMapError(true);
-      }
-    })();
-
-    return () => {
-      destroyed = true;
-      clustererRef.current?.clearMarkers();
-      clustererRef.current?.setMap(null);
-      clustererRef.current = null;
-      Object.values(markersRef.current).forEach(m => { m.map = null; });
-      markersRef.current = {};
-      if (gpsMarkerRef.current) { gpsMarkerRef.current.map = null; gpsMarkerRef.current = null; }
-      mapRef.current = null;
-      setReady(false);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // ── Refresh markers when products change ─────────────────────────────────────
-  useEffect(() => {
-    const map = mapRef.current;
-    const clusterer = clustererRef.current;
-    if (!map || !clusterer || !ready) return;
-
-    loadMarkerLib().then(({ AdvancedMarkerElement }) => {
-      clusterer.clearMarkers();
-      Object.values(markersRef.current).forEach(m => { m.map = null; });
-      markersRef.current = {};
-
-      const markers: google.maps.marker.AdvancedMarkerElement[] = [];
-      for (const p of products) {
-        if (p.latitude == null || p.longitude == null) continue;
-        const isSelected = selectedIdRef.current === p.id;
-        const isSuccess = successIdRef.current === p.id;
-        const el = buildPricePill(p, isSelected, isSuccess, () => {
-          selectProduct(selectedIdRef.current === p.id ? null : p.id);
-        });
-        const m = new AdvancedMarkerElement({
-          position: { lat: p.latitude, lng: p.longitude },
-          content: el,
-          title: p.name,
-        });
-        markersRef.current[p.id] = m;
-        markers.push(m);
-      }
-      clusterer.addMarkers(markers);
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products, ready]);
-
-  // ── Update pill appearance when selection/success changes ────────────────────
-  useEffect(() => {
-    const ps = productsRef.current;
-    loadMarkerLib().then(() => {
-      Object.entries(markersRef.current).forEach(([idStr, marker]) => {
-        const id = Number(idStr);
-        const p = ps.find(x => x.id === id);
-        if (!p) return;
-        const isSelected = selectedId === id;
-        const isSuccess = successId === id;
-        marker.content = buildPricePill(p, isSelected, isSuccess, () => {
-          selectProduct(selectedIdRef.current === id ? null : id);
-        });
-      });
-    });
-  }, [selectedId, successId, selectProduct]);
-
-  // ── Update card position when selected product changes ───────────────────────
-  useEffect(() => {
-    if (!selectedId) { setCardPos(null); return; }
-    setTimeout(() => updateCardPos(selectedId), 60);
-  }, [selectedId, updateCardPos]);
-
-  // ── Pan when GPS location arrives ────────────────────────────────────────────
-  useEffect(() => {
-    if (mapRef.current && hasGps) {
-      mapRef.current.panTo({ lat: userLat!, lng: userLng! });
-      mapRef.current.setZoom(GPS_ZOOM);
+    if (hasGps) {
+      setCenterLat(userLat!);
+      setCenterLng(userLng!);
+      setZoom(z => (z < GPS_ZOOM ? GPS_ZOOM : z));
     }
   }, [userLat, userLng, hasGps]);
 
-  // ── GPS pulse marker ─────────────────────────────────────────────────────────
+  // Pan to selected product
   useEffect(() => {
-    if (!hasGps) return;
-    loadMarkerLib().then(({ AdvancedMarkerElement }) => {
-      if (gpsMarkerRef.current) { gpsMarkerRef.current.map = null; gpsMarkerRef.current = null; }
-      const map = mapRef.current;
-      if (!map) return;
-      gpsMarkerRef.current = new AdvancedMarkerElement({
-        map,
-        position: { lat: userLat!, lng: userLng! },
-        content: buildGpsEl(),
-        title: "Mi ubicación",
-        zIndex: 9999,
-      });
-    });
-    return () => {
-      if (gpsMarkerRef.current) { gpsMarkerRef.current.map = null; gpsMarkerRef.current = null; }
-    };
-  }, [userLat, userLng, hasGps]);
-
-  // ── Pan to selected product ──────────────────────────────────────────────────
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !selectedId) return;
+    if (!selectedId) return;
     const p = products.find(x => x.id === selectedId);
     if (p?.latitude != null && p?.longitude != null) {
-      map.panTo({ lat: p.latitude!, lng: p.longitude! });
-      if ((map.getZoom() ?? 0) < 13) map.setZoom(13);
+      setCenterLat(p.latitude);
+      setCenterLng(p.longitude);
+      setZoom(z => (z < 13 ? 13 : z));
     }
   }, [selectedId, products]);
 
-  // ── Locate button ────────────────────────────────────────────────────────────
+  useEffect(() => { injectStyles(); }, []);
+
+  // Build static map URL (only re-fetch when meaningful inputs change)
+  const mapUrl = useMemo(() => {
+    if (!containerW || !containerH || !hasApiKey()) return null;
+    setImgLoaded(false);
+    setImgError(false);
+    return buildStaticMapUrl({
+      centerLat, centerLng, zoom,
+      width: containerW, height: containerH,
+      dark: false,
+    });
+  }, [centerLat, centerLng, zoom, containerW, containerH]);
+
+  // Compute pins (with fan-out for overlapping coords)
+  const pins = useMemo(() => {
+    const withCoords = products
+      .filter(p => p.latitude != null && p.longitude != null)
+      .map(p => ({ ...p, lat: p.latitude!, lng: p.longitude! }));
+    return fanOutOverlappingPoints(withCoords);
+  }, [products]);
+
+  // Compute screen positions for pins (in static-image space, then transform to container via cover)
+  const pinPositions = useMemo(() => {
+    if (!containerW || !containerH) return [];
+    const { safeW, safeH } = clampMapSize(containerW, containerH);
+    const t = coverTransform(safeW, safeH, containerW, containerH);
+    return pins.map(p => {
+      const imgPx = latLngToPixel(p.displayLat, p.displayLng, centerLat, centerLng, zoom, safeW, safeH);
+      const px = { x: imgPx.x * t.scale + t.offsetX, y: imgPx.y * t.scale + t.offsetY };
+      return { product: p, px };
+    });
+  }, [pins, centerLat, centerLng, zoom, containerW, containerH]);
+
+  // Visible products: those whose pin falls inside container bounds (with small margin)
+  const visibleIdsKey = useMemo(() => {
+    if (!containerW || !containerH) return "";
+    const ids = pinPositions
+      .filter(({ px }) => px.x >= -20 && px.x <= containerW + 20 && px.y >= -20 && px.y <= containerH + 20)
+      .map(({ product }) => product.id);
+    return ids.join(",");
+  }, [pinPositions, containerW, containerH]);
+
+  useEffect(() => {
+    if (!onVisibleProductsChange) return;
+    const ids = visibleIdsKey === "" ? [] : visibleIdsKey.split(",").map(Number);
+    onVisibleProductsChange(ids);
+  }, [visibleIdsKey, onVisibleProductsChange]);
+
+  const selectProduct = useCallback((id: number | null) => {
+    if (selectedProductId === undefined) setInternalSelected(id);
+    onProductSelect?.(id);
+  }, [selectedProductId, onProductSelect]);
+
+  const gpsPos = useMemo(() => {
+    if (!hasGps || !containerW || !containerH) return null;
+    const { safeW, safeH } = clampMapSize(containerW, containerH);
+    const t = coverTransform(safeW, safeH, containerW, containerH);
+    const imgPx = latLngToPixel(userLat!, userLng!, centerLat, centerLng, zoom, safeW, safeH);
+    return { x: imgPx.x * t.scale + t.offsetX, y: imgPx.y * t.scale + t.offsetY };
+  }, [hasGps, userLat, userLng, centerLat, centerLng, zoom, containerW, containerH]);
+
   const handleLocate = useCallback(() => {
     if (onRequestLocation) {
       setLocating(true);
@@ -630,8 +418,9 @@ export function ProductMap({
     navigator.geolocation.getCurrentPosition(
       pos => {
         setLocating(false);
-        mapRef.current?.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        mapRef.current?.setZoom(GPS_ZOOM);
+        setCenterLat(pos.coords.latitude);
+        setCenterLng(pos.coords.longitude);
+        setZoom(GPS_ZOOM);
       },
       () => setLocating(false),
       { timeout: 10000 },
@@ -639,16 +428,28 @@ export function ProductMap({
   }, [onRequestLocation]);
 
   const selectedProduct = products.find(p => p.id === selectedId) ?? null;
+  const selectedPos = useMemo(() => {
+    if (!selectedProduct || selectedProduct.latitude == null || selectedProduct.longitude == null) return null;
+    if (!containerW || !containerH) return null;
+    const fanned = pins.find(p => p.id === selectedProduct.id);
+    const lat = fanned?.displayLat ?? selectedProduct.latitude;
+    const lng = fanned?.displayLng ?? selectedProduct.longitude;
+    const { safeW, safeH } = clampMapSize(containerW, containerH);
+    const t = coverTransform(safeW, safeH, containerW, containerH);
+    const imgPx = latLngToPixel(lat, lng, centerLat, centerLng, zoom, safeW, safeH);
+    return { x: imgPx.x * t.scale + t.offsetX, y: imgPx.y * t.scale + t.offsetY };
+  }, [selectedProduct, pins, centerLat, centerLng, zoom, containerW, containerH]);
 
-  if (mapError) {
+  // Fallback list view (no API key or image errored)
+  if (!hasApiKey() || imgError) {
     return (
-      <div style={{ width: "100%", height: "100%", borderRadius: 20, background: "linear-gradient(135deg,#f8fafc,#f1f5f9)", border: "1px solid rgba(0,0,0,.06)", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <div ref={containerRef} style={{ width: "100%", height: "100%", borderRadius: 20, background: "linear-gradient(135deg,#f8fafc,#f1f5f9)", border: "1px solid rgba(0,0,0,.06)", display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div style={{ padding: "16px 20px", borderBottom: "1px solid rgba(0,0,0,.06)" }}>
           <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>🗺️ Mapa no disponible</p>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(180px,1fr))", gap: 12 }}>
-            {withCoords.map(p => (
+            {pins.map(p => (
               <div key={p.id} style={{ background: "#fff", borderRadius: 12, overflow: "hidden", border: "1px solid rgba(0,0,0,.07)", boxShadow: "0 2px 8px rgba(0,0,0,.06)" }}>
                 {p.image && <img src={p.image} alt={p.name} style={{ width: "100%", height: 80, objectFit: "cover" }} />}
                 <div style={{ padding: "8px 10px 10px" }}>
@@ -669,42 +470,136 @@ export function ProductMap({
   }
 
   return (
-    <div style={{ width: "100%", height: "100%", borderRadius: 20, position: "relative", overflow: "hidden" }}>
-      <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
+    <div
+      ref={containerRef}
+      style={{
+        width: "100%", height: "100%", borderRadius: 20,
+        position: "relative", overflow: "hidden",
+        background: "#e8edf3",
+      }}
+      onClick={() => selectProduct(null)}
+    >
+      {mapUrl && (
+        <img
+          src={mapUrl}
+          alt="Mapa"
+          onLoad={() => setImgLoaded(true)}
+          onError={() => setImgError(true)}
+          draggable={false}
+          style={{
+            position: "absolute", inset: 0,
+            width: "100%", height: "100%",
+            objectFit: "cover",
+            opacity: imgLoaded ? 1 : 0,
+            transition: "opacity .25s ease",
+            userSelect: "none", pointerEvents: "none",
+          }}
+        />
+      )}
 
-      {!ready && (
-        <div style={{ position: "absolute", inset: 0, borderRadius: 20, background: "#f0f4f8", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      {!imgLoaded && (
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center" }}>
-            <div style={{ width: 36, height: 36, margin: "0 auto 10px", border: "3px solid #6366f1", borderTopColor: "transparent", borderRadius: "50%", animation: "pm-spin .8s linear infinite" }} />
+            <div style={{ width: 36, height: 36, margin: "0 auto 10px", border: "3px solid #6366f1", borderTopColor: "transparent", borderRadius: "50%", animation: "pms-spin .8s linear infinite" }} />
             <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>Cargando mapa…</p>
           </div>
         </div>
       )}
 
-      {ready && withCoords.length > 0 && (
+      {/* Counter pill */}
+      {imgLoaded && pins.length > 0 && (
         <div style={{ position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)", background: "rgba(255,255,255,.93)", backdropFilter: "blur(10px)", borderRadius: 100, padding: "5px 14px", border: "1px solid rgba(0,0,0,.07)", fontSize: 12, fontWeight: 600, color: "#475569", display: "flex", alignItems: "center", gap: 6, pointerEvents: "none", boxShadow: "0 2px 10px rgba(0,0,0,.08)", whiteSpace: "nowrap", zIndex: 10 }}>
           <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#6366f1" }} />
-          {withCoords.length} producto{withCoords.length !== 1 ? "s" : ""} en el mapa
+          {pins.length} producto{pins.length !== 1 ? "s" : ""} en el mapa
         </div>
       )}
 
-      {ready && (
-        <button onClick={handleLocate} title="Usar mi ubicación"
-          style={{ position: "absolute", bottom: 52, left: 12, zIndex: 10, width: 40, height: 40, borderRadius: 12, background: locating ? "rgba(99,102,241,0.1)" : "rgba(255,255,255,.96)", border: "1px solid rgba(0,0,0,.1)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,.1)", transition: "all .32s cubic-bezier(.4,0,.2,1)", fontSize: 18 }}>
+      {/* GPS pulse */}
+      {imgLoaded && gpsPos && (
+        <div
+          style={{
+            position: "absolute",
+            left: gpsPos.x - 12, top: gpsPos.y - 12,
+            width: 24, height: 24, pointerEvents: "none", zIndex: 5,
+          }}
+        >
+          <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "rgba(59,130,246,.28)", animation: "pms-pulse 2s ease-out infinite" }} />
+          <div style={{ position: "absolute", inset: 4, borderRadius: "50%", background: "#3b82f6", border: "2px solid #fff", boxShadow: "0 0 10px rgba(59,130,246,.9)" }} />
+        </div>
+      )}
+
+      {/* Pins */}
+      {imgLoaded && pinPositions.map(({ product, px }) => {
+        if (px.x < -40 || px.x > containerW + 40 || px.y < -40 || px.y > containerH + 40) return null;
+        const isSelected = selectedId === product.id;
+        const isSuccess = successId === product.id;
+        return (
+          <div
+            key={product.id}
+            style={{
+              position: "absolute",
+              left: px.x, top: px.y,
+              transform: "translate(-50%, -100%)",
+              zIndex: isSelected ? 200 : isSuccess ? 150 : 100,
+            }}
+          >
+            <PricePill
+              product={product}
+              isSelected={isSelected}
+              isSuccess={isSuccess}
+              onClick={(e) => {
+                e.stopPropagation();
+                selectProduct(selectedId === product.id ? null : product.id);
+              }}
+            />
+          </div>
+        );
+      })}
+
+      {/* Locate button */}
+      {imgLoaded && (
+        <button
+          onClick={(e) => { e.stopPropagation(); handleLocate(); }}
+          title="Usar mi ubicación"
+          style={{ position: "absolute", bottom: 52, left: 12, zIndex: 10, width: 40, height: 40, borderRadius: 12, background: locating ? "rgba(99,102,241,0.1)" : "rgba(255,255,255,.96)", border: "1px solid rgba(0,0,0,.1)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,.1)", fontSize: 18 }}
+        >
           {locating ? (
-            <div style={{ width: 16, height: 16, border: "2px solid #6366f1", borderTopColor: "transparent", borderRadius: "50%", animation: "pm-spin .8s linear infinite" }} />
+            <div style={{ width: 16, height: 16, border: "2px solid #6366f1", borderTopColor: "transparent", borderRadius: "50%", animation: "pms-spin .8s linear infinite" }} />
           ) : "📍"}
         </button>
       )}
 
-      {ready && selectedProduct && cardPos && (
+      {/* Zoom controls */}
+      {imgLoaded && (
+        <div style={{ position: "absolute", bottom: 12, right: 12, zIndex: 10, display: "flex", flexDirection: "column", borderRadius: 12, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,.12)", border: "1px solid rgba(0,0,0,.1)" }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); setZoom(z => Math.min(MAX_ZOOM, z + 1)); }}
+            disabled={zoom >= MAX_ZOOM}
+            title="Acercar"
+            style={{ width: 36, height: 36, border: "none", background: "rgba(255,255,255,.96)", cursor: zoom >= MAX_ZOOM ? "not-allowed" : "pointer", borderBottom: "1px solid rgba(0,0,0,.08)", display: "flex", alignItems: "center", justifyContent: "center", color: "#0f172a" }}
+          >
+            <Plus style={{ width: 16, height: 16 }} />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setZoom(z => Math.max(MIN_ZOOM, z - 1)); }}
+            disabled={zoom <= MIN_ZOOM}
+            title="Alejar"
+            style={{ width: 36, height: 36, border: "none", background: "rgba(255,255,255,.96)", cursor: zoom <= MIN_ZOOM ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#0f172a" }}
+          >
+            <Minus style={{ width: 16, height: 16 }} />
+          </button>
+        </div>
+      )}
+
+      {/* Floating product card */}
+      {imgLoaded && selectedProduct && selectedPos && (
         <FloatingProductCard
           product={selectedProduct}
-          pos={cardPos}
-          containerW={containerSize.w}
-          containerH={containerSize.h}
+          pos={selectedPos}
+          containerW={containerW}
+          containerH={containerH}
           bcvRate={bcvRate}
-          onBuy={id => { onBuy(id); }}
+          onBuy={onBuy}
           canBuy={canBuy}
           isSuccess={successId === selectedProduct.id}
           onClose={() => selectProduct(null)}
