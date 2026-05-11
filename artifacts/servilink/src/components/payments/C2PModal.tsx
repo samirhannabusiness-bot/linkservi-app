@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Shield, CheckCircle2, AlertTriangle, Loader2, Zap, Smartphone, CreditCard } from "lucide-react";
+import { X, Shield, CheckCircle2, AlertTriangle, Loader2, Zap, Smartphone, CreditCard, Clock, RefreshCw } from "lucide-react";
 import { BANCOS_VE } from "@/lib/bancos-ve";
 import { getAuthHeader, notifyIfVerificationRequired } from "@/lib/api";
 import { useBcvRate } from "@/hooks/useBcvRate";
@@ -39,6 +39,10 @@ interface Props {
 
 type Step = "form" | "otp" | "success";
 
+// El OTP del BDV expira a los ~2 minutos. Damos un margen un poco menor
+// para que el cliente lo confirme antes que el banco lo rechace por tiempo.
+const OTP_TTL_SECONDS = 110;
+
 const friendlyError = (raw?: string): string => {
   const m = (raw ?? "").toLowerCase();
   if (m.includes("no afiliado") || m.includes("no esta afiliado") || m.includes("no está afiliado"))
@@ -68,6 +72,8 @@ export function C2PModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successData, setSuccessData] = useState<C2PSuccessPayload | null>(null);
+  // Cuenta regresiva del OTP en segundos. 0 = expirado.
+  const [otpSecondsLeft, setOtpSecondsLeft] = useState(OTP_TTL_SECONDS);
 
   const cedulaRef = useRef<HTMLInputElement>(null);
   const otpRef = useRef<HTMLInputElement>(null);
@@ -76,9 +82,20 @@ export function C2PModal({
   useEffect(() => {
     if (open) {
       setStep("form"); setOtp(""); setError(""); setSuccessData(null); setLoading(false);
+      setOtpSecondsLeft(OTP_TTL_SECONDS);
       setTimeout(() => cedulaRef.current?.focus(), 250);
     }
   }, [open]);
+
+  // Cuenta regresiva del OTP — solo activa mientras estamos en el paso "otp"
+  useEffect(() => {
+    if (step !== "otp") return;
+    if (otpSecondsLeft <= 0) return;
+    const t = setInterval(() => {
+      setOtpSecondsLeft((s) => (s > 0 ? s - 1 : 0));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [step, otpSecondsLeft]);
 
   // Lock body scroll
   useEffect(() => {
@@ -119,7 +136,9 @@ export function C2PModal({
         return;
       }
       setStep("otp");
-      toast({ title: "📨 Clave enviada", description: "Revisa los SMS de tu teléfono." });
+      setOtpSecondsLeft(OTP_TTL_SECONDS);
+      setOtp("");
+      toast({ title: "Clave enviada", description: "Revisa los SMS de tu teléfono." });
     } catch (e: any) {
       setError("Error de red: " + e.message);
     } finally { setLoading(false); }
@@ -330,7 +349,24 @@ export function C2PModal({
               </motion.div>
             )}
 
-            {step === "otp" && (
+            {step === "otp" && (() => {
+              const expired = otpSecondsLeft <= 0;
+              const urgent = otpSecondsLeft > 0 && otpSecondsLeft <= 20;
+              const mm = Math.floor(otpSecondsLeft / 60);
+              const ss = otpSecondsLeft % 60;
+              const timeText = `${mm}:${ss.toString().padStart(2, "0")}`;
+              const timeColor = expired ? "#ef4444" : urgent ? "#f59e0b" : "#38bdf8";
+              const timeBg = expired
+                ? "rgba(239,68,68,0.10)"
+                : urgent
+                  ? "rgba(245,158,11,0.10)"
+                  : "rgba(56,189,248,0.10)";
+              const timeBorder = expired
+                ? "rgba(239,68,68,0.35)"
+                : urgent
+                  ? "rgba(245,158,11,0.35)"
+                  : "rgba(56,189,248,0.30)";
+              return (
               <motion.div initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} className="space-y-5">
                 <div className="text-center py-2">
                   <div className="inline-flex w-14 h-14 rounded-full items-center justify-center mb-3"
@@ -343,6 +379,15 @@ export function C2PModal({
                   </p>
                 </div>
 
+                {/* Cuenta regresiva — el OTP expira a los ~2 minutos */}
+                <div className="flex items-center justify-center gap-2 py-2 px-4 rounded-xl mx-auto"
+                  style={{ background: timeBg, border: `1px solid ${timeBorder}`, width: "fit-content" }}>
+                  <Clock className="w-3.5 h-3.5" style={{ color: timeColor }} />
+                  <span className="text-xs font-bold" style={{ color: timeColor }}>
+                    {expired ? "La clave expiró" : `Válida por ${timeText}`}
+                  </span>
+                </div>
+
                 <div>
                   <input
                     ref={otpRef}
@@ -353,10 +398,11 @@ export function C2PModal({
                     inputMode="numeric"
                     autoComplete="one-time-code"
                     maxLength={8}
-                    className="w-full text-center text-3xl font-black tracking-[0.5em] py-4 rounded-xl text-white placeholder:text-white/15 focus:outline-none"
+                    disabled={expired}
+                    className="w-full text-center text-3xl font-black tracking-[0.5em] py-4 rounded-xl text-white placeholder:text-white/15 focus:outline-none disabled:opacity-40"
                     style={{
                       background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(56,189,248,0.30)",
+                      border: `1px solid ${expired ? "rgba(239,68,68,0.30)" : "rgba(56,189,248,0.30)"}`,
                       letterSpacing: "0.5em",
                     }}
                   />
@@ -373,14 +419,26 @@ export function C2PModal({
                   </div>
                 )}
 
-                <button onClick={() => { setStep("form"); setOtp(""); setError(""); }}
+                {/* Botón de reenvío — siempre visible, destacado cuando expira */}
+                <button
+                  onClick={handleRequestOtp}
                   disabled={loading}
-                  className="w-full text-xs font-bold py-2 disabled:opacity-30"
-                  style={{ color: "rgba(56,189,248,0.85)" }}>
-                  ← Volver y solicitar otra clave
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold disabled:opacity-30 transition-all active:scale-[0.98]"
+                  style={{
+                    background: expired
+                      ? "linear-gradient(135deg, rgba(56,189,248,0.20), rgba(14,165,233,0.20))"
+                      : "rgba(255,255,255,0.04)",
+                    border: `1px solid ${expired ? "rgba(56,189,248,0.55)" : "rgba(255,255,255,0.10)"}`,
+                    color: expired ? "#7dd3fc" : "rgba(56,189,248,0.85)",
+                  }}
+                >
+                  {loading
+                    ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Enviando…</>
+                    : <><RefreshCw className="w-3.5 h-3.5" />{expired ? "Solicitar nueva clave" : "Reenviar clave por SMS"}</>}
                 </button>
               </motion.div>
-            )}
+              );
+            })()}
 
             {step === "success" && successData && (
               <motion.div initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
@@ -432,7 +490,7 @@ export function C2PModal({
                 </button>
               )}
               {step === "otp" && (
-                <button onClick={handleConfirm} disabled={loading || otp.length < 4}
+                <button onClick={handleConfirm} disabled={loading || otp.length < 4 || otpSecondsLeft <= 0}
                   className="w-full py-4 rounded-2xl font-black text-sm text-white transition-all disabled:opacity-40 active:scale-[0.98]"
                   style={{
                     background: loading ? "#059669" : "linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)",
