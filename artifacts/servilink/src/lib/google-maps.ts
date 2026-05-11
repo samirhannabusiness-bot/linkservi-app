@@ -33,6 +33,16 @@ export async function loadMarkerLib() {
   return importLibrary("marker") as Promise<google.maps.MarkerLibrary>;
 }
 
+export async function loadPlacesLib() {
+  ensureInit();
+  return importLibrary("places") as Promise<google.maps.PlacesLibrary>;
+}
+
+export async function loadGeocodingLib() {
+  ensureInit();
+  return importLibrary("geocoding") as Promise<google.maps.GeocodingLibrary>;
+}
+
 export const DARK_MAP_STYLE: google.maps.MapTypeStyle[] = [
   { elementType: "geometry", stylers: [{ color: "#040c1a" }] },
   { elementType: "labels.text.stroke", stylers: [{ color: "#040c1a" }] },

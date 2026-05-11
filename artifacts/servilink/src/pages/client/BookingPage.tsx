@@ -47,6 +47,8 @@ export function BookingPage() {
 
   // Step 2 — Dirección
   const [address, setAddress] = useState("");
+  const [addressLat, setAddressLat] = useState<number | null>(null);
+  const [addressLng, setAddressLng] = useState<number | null>(null);
 
   // Step 3 — Cuándo
   const [scheduledAt, setScheduledAt] = useState<Date | undefined>(undefined);
@@ -118,6 +120,10 @@ export function BookingPage() {
       address,
       scheduledAt: scheduledAt ? scheduledAt.toISOString() : undefined,
     };
+    if (addressLat != null && addressLng != null) {
+      payload.lat = addressLat;
+      payload.lng = addressLng;
+    }
     if (pricingMode === "bid") payload.clientBudget = clientBudget * urgentMultiplier;
     createBooking({ data: payload as any });
   };
@@ -354,7 +360,16 @@ export function BookingPage() {
               <label className="block text-sm font-semibold text-foreground mb-2">Dirección del servicio</label>
               <AddressAutocomplete
                 value={address}
-                onChange={setAddress}
+                onChange={(v) => {
+                  setAddress(v);
+                  // Si el cliente edita el texto a mano, invalidamos las coords
+                  if (addressLat != null) { setAddressLat(null); setAddressLng(null); }
+                }}
+                onSelect={(sel) => {
+                  setAddress(sel.address);
+                  setAddressLat(sel.lat);
+                  setAddressLng(sel.lng);
+                }}
                 placeholder="Busca tu calle, urbanización o municipio..."
               />
               <p className="text-xs text-muted-foreground mt-2">
@@ -362,15 +377,35 @@ export function BookingPage() {
               </p>
             </div>
 
-            {address && (
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-                <MapPin className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+            {address && addressLat != null && addressLng != null ? (
+              <div className="space-y-2">
+                <div className="flex items-start gap-3 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                  <MapPin className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300 break-words">{address}</p>
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">
+                      Ubicación exacta confirmada · el profesional la verá en el mapa
+                    </p>
+                  </div>
+                </div>
+                <img
+                  src={`https://maps.googleapis.com/maps/api/staticmap?center=${addressLat},${addressLng}&zoom=16&size=600x240&scale=2&markers=color:0x06b6d4%7C${addressLat},${addressLng}&style=feature:poi%7Cvisibility:off&style=element:geometry%7Ccolor:0x040c1a&style=element:labels.text.fill%7Ccolor:0x7a8599&style=element:labels.text.stroke%7Ccolor:0x040c1a&style=feature:road%7Celement:geometry%7Ccolor:0x152336&style=feature:water%7Celement:geometry%7Ccolor:0x0a1628&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`}
+                  alt="Mapa con tu ubicación"
+                  className="w-full rounded-xl border border-border"
+                  loading="lazy"
+                />
+              </div>
+            ) : address ? (
+              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">{address}</p>
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">Dirección confirmada</p>
+                  <p className="text-sm font-medium text-amber-800 dark:text-amber-300">Dirección sin coordenadas</p>
+                  <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+                    Selecciona una opción de la lista o usa "Usar mi ubicación actual" para que el profesional pueda llegar exactamente a ti.
+                  </p>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         )}
 
