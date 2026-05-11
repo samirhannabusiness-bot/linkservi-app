@@ -244,7 +244,7 @@ export function WorkerProfileEdit() {
     e.target.value = "";
     if (!file) return;
     if (!file.type.startsWith("image/")) { setAvatarError("Solo imágenes JPG, PNG o WebP."); return; }
-    if (file.size > 15 * 1024 * 1024) { setAvatarError("La imagen no puede superar 15 MB."); return; }
+    if (file.size > 18 * 1024 * 1024) { setAvatarError("La imagen no puede superar 18 MB."); return; }
     setAvatarError("");
     setAvatarFile(file);
     setAvatarPreview(URL.createObjectURL(file));
@@ -297,8 +297,8 @@ export function WorkerProfileEdit() {
       setTimeout(() => setUploadError(""), 3000);
       return;
     }
-    if (file.size > 8 * 1024 * 1024) {
-      setUploadError("La imagen no puede superar 8 MB");
+    if (file.size > 18 * 1024 * 1024) {
+      setUploadError("La imagen no puede superar 18 MB");
       setTimeout(() => setUploadError(""), 3000);
       return;
     }

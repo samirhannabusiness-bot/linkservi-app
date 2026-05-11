@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { getAuthHeader } from "@/lib/api";
+import { mediaSrc } from "@/lib/media-url";
 import {
   CheckCircle, XCircle, Eye, ChevronDown, ChevronUp, RefreshCw,
   Package, MapPin, User, ShoppingBag
@@ -155,7 +156,7 @@ function OrderRow({ o, onUpdated }: { o: any; onUpdated: () => void }) {
             <div className="space-y-2">
               <p className="text-xs font-medium text-foreground">Comprobante</p>
               <a
-                href={`/api/storage${o.paymentProofUrl}`}
+                href={mediaSrc(o.paymentProofUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-medium"
@@ -164,7 +165,7 @@ function OrderRow({ o, onUpdated }: { o: any; onUpdated: () => void }) {
               </a>
               {/* Try inline image preview */}
               <img
-                src={`/api/storage${o.paymentProofUrl}`}
+                src={mediaSrc(o.paymentProofUrl)}
                 alt="Comprobante"
                 className="w-full max-h-48 object-contain rounded-xl border border-border bg-muted"
                 onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}

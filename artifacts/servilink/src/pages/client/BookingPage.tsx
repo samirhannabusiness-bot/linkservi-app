@@ -12,6 +12,7 @@ import { useGeolocation, haversineDistance } from "@/hooks/useGeolocation";
 import { useBcvRate } from "@/hooks/useBcvRate";
 import { DateTimePicker } from "@/components/ui/DateTimePicker";
 import { AddressAutocomplete } from "@/components/ui/AddressAutocomplete";
+import { mediaSrc } from "@/lib/media-url";
 
 type PricingMode = "service" | "bid";
 
@@ -126,7 +127,7 @@ export function BookingPage() {
     <div className="flex items-center gap-3 p-3.5 rounded-xl bg-card border border-border">
       <div className="relative flex-shrink-0">
         {w.avatarUrl
-          ? <img src={w.avatarUrl.startsWith("http") ? w.avatarUrl : w.avatarUrl.startsWith("/api/") ? w.avatarUrl : `/api/storage${w.avatarUrl}`} alt={w.name} className="w-10 h-10 rounded-full object-cover" />
+          ? <img src={mediaSrc(w.avatarUrl)} alt={w.name} className="w-10 h-10 rounded-full object-cover" />
           : <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">{w.name?.charAt(0)}</div>
         }
         {w.isAvailable && <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-card" />}

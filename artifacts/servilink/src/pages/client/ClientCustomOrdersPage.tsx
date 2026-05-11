@@ -6,6 +6,7 @@ import {
   ChevronDown, ChevronUp, ShoppingBag, Eye, AlertTriangle, Zap
 } from "lucide-react";
 import { C2PModal } from "@/components/payments/C2PModal";
+import { mediaSrc } from "@/lib/media-url";
 
 interface CustomOrder {
   id: number;
@@ -78,7 +79,7 @@ function OrderCard({ o, onPaid }: { o: CustomOrder; onPaid: () => void }) {
       >
         <div className="w-12 h-12 rounded-xl overflow-hidden bg-white/[0.06] flex-shrink-0">
           {o.imageUrl
-            ? <img src={o.imageUrl.startsWith("/api/storage") ? o.imageUrl : `/api/storage${o.imageUrl}`} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+            ? <img src={mediaSrc(o.imageUrl)} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
             : <Package className="w-6 h-6 m-3 text-white/30" />
           }
         </div>

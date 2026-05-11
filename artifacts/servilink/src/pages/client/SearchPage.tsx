@@ -16,6 +16,7 @@ import {
 import { VENEZUELA_STATES, getCitiesForState } from "@/lib/venezuela-locations";
 import { useAuth } from "@/lib/auth-context";
 import { getRequestOptions, track } from "@/lib/api";
+import { mediaSrc } from "@/lib/media-url";
 
 const PAGE_SIZE = 12;
 
@@ -652,7 +653,7 @@ export function SearchPage() {
                                 style={{ background: "rgba(6,182,212,0.10)", border: "1px solid rgba(6,182,212,0.20)", color: "#22d3ee" }}>
                                 {w.avatarUrl ? (
                                   <img
-                                    src={w.avatarUrl.startsWith("http") || w.avatarUrl.startsWith("/api/") ? w.avatarUrl : `/api/storage${w.avatarUrl}`}
+                                    src={mediaSrc(w.avatarUrl)}
                                     alt={w.name}
                                     className="w-full h-full object-cover"
                                   />

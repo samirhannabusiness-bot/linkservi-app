@@ -4,6 +4,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { getAuthHeader } from "@/lib/api";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { mediaSrc } from "@/lib/media-url";
 import {
   CheckCircle, XCircle, Eye, X, ChevronDown, ChevronUp, RefreshCw,
   DollarSign, Clock, History,
@@ -143,7 +144,7 @@ function BookingRow({ b, onUpdated }: { b: any; onUpdated: () => void }) {
                 const proofSrc = b.paymentProofUrl.startsWith("data:")
                   ? b.paymentProofUrl
                   : b.paymentProofUrl.startsWith("/objects/")
-                    ? `/api/storage${b.paymentProofUrl}`
+                    ? mediaSrc(b.paymentProofUrl)
                     : null;
                 return proofSrc ? (
                   <div className="relative">
@@ -206,7 +207,7 @@ function BookingRow({ b, onUpdated }: { b: any; onUpdated: () => void }) {
       {showProof && b.paymentProofUrl && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setShowProof(false)}>
           <div className="relative max-w-2xl w-full">
-            <img src={b.paymentProofUrl.startsWith("data:") ? b.paymentProofUrl : `/api/storage${b.paymentProofUrl}`}
+            <img src={mediaSrc(b.paymentProofUrl)}
               alt="Comprobante" className="w-full rounded-xl" />
             <button onClick={() => setShowProof(false)}
               className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center">

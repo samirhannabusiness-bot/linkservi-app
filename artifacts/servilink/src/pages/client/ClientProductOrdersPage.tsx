@@ -356,7 +356,7 @@ function PaymentPanel({ order, token, onSubmitted }: { order: ProductOrder; toke
               <Upload className="w-7 h-7" />
               <div className="text-center">
                 <p className="text-sm font-semibold">Toca aquí para subir la imagen</p>
-                <p className="text-xs mt-0.5">Captura de pantalla, foto o PDF · Máx 8 MB</p>
+                <p className="text-xs mt-0.5">Captura de pantalla, foto o PDF · Máx. 18 MB</p>
               </div>
             </button>
           ) : (

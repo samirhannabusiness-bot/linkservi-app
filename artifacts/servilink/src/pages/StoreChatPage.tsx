@@ -14,6 +14,7 @@ import {
 import { formatDistanceToNow, format, isToday, isYesterday } from "date-fns";
 import { es } from "date-fns/locale";
 import { useBcvRate } from "@/hooks/useBcvRate";
+import { mediaSrc } from "@/lib/media-url";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Interfaces
@@ -371,14 +372,14 @@ function PurchaseRequestModal({ accent, onSend, onClose }: { accent: string; onS
 
   const handleImg = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
-    if (file.size > 8 * 1024 * 1024) { setError("Imagen máx. 8 MB"); return; }
+    if (file.size > 18 * 1024 * 1024) { setError("Imagen Máx. 18 MB"); return; }
     setError(""); setUploading(true); setPreviewUrl(URL.createObjectURL(file));
     try {
       const urlRes = await fetch("/api/storage/uploads/request-url", { method: "POST", headers: { "Content-Type": "application/json", ...getAuthHeader() }, body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type }) });
       if (!urlRes.ok) throw new Error();
       const { uploadURL, objectPath } = await urlRes.json();
       await fetch(uploadURL, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
-      setImageUrl(`/api/storage${objectPath}`);
+      setImageUrl(mediaSrc(objectPath));
     } catch { setError("Error al subir imagen"); setPreviewUrl(null); } finally { setUploading(false); }
   };
 
@@ -602,7 +603,7 @@ async function downloadRentalContract(r: any, currentUser?: { id: number; name: 
         await fetch(`/api/rentals/${r.id}/contract-url`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json", ...getAuthHeader() },
-          body: JSON.stringify({ contractUrl: `/api/storage${objectPath}` }),
+          body: JSON.stringify({ contractUrl: mediaSrc(objectPath) }),
         });
       }
     }
@@ -911,7 +912,7 @@ export function StoreChatPage() {
   // ── Image ────────────────────────────────────────────────────────────────
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
-    if (file.size > 8 * 1024 * 1024) { alert("Imagen máx. 8 MB"); return; }
+    if (file.size > 18 * 1024 * 1024) { alert("Imagen Máx. 18 MB"); return; }
     setPendingImage({ file, previewUrl: URL.createObjectURL(file) });
     if (imgInputRef.current) imgInputRef.current.value = "";
     inputRef.current?.focus();
@@ -925,7 +926,7 @@ export function StoreChatPage() {
       if (!urlRes.ok) throw new Error();
       const { uploadURL, objectPath } = await urlRes.json();
       await fetch(uploadURL, { method: "PUT", headers: { "Content-Type": pendingImage.file.type }, body: pendingImage.file });
-      await sendMessage({ messageType: "image", content: "", imageUrl: `/api/storage${objectPath}` });
+      await sendMessage({ messageType: "image", content: "", imageUrl: mediaSrc(objectPath) });
       setPendingImage(null);
     } catch { alert("Error al subir imagen"); } finally { setImgUploading(false); }
   };
@@ -948,7 +949,7 @@ export function StoreChatPage() {
       if (!urlRes.ok) throw new Error();
       const { uploadURL, objectPath } = await urlRes.json();
       await fetch(uploadURL, { method: "PUT", headers: { "Content-Type": pendingVideo.file.type }, body: pendingVideo.file });
-      await sendMessage({ messageType: "video", content: "", videoUrl: `/api/storage${objectPath}` });
+      await sendMessage({ messageType: "video", content: "", videoUrl: mediaSrc(objectPath) });
       URL.revokeObjectURL(pendingVideo.previewUrl);
       setPendingVideo(null);
     } catch { alert("Error al subir video"); } finally { setVideoUploading(false); }
@@ -987,7 +988,7 @@ export function StoreChatPage() {
       if (!urlRes.ok) throw new Error();
       const { uploadURL, objectPath } = await urlRes.json();
       await fetch(uploadURL, { method: "PUT", headers: { "Content-Type": mimeType }, body: blob });
-      await sendMessage({ messageType: "voice", content: "", audioUrl: `/api/storage${objectPath}` });
+      await sendMessage({ messageType: "voice", content: "", audioUrl: mediaSrc(objectPath) });
     } catch { alert("Error al enviar nota de voz"); } finally { setVoiceUploading(false); }
   };
 

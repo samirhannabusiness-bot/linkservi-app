@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
+import { mediaSrc } from "@/lib/media-url";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type InboxType = "service" | "store" | "job";
@@ -31,7 +32,7 @@ interface UnifiedConversation {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function AvatarCircle({ url, initial, color }: { url?: string | null; initial: string; color: string }) {
   if (url) {
-    const src = url.startsWith("http") || url.startsWith("/api/") ? url : `/api/storage${url}`;
+    const src = mediaSrc(url);
     return <img src={src} className="w-12 h-12 rounded-2xl object-cover flex-shrink-0" alt={initial} />;
   }
   return (

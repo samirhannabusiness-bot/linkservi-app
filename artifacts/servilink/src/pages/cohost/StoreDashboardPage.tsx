@@ -13,6 +13,7 @@ import { getAuthHeader } from "@/lib/api";
 import { useStoreDetail, useStoreOrders, useRequestStoreWithdrawal } from "@/hooks/cohost";
 import { SkeletonCard, SkeletonStats, QueryError } from "@/components/ui/Skeleton";
 import { toast } from "@/hooks/use-toast";
+import { mediaSrc } from "@/lib/media-url";
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "Pendiente", accepted: "Aceptado", payment_pending: "Verificando pago",
@@ -235,7 +236,7 @@ export function StoreDashboardPage() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 15 * 1024 * 1024) { setProductError("Imagen máx. 15 MB"); return; }
+    if (file.size > 18 * 1024 * 1024) { setProductError("Imagen Máx. 18 MB"); return; }
     setImageUploading(true);
     try {
       const r = await fetch("/api/storage/uploads/request-url", {
@@ -247,7 +248,7 @@ export function StoreDashboardPage() {
       const { uploadURL, objectPath } = await r.json();
       const up = await fetch(uploadURL, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
       if (!up.ok) throw new Error();
-      const url = `/api/storage${objectPath}`;
+      const url = mediaSrc(objectPath);
       pf("images", [...productForm.images, url]);
     } catch { setProductError("Error al subir imagen"); }
     finally { setImageUploading(false); if (imageRef.current) imageRef.current.value = ""; }

@@ -7,6 +7,7 @@ import {
 import { AppLayout } from "@/components/layout/AppLayout";
 import { apiFetch, getAuthHeader } from "@/lib/api";
 import { useSeo } from "@/lib/seo-helpers";
+import { mediaSrc } from "@/lib/media-url";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DriverSetupPage
@@ -19,7 +20,7 @@ import { useSeo } from "@/lib/seo-helpers";
 //  - Sugerencias de marca y modelo dinámicas según el tipo (datalist).
 //  - Campo extra "tipo de grúa" sólo cuando el vehículo es grúa.
 //  - Subida real de la foto del vehículo (cámara móvil + galería + dropzone +
-//    preview), con validación de formato (jpg/png/webp) y tamaño (≤15 MB).
+//    preview), con validación de formato (jpg/png/webp) y tamaño (≤18 MB).
 //  - Foto obligatoria en el primer registro; al editar se conserva la actual.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -99,7 +100,7 @@ interface DriverProfile {
 }
 
 const CURRENT_YEAR = new Date().getFullYear();
-const MAX_PHOTO_BYTES = 15 * 1024 * 1024; // 15 MB
+const MAX_PHOTO_BYTES = 18 * 1024 * 1024; // 18 MB
 const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 // Convierte un objectPath devuelto por el backend (`/objects/uploads/xxx`) en
@@ -109,7 +110,7 @@ function resolvePhotoSrc(stored: string | null): string | null {
   if (stored.startsWith("blob:") || stored.startsWith("data:") || stored.startsWith("http")) {
     return stored;
   }
-  if (stored.startsWith("/objects/")) return `/api/storage${stored}`;
+  if (stored.startsWith("/objects/")) return mediaSrc(stored);
   if (stored.startsWith("/api/storage")) return stored;
   return stored;
 }
@@ -181,7 +182,7 @@ export function DriverSetupPage() {
       return;
     }
     if (file.size > MAX_PHOTO_BYTES) {
-      setPhotoError("La foto no debe pesar más de 15 MB.");
+      setPhotoError("La foto no debe pesar más de 18 MB.");
       return;
     }
 
@@ -568,7 +569,7 @@ export function DriverSetupPage() {
                 <ImageIcon className="w-3 h-3 mt-0.5 shrink-0" />
                 <span>
                   {typeMeta?.photoHint ?? "Toma una foto clara de tu vehículo."}{" "}
-                  Formatos: JPG, PNG o WEBP. Máximo 15 MB.
+                  Formatos: JPG, PNG o WEBP. máximo 18 MB.
                 </span>
               </p>
 

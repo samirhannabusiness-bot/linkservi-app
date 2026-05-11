@@ -14,6 +14,7 @@ import {
   useCreateProduct, useUpdateProduct, useDeleteProduct,
 } from "@/hooks/cohost";
 import { SkeletonCard, QueryError } from "@/components/ui/Skeleton";
+import { mediaSrc } from "@/lib/media-url";
 
 interface NominatimResult {
   place_id: number; display_name: string; lat: string; lon: string;
@@ -132,7 +133,7 @@ export function CoHostProductsPage() {
         });
         const up = await fetch(uploadURL, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
         if (!up.ok) throw new Error("Error al subir imagen al servidor");
-        newUrls.push(`/api/storage${objectPath}`);
+        newUrls.push(mediaSrc(objectPath));
       }
       setForm(f => ({ ...f, images: [...f.images, ...newUrls].slice(0, MAX_IMAGES) }));
     } catch (err: any) {

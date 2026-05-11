@@ -308,7 +308,7 @@ function StoreBuilderPanel({
       setError("Logo: solo JPG, PNG o WebP");
       return;
     }
-    if (file.size > 15 * 1024 * 1024) { setError("Logo máx. 15 MB"); return; }
+    if (file.size > 18 * 1024 * 1024) { setError("Logo Máx. 18 MB"); return; }
     setLogoUploading(true);
     setError("");
     try {
@@ -329,7 +329,7 @@ function StoreBuilderPanel({
       setError("Banner: solo JPG, PNG o WebP");
       return;
     }
-    if (file.size > 15 * 1024 * 1024) { setError("Banner máx. 15 MB"); return; }
+    if (file.size > 18 * 1024 * 1024) { setError("Banner Máx. 18 MB"); return; }
     setBannerUploading(true);
     setError("");
     try {
@@ -458,7 +458,7 @@ function StoreBuilderPanel({
                       {form.logoUrl ? "Cambiar logo" : "📷 Subir logo"}
                     </button>
                     {form.logoUrl && <button onClick={() => f("logoUrl", "")} className="w-full py-1.5 rounded-xl text-xs text-red-400 border border-red-400/20 hover:bg-red-400/10 transition-colors">Quitar</button>}
-                    <p className="text-[10px] text-muted-foreground/60 text-center">PNG, JPG · Cuadrado (1:1) · Máx. 15 MB</p>
+                    <p className="text-[10px] text-muted-foreground/60 text-center">PNG, JPG · Cuadrado (1:1) · Máx. 18 MB</p>
                   </div>
                 </div>
               </div>
@@ -478,7 +478,7 @@ function StoreBuilderPanel({
                     : <div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground">
                         {bannerUploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Image className="w-8 h-8 opacity-25" />}
                         <span className="text-xs">{bannerUploading ? "Subiendo…" : "Haz que tu negocio brille — sube un banner"}</span>
-                        <span className="text-[10px] text-muted-foreground/50">1200×400 px · JPG, PNG · Máx. 8 MB</span>
+                        <span className="text-[10px] text-muted-foreground/50">1200×400 px · JPG, PNG · Máx. 18 MB</span>
                       </div>}
                   {form.bannerUrl && <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><span className="text-white text-sm font-semibold">Cambiar banner</span></div>}
                 </div>

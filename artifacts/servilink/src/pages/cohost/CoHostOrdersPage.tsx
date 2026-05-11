@@ -7,6 +7,7 @@ import {
 import { useCohostOrders, useOrderAction, useCohostCustomOrders, useCustomOrderDispatch } from "@/hooks/cohost";
 import { SkeletonCard, SkeletonStats, QueryError } from "@/components/ui/Skeleton";
 import { useAuth } from "@/lib/auth-context";
+import { mediaSrc } from "@/lib/media-url";
 
 // ─── Product-orders status maps ───────────────────────────────────────────────
 const STATUS_LABEL: Record<string, string> = {
@@ -104,7 +105,7 @@ function CustomOrdersTab() {
                 >
                   <div className="w-12 h-12 rounded-xl overflow-hidden bg-white/[0.06] flex-shrink-0">
                     {o.imageUrl ? (
-                      <img src={o.imageUrl.startsWith("/api/storage") ? o.imageUrl : `/api/storage${o.imageUrl}`} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                      <img src={mediaSrc(o.imageUrl)} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
                     ) : (
                       <Package className="w-6 h-6 m-3 text-muted-foreground" />
                     )}
@@ -154,7 +155,7 @@ function CustomOrdersTab() {
                         {o.paymentAmount && <p className="text-sm font-bold text-foreground">${Number(o.paymentAmount).toFixed(2)}</p>}
                         {o.paymentReference && <p className="text-xs text-muted-foreground">Ref: {o.paymentReference}</p>}
                         <a
-                          href={o.paymentProofUrl.startsWith("/api/storage") ? o.paymentProofUrl : `/api/storage${o.paymentProofUrl}`}
+                          href={mediaSrc(o.paymentProofUrl)}
                           target="_blank" rel="noopener noreferrer"
                           className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
                         >
@@ -319,7 +320,7 @@ function ProductOrdersTab() {
                         <p className="text-xs font-medium text-foreground/70">Comprobante del cliente</p>
                         {o.paymentMethod && <p className="text-xs text-muted-foreground">{METHOD_LABEL[o.paymentMethod] ?? o.paymentMethod}</p>}
                         {o.paymentAmount && <p className="text-sm font-bold text-foreground">${o.paymentAmount.toFixed(2)}</p>}
-                        <a href={`/api/storage${o.paymentProofUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline">
+                        <a href={mediaSrc(o.paymentProofUrl)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline">
                           <Eye className="w-3.5 h-3.5" /> Ver imagen del comprobante
                         </a>
                       </div>

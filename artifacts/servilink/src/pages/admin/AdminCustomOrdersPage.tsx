@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { getAuthHeader } from "@/lib/api";
+import { mediaSrc } from "@/lib/media-url";
 import {
   CheckCircle, XCircle, Eye, ChevronDown, ChevronUp,
   RefreshCw, Package, User, MessageSquare, Truck
@@ -75,7 +76,7 @@ function OrderRow({ o, onUpdated }: { o: any; onUpdated: () => void }) {
           {isPending && <span className="w-2 h-2 rounded-full bg-cyan-500 flex-shrink-0 animate-pulse" />}
           <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0">
             {o.imageUrl ? (
-              <img src={o.imageUrl.startsWith("/api/storage") ? o.imageUrl : `/api/storage${o.imageUrl}`} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+              <img src={mediaSrc(o.imageUrl)} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
             ) : (
               <Package className="w-5 h-5 m-2.5 text-muted-foreground" />
             )}
@@ -157,7 +158,7 @@ function OrderRow({ o, onUpdated }: { o: any; onUpdated: () => void }) {
             <div className="space-y-2">
               <p className="text-xs font-medium text-foreground">Comprobante de pago</p>
               <a
-                href={`/api/storage${o.paymentProofUrl}`}
+                href={mediaSrc(o.paymentProofUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-medium"
@@ -165,7 +166,7 @@ function OrderRow({ o, onUpdated }: { o: any; onUpdated: () => void }) {
                 <Eye className="w-3.5 h-3.5" /> Ver comprobante
               </a>
               <img
-                src={`/api/storage${o.paymentProofUrl}`}
+                src={mediaSrc(o.paymentProofUrl)}
                 alt="Comprobante"
                 className="w-full max-h-52 object-contain rounded-xl border border-border bg-muted"
                 onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}

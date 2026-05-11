@@ -18,12 +18,12 @@ import {
 const router: IRouter = Router();
 const objectStorageService = new ObjectStorageService();
 
-// Multer: in-memory storage with a 16 MB safety cap (cliente valida 15 MB; el
+// Multer: in-memory storage with a 20 MB safety cap (cliente valida 18 MB; el
 // pipeline redimensiona a 1200 px y convierte a WebP, así que originales
 // grandes terminan pesando <500 KB en disco).
 const imageUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 16 * 1024 * 1024, files: 1 },
+  limits: { fileSize: 20 * 1024 * 1024, files: 1 },
 });
 
 /**
@@ -31,7 +31,7 @@ const imageUpload = multer({
  *
  * Image pipeline endpoint:
  *   - Accepts multipart/form-data with `file` and `kind` (string).
- *   - Validates content-type (jpeg/png/webp) and size (<= 5 MB).
+ *   - Validates content-type (jpeg/png/webp) and size (<= 18 MB).
  *   - Processes with Sharp: resize to max 1200px, convert to WebP q80, strip EXIF.
  *   - Stores at uploads/{kind}/{userId}/{uuid}.webp
  *   - Returns { url, objectPath, width, height, bytes }

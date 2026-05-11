@@ -26,7 +26,7 @@ interface ClientKYCModalProps {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 18 * 1024 * 1024;
 
 // Compress + resize image using Canvas API before base64 encoding.
 // Modern smartphone cameras produce 8–12 MB photos; this brings them
@@ -96,7 +96,7 @@ function PhotoTile({
   const [err, setErr] = useState("");
 
   const process = useCallback(async (file: File) => {
-    if (file.size > MAX_BYTES) { setErr("Imagen muy grande (máx 5 MB)"); return; }
+    if (file.size > MAX_BYTES) { setErr("Imagen muy grande (Máx. 18 MB)"); return; }
     setProcessing(true);
     setErr("");
     try {

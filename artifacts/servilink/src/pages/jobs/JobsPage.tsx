@@ -14,6 +14,7 @@ import {
 import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { C2PModal } from "@/components/payments/C2PModal";
+import { mediaSrc } from "@/lib/media-url";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Slug helper (matches server-side workerSlug logic)
@@ -711,7 +712,7 @@ function MyProfileTab({ accent }: { accent: string }) {
 
   const uploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
-    if (file.size > 5_000_000) { setErrorMsg("Foto máximo 5 MB"); return; }
+    if (file.size > 18_000_000) { setErrorMsg("Foto máximo 18 MB"); return; }
     setAvatarUploading(true);
     try {
       const r = await fetch("/api/storage/uploads/request-url", {
@@ -721,7 +722,7 @@ function MyProfileTab({ accent }: { accent: string }) {
       });
       const { uploadURL, objectPath } = await r.json();
       await fetch(uploadURL, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
-      setAvatarUrl(`/api/storage${objectPath}`);
+      setAvatarUrl(mediaSrc(objectPath));
     } catch { setErrorMsg("Error al subir foto"); }
     finally { setAvatarUploading(false); if (avatarRef.current) avatarRef.current.value = ""; }
   };
@@ -734,7 +735,7 @@ function MyProfileTab({ accent }: { accent: string }) {
       const r = await fetch("/api/storage/uploads/request-url", { method: "POST", headers: { "Content-Type": "application/json", ...getAuthHeader() }, body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type }) });
       const { uploadURL, objectPath } = await r.json();
       await fetch(uploadURL, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
-      setVideoUrl(`/api/storage${objectPath}`);
+      setVideoUrl(mediaSrc(objectPath));
     } catch { setErrorMsg("Error al subir video"); } finally { setVideoUploading(false); if (videoRef.current) videoRef.current.value = ""; }
   };
 
@@ -790,7 +791,7 @@ function MyProfileTab({ accent }: { accent: string }) {
           <div>
             <p className="text-sm font-semibold text-white/80">Foto de perfil</p>
             <p className="text-xs text-white/35 mt-0.5">Los contratantes verán esta foto</p>
-            <p className="text-xs text-white/25">Máx. 5 MB · JPG, PNG, WEBP</p>
+            <p className="text-xs text-white/25">Máx. 18 MB · JPG, PNG, WEBP</p>
           </div>
         </div>
 

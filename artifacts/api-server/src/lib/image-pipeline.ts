@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 import { objectStorageClient } from "./objectStorage";
 
 const ALLOWED_MIME = new Set(["image/jpeg", "image/png", "image/webp"]);
-const MAX_INPUT_BYTES = 5 * 1024 * 1024;
+const MAX_INPUT_BYTES = 18 * 1024 * 1024;
 const MAX_DIMENSION = 1200;
 const WEBP_QUALITY = 80;
 
@@ -49,7 +49,7 @@ export async function processAndUploadImage(opts: {
     throw new ImageValidationError("INVALID_TYPE", "Solo se aceptan imágenes JPEG, PNG o WebP.");
   }
   if (buffer.length > MAX_INPUT_BYTES) {
-    throw new ImageValidationError("FILE_TOO_LARGE", "La imagen excede el máximo de 5 MB.");
+    throw new ImageValidationError("FILE_TOO_LARGE", "La imagen excede el máximo de 18 MB.");
   }
 
   let processed;

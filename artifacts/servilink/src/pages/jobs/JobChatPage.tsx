@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import { es } from "date-fns/locale";
+import { mediaSrc } from "@/lib/media-url";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Message {
@@ -53,7 +54,7 @@ async function uploadFile(file: File): Promise<string> {
   const { uploadURL, objectPath } = await r.json();
   const put = await fetch(uploadURL, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
   if (!put.ok) throw new Error("Error al subir archivo");
-  return `/api/storage${objectPath}`;
+  return mediaSrc(objectPath);
 }
 
 // ─── Waveform bars (static, decorative) ──────────────────────────────────────

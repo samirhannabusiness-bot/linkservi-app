@@ -4,6 +4,7 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { Heart, Star, MapPin, ArrowLeft, RotateCcw, Loader2 } from "lucide-react";
 import { WorkerLevelBadge } from "@/components/ui/WorkerLevelBadge";
 import { FavoriteButton } from "@/components/ui/FavoriteButton";
+import { mediaSrc } from "@/lib/media-url";
 
 export function FavoritesPage() {
   const [, navigate] = useLocation();
@@ -69,7 +70,7 @@ export function FavoritesPage() {
                   <div className="relative flex-shrink-0">
                     {w.avatarUrl ? (
                       <img
-                        src={w.avatarUrl.startsWith("http") ? w.avatarUrl : `/api/storage${w.avatarUrl}`}
+                        src={mediaSrc(w.avatarUrl)}
                         alt={w.name}
                         className="w-14 h-14 rounded-2xl object-cover"
                       />

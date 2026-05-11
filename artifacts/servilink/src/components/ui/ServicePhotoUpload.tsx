@@ -3,6 +3,7 @@ import { Camera, X, Check, Image as ImageIcon } from "lucide-react";
 import { getAuthHeader } from "@/lib/api";
 import { InAppCamera } from "@/components/ui/InAppCamera";
 import { useAuth } from "@/lib/auth-context";
+import { mediaSrc } from "@/lib/media-url";
 
 interface Props {
   bookingId: number;
@@ -20,7 +21,7 @@ export function ServicePhotoUpload({ bookingId, photoType, label, onUploaded }: 
   const [cameraOpen, setCameraOpen] = useState(false);
 
   const uploadFile = async (file: File) => {
-    if (file.size > 8 * 1024 * 1024) { setError("La imagen no debe superar 8 MB"); return; }
+    if (file.size > 18 * 1024 * 1024) { setError("La imagen no debe superar 18 MB"); return; }
     setError("");
     setUploading(true);
 
@@ -165,10 +166,10 @@ export function ServicePhotoGallery({ bookingId, photos: initialPhotos }: Galler
               {before.map(p => (
                 <img
                   key={p.id}
-                  src={`/api/storage${p.imageUrl}`}
+                  src={mediaSrc(p.imageUrl)}
                   alt="Antes del servicio"
                   className="w-full h-28 object-cover rounded-xl cursor-pointer hover:opacity-90 transition-opacity border border-blue-200 dark:border-blue-800"
-                  onClick={() => setExpanded(`/api/storage${p.imageUrl}`)}
+                  onClick={() => setExpanded(mediaSrc(p.imageUrl))}
                 />
               ))}
             </div>
@@ -181,10 +182,10 @@ export function ServicePhotoGallery({ bookingId, photos: initialPhotos }: Galler
               {after.map(p => (
                 <img
                   key={p.id}
-                  src={`/api/storage${p.imageUrl}`}
+                  src={mediaSrc(p.imageUrl)}
                   alt="Después del servicio"
                   className="w-full h-28 object-cover rounded-xl cursor-pointer hover:opacity-90 transition-opacity border border-orange-200 dark:border-orange-800"
-                  onClick={() => setExpanded(`/api/storage${p.imageUrl}`)}
+                  onClick={() => setExpanded(mediaSrc(p.imageUrl))}
                 />
               ))}
             </div>

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { mediaSrc } from "@/lib/media-url";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const METHOD_LABELS: Record<string, string> = {
@@ -60,7 +61,7 @@ function BookingReceiptCard({ b }: { b: any }) {
   const [expanded, setExpanded] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const statusCfg = BOOKING_PAYMENT_STATUS[b.status] ?? BOOKING_PAYMENT_STATUS.payment_confirmed;
-  const proofUrl = b.paymentProofUrl ? `/api/storage${b.paymentProofUrl}` : null;
+  const proofUrl = b.paymentProofUrl ? mediaSrc(b.paymentProofUrl) : null;
   const earningsDisplay = b.workerEarnings != null
     ? b.workerEarnings
     : b.totalAmount != null

@@ -5,6 +5,7 @@ import { getAuthHeader } from "@/lib/api";
 import { ChevronLeft, MapPin, Calendar, Briefcase, Star, MessageSquare, ShieldCheck, ShieldAlert, Award } from "lucide-react";
 import { formatDistanceToNowStrict, format } from "date-fns";
 import { es } from "date-fns/locale";
+import { mediaSrc } from "@/lib/media-url";
 
 const TAG_LABELS: Record<string, string> = {
   puntual: "Puntual",
@@ -97,7 +98,7 @@ export function ClientPublicProfilePage() {
               <div className="relative">
                 {profile.avatarUrl ? (
                   <img
-                    src={profile.avatarUrl.startsWith("http") ? profile.avatarUrl : `/api/storage${profile.avatarUrl}`}
+                    src={mediaSrc(profile.avatarUrl)}
                     alt={profile.name}
                     className="w-20 h-20 rounded-full object-cover ring-2 ring-primary/20"
                   />
@@ -266,7 +267,7 @@ export function ClientPublicProfilePage() {
                         <div className="flex items-center gap-2">
                           {r.workerAvatarUrl ? (
                             <img
-                              src={r.workerAvatarUrl.startsWith("http") ? r.workerAvatarUrl : `/api/storage${r.workerAvatarUrl}`}
+                              src={mediaSrc(r.workerAvatarUrl)}
                               alt={r.workerName}
                               className="w-8 h-8 rounded-full object-cover flex-shrink-0"
                             />

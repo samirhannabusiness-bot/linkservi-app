@@ -2,7 +2,7 @@ import { useRef, useState, useCallback } from "react";
 import { Camera, ImageIcon, Upload, Eye, X, AlertCircle } from "lucide-react";
 import { InAppCamera, type InAppCameraWatermark } from "@/components/ui/InAppCamera";
 
-const MAX_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
+const MAX_SIZE_BYTES = 18 * 1024 * 1024; // 18 MB
 const ACCEPTED_FORMATS = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 function readFileAsBase64(file: File): Promise<string> {
@@ -129,7 +129,7 @@ export function ImagePickerField({
       }
       // Size validation
       if (file.size > MAX_SIZE_BYTES) {
-        onError(`El archivo supera los 15 MB (${(file.size / 1024 / 1024).toFixed(1)} MB).`);
+        onError(`El archivo supera los 18 MB (${(file.size / 1024 / 1024).toFixed(1)} MB).`);
         return;
       }
       onError("");
@@ -344,7 +344,7 @@ export function ImagePickerField({
           <div className="flex items-start gap-2 px-1 py-2">
             <AlertCircle className="w-3.5 h-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
             <p className="text-xs text-muted-foreground">
-              JPG, PNG{allowPdf ? ", PDF" : ""}. Máximo 15 MB. La imagen debe ser clara y legible.
+              JPG, PNG{allowPdf ? ", PDF" : ""}. máximo 18 MB. La imagen debe ser clara y legible.
             </p>
           </div>
         </div>
