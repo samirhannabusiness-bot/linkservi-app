@@ -1,16 +1,65 @@
 import { Router } from "express";
 import { db, usersTable, workersTable, userVerificationsTable } from "@workspace/db";
-import { eq, ne } from "drizzle-orm";
+import { eq, ne, sql } from "drizzle-orm";
 import { authenticate, requireAdminRole } from "../lib/auth";
 import { createNotification } from "./notifications";
 
 const router = Router();
 
-// ── Admin: unified verification queue for all roles ───────────────────────────
+// ── Auto-curador: sincroniza workers pendientes faltantes ────────────────────
+// Algunos profesionales subieron sus documentos antes de que existiera la
+// tabla unificada `user_verifications` (o el upsert falló por alguna razón
+// transitoria). Sin un registro espejo en esa tabla, NO aparecen en la cola
+// del admin aunque su estado interno sea "pending". Esta función crea los
+// registros faltantes de forma segura: solo INSERT, nunca UPDATE/DELETE,
+// y solo para workers con ambas fotos cargadas. Es idempotente y se
+// auto-soluciona en cada lectura de la cola.
+async function backfillMissingWorkerVerifications(): Promise<number> {
+  try {
+    const result = await db.execute(sql`
+      INSERT INTO user_verifications
+        (user_id, role, document_type, document_number,
+         document_image_url, selfie_image_url, status, created_at, updated_at)
+      SELECT
+        w.user_id,
+        'worker',
+        COALESCE(w.document_type, 'cedula'),
+        w.document_number,
+        w.document_image_url,
+        w.selfie_image_url,
+        CASE
+          WHEN w.verification_status IN ('pending','approved','rejected')
+            THEN w.verification_status
+          ELSE 'pending'
+        END,
+        NOW(),
+        NOW()
+      FROM workers w
+      WHERE w.document_image_url IS NOT NULL
+        AND w.selfie_image_url   IS NOT NULL
+        AND NOT EXISTS (
+          SELECT 1 FROM user_verifications uv
+          WHERE uv.user_id = w.user_id
+        )
+      RETURNING id
+    `);
+    const count = (result as any)?.rowCount ?? (Array.isArray(result) ? result.length : 0);
+    if (count > 0) {
+      console.log(`[verifications] Backfill: ${count} verificaciones de profesionales sincronizadas a la cola unificada.`);
+    }
+    return count;
+  } catch (err) {
+    console.error("[verifications] Backfill error:", err);
+    return 0;
+  }
+}
 
 // GET /api/admin/verifications — list pending (or all) verifications across roles
 router.get("/admin/verifications", authenticate, requireAdminRole("super_admin", "soporte"), async (req, res): Promise<void> => {
   if (req.user!.role !== "admin") { res.status(403).json({ error: "Acceso denegado" }); return; }
+
+  // Asegurar que ningún profesional pendiente quede invisible en la cola.
+  await backfillMissingWorkerVerifications();
 
   const { status = "pending", role } = req.query as { status?: string; role?: string };
 
