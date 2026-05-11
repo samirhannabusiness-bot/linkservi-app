@@ -14,9 +14,13 @@ const router = Router();
 // registros faltantes de forma segura: solo INSERT, nunca UPDATE/DELETE,
 // y solo para workers con ambas fotos cargadas. Es idempotente y se
 // auto-soluciona en cada lectura de la cola.
-async function backfillMissingWorkerVerifications(): Promise<number> {
+async function backfillMissingWorkerVerifications(): Promise<{ inserted: number; rolePromoted: number }> {
+  let inserted = 0;
+  let rolePromoted = 0;
+
+  // Paso 1 — INSERT: workers con docs pero sin fila espejo en user_verifications
   try {
-    const result = await db.execute(sql`
+    const ins = await db.execute(sql`
       INSERT INTO user_verifications
         (user_id, role, document_type, document_number,
          document_image_url, selfie_image_url, status, created_at, updated_at)
@@ -43,16 +47,97 @@ async function backfillMissingWorkerVerifications(): Promise<number> {
         )
       RETURNING id
     `);
-    const count = (result as any)?.rowCount ?? (Array.isArray(result) ? result.length : 0);
-    if (count > 0) {
-      console.log(`[verifications] Backfill: ${count} verificaciones de profesionales sincronizadas a la cola unificada.`);
-    }
-    return count;
+    inserted = (ins as any)?.rowCount ?? (Array.isArray(ins) ? ins.length : 0);
   } catch (err) {
-    console.error("[verifications] Backfill error:", err);
-    return 0;
+    console.error("[verifications] Backfill INSERT error:", err);
   }
+
+  // Paso 2 — UPDATE rol: workers con docs cuyo espejo quedó marcado como
+  // "client" (porque el usuario primero hizo verificación de cliente y luego
+  // se hizo profesional). Sin esta promoción, el filtro "Profesional" del
+  // admin los oculta. Solo promovemos cuando hay docs reales en la fila
+  // espejo (no pisamos verificaciones aprobadas sin documentos).
+  try {
+    const upd = await db.execute(sql`
+      UPDATE user_verifications uv
+      SET role = 'worker', updated_at = NOW()
+      FROM workers w
+      WHERE uv.user_id = w.user_id
+        AND uv.role <> 'worker'
+        AND w.document_image_url IS NOT NULL
+        AND w.selfie_image_url   IS NOT NULL
+        AND uv.document_image_url IS NOT NULL
+        AND uv.selfie_image_url   IS NOT NULL
+      RETURNING uv.id
+    `);
+    rolePromoted = (upd as any)?.rowCount ?? (Array.isArray(upd) ? upd.length : 0);
+  } catch (err) {
+    console.error("[verifications] Backfill UPDATE role error:", err);
+  }
+
+  if (inserted > 0 || rolePromoted > 0) {
+    console.log(`[verifications] Backfill: ${inserted} insertadas, ${rolePromoted} promovidas a rol 'worker'.`);
+  }
+  return { inserted, rolePromoted };
 }
+
+// GET /api/admin/verifications/diagnostic — radiografía rápida para auditar
+// por qué una verificación no está apareciendo en la cola. Devuelve conteos
+// y desfases entre `workers` y `user_verifications`. Solo super_admin/soporte.
+router.get("/admin/verifications/diagnostic", authenticate, requireAdminRole("super_admin", "soporte"), async (req, res): Promise<void> => {
+  if (req.user!.role !== "admin") { res.status(403).json({ error: "Acceso denegado" }); return; }
+
+  const backfill = await backfillMissingWorkerVerifications();
+
+  const workersByStatus = await db.execute(sql`
+    SELECT verification_status AS status,
+           COUNT(*)                                                         AS total,
+           COUNT(*) FILTER (WHERE document_image_url IS NOT NULL
+                              AND selfie_image_url   IS NOT NULL)           AS with_docs
+    FROM workers
+    GROUP BY verification_status
+    ORDER BY verification_status
+  `);
+
+  const verificationsByStatusRole = await db.execute(sql`
+    SELECT status, role, COUNT(*) AS total
+    FROM user_verifications
+    GROUP BY status, role
+    ORDER BY status, role
+  `);
+
+  const workersOrphans = await db.execute(sql`
+    SELECT w.user_id, u.email, u.name, w.verification_status
+    FROM workers w
+    JOIN users u ON u.id = w.user_id
+    WHERE w.document_image_url IS NOT NULL
+      AND w.selfie_image_url   IS NOT NULL
+      AND NOT EXISTS (
+        SELECT 1 FROM user_verifications uv WHERE uv.user_id = w.user_id
+      )
+    LIMIT 20
+  `);
+
+  const roleMismatches = await db.execute(sql`
+    SELECT uv.id, uv.user_id, u.email, u.name, uv.role AS uv_role, uv.status AS uv_status
+    FROM user_verifications uv
+    JOIN users   u ON u.id = uv.user_id
+    JOIN workers w ON w.user_id = uv.user_id
+    WHERE uv.role <> 'worker'
+      AND w.document_image_url IS NOT NULL
+      AND w.selfie_image_url   IS NOT NULL
+    LIMIT 20
+  `);
+
+  res.json({
+    backfillJustRan: backfill,
+    workersByStatus: (workersByStatus as any).rows ?? workersByStatus,
+    verificationsByStatusRole: (verificationsByStatusRole as any).rows ?? verificationsByStatusRole,
+    orphanWorkersWithDocsButNoVerificationRow: (workersOrphans as any).rows ?? workersOrphans,
+    roleMismatchesNowFixed: (roleMismatches as any).rows ?? roleMismatches,
+    note: "El auto-curador acaba de correr antes de este diagnóstico. Si quedan filas, recargá esta URL para ver el efecto. Si todo queda vacío, las verificaciones están sincronizadas.",
+  });
+});
 
 // GET /api/admin/verifications — list pending (or all) verifications across roles
 router.get("/admin/verifications", authenticate, requireAdminRole("super_admin", "soporte"), async (req, res): Promise<void> => {

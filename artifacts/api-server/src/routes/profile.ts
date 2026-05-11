@@ -97,6 +97,7 @@ router.put("/workers/me/verification", authenticate, async (req, res): Promise<v
 
   if (existing) {
     const [uvUpdated] = await db.update(userVerificationsTable).set({
+      role: "worker",
       documentType: documentType ?? existing.documentType,
       documentNumber: documentNumber ?? existing.documentNumber,
       documentImageUrl,
@@ -105,6 +106,8 @@ router.put("/workers/me/verification", authenticate, async (req, res): Promise<v
       emergencyPhone: emergencyPhone ?? existing.emergencyPhone,
       status: "pending",
       notes: null,
+      reviewedAt: null,
+      reviewedById: null,
       updatedAt: new Date(),
     }).where(eq(userVerificationsTable.id, existing.id)).returning();
     verificationId = uvUpdated.id;
