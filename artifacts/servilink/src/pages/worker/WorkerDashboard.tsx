@@ -349,14 +349,14 @@ export function WorkerDashboard() {
               </div>
             </button>
             <button
-              onClick={() => navigate("/jobs")}
+              onClick={() => navigate("/jobs?tab=mine")}
               className="flex flex-col gap-3 p-4 rounded-3xl border border-border bg-card text-left hover:border-primary/40 transition-colors"
             >
               <div className="w-10 h-10 rounded-2xl bg-sky-500/10 flex items-center justify-center text-sky-600">
                 <Briefcase className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground">Bolsa de Empleo</p>
+                <p className="text-sm font-semibold text-foreground">Mi Hoja de Vida</p>
                 <p className="text-xs text-muted-foreground">Descubre trabajos más rápido</p>
               </div>
             </button>
