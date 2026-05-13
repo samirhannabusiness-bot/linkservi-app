@@ -40,13 +40,17 @@ steps:
       - -c
       - |
         set -e
-        cd /workspace
-        echo "Installing pg client..."
-        npm init -y > /dev/null 2>&1
-        npm pkg set type=module > /dev/null 2>&1
-        npm install pg@8 --no-save --silent --no-audit --no-fund
-        echo "Running migrations from /workspace/migrations ..."
-        DB_URL="$_DATABASE_URL" MIGRATIONS_DIR=/workspace/migrations NODE_TLS_REJECT_UNAUTHORIZED=0 node /workspace/scripts/run-migrations.mjs
+        if [ "$_RUN_DB_MIGRATIONS" = "true" ]; then
+          cd /workspace
+          echo "Installing pg client..."
+          npm init -y > /dev/null 2>&1
+          npm pkg set type=module > /dev/null 2>&1
+          npm install pg@8 --no-save --silent --no-audit --no-fund
+          echo "Running migrations from /workspace/migrations ..."
+          DB_URL="$_DATABASE_URL" MIGRATIONS_DIR=/workspace/migrations NODE_TLS_REJECT_UNAUTHORIZED=0 node /workspace/scripts/run-migrations.mjs
+        else
+          echo "Skipping database migrations because _RUN_DB_MIGRATIONS is not true."
+        fi
 
   # ── Step 4: Deploy to Cloud Run ─────────────────────────────────────────────
   # Uses --env-vars-file to avoid shell quoting/delimiter issues with special
@@ -136,6 +140,7 @@ substitutions:
   _DEFAULT_OBJECT_STORAGE_BUCKET_ID: ""
   _PRIVATE_OBJECT_DIR: ""
   _PUBLIC_OBJECT_SEARCH_PATHS: ""
+  _RUN_DB_MIGRATIONS: "false"
 
 # ── Store built image in Container Registry ──────────────────────────────────
 images:
