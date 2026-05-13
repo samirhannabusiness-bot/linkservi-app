@@ -1105,15 +1105,13 @@ export function JobsPage() {
                 )}
               </div>
               <div className="flex gap-2">
-                {!isWorker && (
-                  <button onClick={() => setTab("browse")}
-                    className="flex-1 py-2 rounded-xl text-sm font-bold transition-all"
-                    style={tab === "browse"
-                      ? { background: accent, color: "#fff" }
-                      : { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.5)" }}>
-                    Encontrar Personal
-                  </button>
-                )}
+                <button onClick={() => setTab("browse")}
+                  className="flex-1 py-2 rounded-xl text-sm font-bold transition-all"
+                  style={tab === "browse"
+                    ? { background: accent, color: "#fff" }
+                    : { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.5)" }}>
+                  Encontrar Personal
+                </button>
                 <button onClick={() => setTab("mine")}
                   className="flex-1 py-2 rounded-xl text-sm font-bold transition-all"
                   style={tab === "mine"
