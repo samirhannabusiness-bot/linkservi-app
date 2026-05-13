@@ -1023,11 +1023,12 @@ function MyProfileTab({ accent }: { accent: string }) {
 // Main JobsPage — PUBLIC browse, gated CV/contact
 // ─────────────────────────────────────────────────────────────────────────────
 export function JobsPage() {
-  const { user, isWorker } = useAuth();
+  const { user } = useAuth();
   const [, navigate] = useLocation();
   const search = useSearch();
   const accent = "#06B6D4";
-  const initialTab = isWorker ? "mine" : "browse";
+  const queryTab = new URLSearchParams(search).get("tab");
+  const initialTab = queryTab === "mine" ? "mine" : "browse";
   const [tab, setTab] = useState<"browse" | "mine">(initialTab);
   const [profiles, setProfiles] = useState<JobProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1089,10 +1090,10 @@ export function JobsPage() {
                   </div>
                   <div>
                     <h1 className="font-black text-white text-base leading-tight">
-                      {isWorker ? "Mi Hoja de Vida" : "Encontrar Personal"}
+                      {queryTab === "mine" ? "Mi Hoja de Vida" : "Encontrar Personal"}
                     </h1>
                     <p className="text-xs text-white/35">
-                      {isWorker ? "Revisa tu perfil profesional y presencia en la Bolsa de Empleo" : "Encuentra talento venezolano verificado"}
+                      {queryTab === "mine" ? "Revisa tu perfil profesional y presencia en la Bolsa de Empleo" : "Encuentra talento venezolano verificado"}
                     </p>
                   </div>
                 </div>
@@ -1105,20 +1106,26 @@ export function JobsPage() {
                 )}
               </div>
               <div className="flex gap-2">
-                <button onClick={() => setTab("browse")}
-                  className="flex-1 py-2 rounded-xl text-sm font-bold transition-all"
-                  style={tab === "browse"
-                    ? { background: accent, color: "#fff" }
-                    : { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.5)" }}>
-                  Encontrar Personal
-                </button>
-                <button onClick={() => setTab("mine")}
-                  className="flex-1 py-2 rounded-xl text-sm font-bold transition-all"
-                  style={tab === "mine"
-                    ? { background: accent, color: "#fff" }
-                    : { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.5)" }}>
-                  Mi Hoja de Vida
-                </button>
+                {queryTab === "mine"
+                  ? (
+                    <button onClick={() => setTab("mine")}
+                      className="flex-1 py-2 rounded-xl text-sm font-bold transition-all"
+                      style={tab === "mine"
+                        ? { background: accent, color: "#fff" }
+                        : { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.5)" }}>
+                      Mi Hoja de Vida
+                    </button>
+                  )
+                  : (
+                    <button onClick={() => setTab("browse")}
+                      className="flex-1 py-2 rounded-xl text-sm font-bold transition-all"
+                      style={tab === "browse"
+                        ? { background: accent, color: "#fff" }
+                        : { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.5)" }}>
+                      Encontrar Personal
+                    </button>
+                  )
+                }
               </div>
             </div>
           </div>
