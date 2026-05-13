@@ -151,10 +151,7 @@ export function WorkerDashboard() {
           </div>
           {w && (
             <button
-              onClick={() => requireVerification(
-                "Para activarte como disponible y recibir propuestas de clientes, primero debes verificar tu identidad.",
-                () => updateAvailability({ data: { isAvailable: !w.isAvailable } })
-              )}
+              onClick={() => updateAvailability({ data: { isAvailable: !w.isAvailable } })}
               disabled={togglingAvailability}
               className={`flex items-center gap-2 px-3 py-2 rounded-xl font-semibold text-sm transition-colors flex-shrink-0 ${w.isAvailable ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
             >
@@ -258,25 +255,6 @@ export function WorkerDashboard() {
             </div>
           )}
         </div>
-
-        {/* ── Premium micro-prompt — post solicitud ────────────────────────── */}
-        {pendingBookings.length > 0 && !isPremiumActive && !pendingPremiumRequest && (
-          <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl"
-            style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.18)" }}>
-            <Crown className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "rgba(251,191,36,0.7)" }} />
-            <p className="text-xs font-semibold flex-1" style={{ color: "rgba(255,255,255,0.50)" }}>
-              {contactStats && contactStats.contactsLast7d > 0
-                ? "Responde rápido — con Premium recibirás más solicitudes como esta"
-                : "Los profesionales Premium cierran 2× más solicitudes"}
-            </p>
-            <button
-              onClick={() => navigate("/professional/premium")}
-              className="text-xs font-black flex-shrink-0"
-              style={{ color: "rgba(251,191,36,0.80)" }}>
-              Ver →
-            </button>
-          </div>
-        )}
 
         {/* ── 3. CTA Principal ─────────────────────────────────────────────── */}
         <button
@@ -547,64 +525,6 @@ export function WorkerDashboard() {
           )
         )}
 
-        {/* ── Premium CTA — sin contactos ──────────────────────────────────── */}
-        {w && contactStats && !isPremiumActive && !pendingPremiumRequest && contactStats.contactsLast7d === 0 && !contactStats.isTopProfile && (
-          <div className="relative overflow-hidden rounded-2xl px-5 py-4"
-            style={{
-              background: "linear-gradient(135deg,rgba(245,158,11,0.10) 0%,rgba(251,191,36,0.05) 100%)",
-              border: "1px solid rgba(245,158,11,0.28)",
-            }}>
-            <div className="absolute inset-x-0 top-0 h-px"
-              style={{ background: "linear-gradient(90deg,transparent,rgba(245,158,11,0.45),transparent)" }} />
-            <div className="flex items-start gap-3">
-              <span className="text-xl flex-shrink-0 mt-0.5">👑</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-black text-white leading-snug">
-                  Activa Premium y empieza a recibir más solicitudes
-                </p>
-                <p className="text-xs mt-1.5 font-medium"
-                  style={{ color: "rgba(251,191,36,0.60)" }}>
-                  Profesionales como tú están recibiendo más clientes con Premium
-                </p>
-                <button
-                  onClick={() => navigate("/professional/premium")}
-                  className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95"
-                  style={{ background: "rgba(245,158,11,0.16)", color: "rgba(251,191,36,0.92)", border: "1px solid rgba(245,158,11,0.30)" }}>
-                  <Rocket className="w-3 h-3" /> Ver planes Premium →
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Premium CTA — con actividad (oculto si micro-prompt ya visible) ─ */}
-        {w && contactStats && !isPremiumActive && !pendingPremiumRequest && contactStats.contactsLast7d > 0 && !contactStats.isTopProfile && pendingBookings.length === 0 && (
-          <div className="flex items-center gap-3 px-4 py-3 rounded-2xl"
-            style={{
-              background: "linear-gradient(135deg,rgba(245,158,11,0.08) 0%,rgba(251,191,36,0.04) 100%)",
-              border: "1px solid rgba(245,158,11,0.20)",
-            }}>
-            <span className="text-lg flex-shrink-0">👑</span>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-black text-white leading-snug">
-                {contactStats.contactsLast7d === 1
-                  ? "Este es solo el comienzo — con Premium puedes recibir muchos más"
-                  : "Con Premium podrías recibir aún más clientes"}
-              </p>
-              <p className="text-[11px] mt-0.5 font-medium"
-                style={{ color: "rgba(251,191,36,0.55)" }}>
-                Profesionales como tú están recibiendo más clientes con Premium
-              </p>
-            </div>
-            <button
-              onClick={() => navigate("/professional/premium")}
-              className="flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95"
-              style={{ background: "rgba(245,158,11,0.14)", color: "rgba(251,191,36,0.90)", border: "1px solid rgba(245,158,11,0.28)" }}>
-              Activar
-            </button>
-          </div>
-        )}
-
         {/* ── 5. BALANCE HERO ──────────────────────────────────────────────── */}
         {w && (
           <div className="rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 p-6 text-white shadow-xl">
@@ -634,55 +554,6 @@ export function WorkerDashboard() {
               >
                 <TrendingUp className="w-4 h-4" /> Ver historial
               </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── "Mejorar mi perfil" upsell — only when not premium ────────────── */}
-        {w && !isPremiumActive && !pendingPremiumRequest && (
-          <div className="relative overflow-hidden rounded-2xl p-5"
-            style={{
-              background: "linear-gradient(135deg,rgba(124,58,237,0.14) 0%,rgba(99,102,241,0.10) 50%,rgba(8,8,20,0.85) 100%)",
-              border: "1.5px solid rgba(124,58,237,0.35)",
-              boxShadow: "0 0 28px rgba(124,58,237,0.10)",
-            }}>
-            {/* shimmer top line */}
-            <div className="absolute inset-x-0 top-0 h-px"
-              style={{ background: "linear-gradient(90deg,transparent,rgba(167,139,250,0.6),transparent)" }} />
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <Rocket className="w-4 h-4 text-violet-400 flex-shrink-0" />
-                  <span className="font-black text-white text-sm">Destaca tu perfil</span>
-                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full"
-                    style={{ background: "rgba(167,139,250,0.15)", color: "#c4b5fd", border: "1px solid rgba(167,139,250,0.3)" }}>
-                    Premium
-                  </span>
-                </div>
-                <ul className="space-y-1 mb-4">
-                  {[
-                    "Más visibilidad en búsquedas",
-                    "Aparecer primero en resultados",
-                    "Recibir más clientes",
-                  ].map(b => (
-                    <li key={b} className="flex items-center gap-2 text-xs"
-                      style={{ color: "rgba(255,255,255,0.60)" }}>
-                      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                        style={{ background: "rgba(167,139,250,0.7)" }} />
-                      {b}
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  onClick={() => setShowPremiumModal(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-sm text-white transition-all hover:opacity-90 active:scale-[0.97]"
-                  style={{
-                    background: "linear-gradient(135deg,#7c3aed,#6d28d9)",
-                    boxShadow: "0 0 20px rgba(124,58,237,0.35)",
-                  }}>
-                  <Rocket className="w-4 h-4" /> Mejorar mi perfil
-                </button>
-              </div>
             </div>
           </div>
         )}
@@ -843,33 +714,6 @@ export function WorkerDashboard() {
             <Clock className="w-4 h-4 text-blue-500 mx-auto mb-2" />
             <p className="text-2xl font-bold text-foreground">{activeBookings.length}</p>
             <p className="text-xs text-muted-foreground">Activas</p>
-          </div>
-        </div>
-
-        {/* ── ServiMarket ───────────────────────────────────────────────── */}
-        <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Explorar ServiMarket</p>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => navigate("/store?mode=stores")}
-              className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/5 border border-violet-500/25 hover:from-violet-500/20 hover:to-purple-500/10 hover:border-violet-500/40 transition-all text-center"
-            >
-              <div className="w-12 h-12 rounded-2xl bg-violet-500/20 flex items-center justify-center text-2xl">🏬</div>
-              <div>
-                <p className="font-semibold text-foreground text-sm">Explorar tiendas</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Negocios verificados</p>
-              </div>
-            </button>
-            <button
-              onClick={() => navigate("/store?mode=products")}
-              className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-gradient-to-br from-primary/10 to-blue-500/5 border border-primary/25 hover:from-primary/20 hover:to-blue-500/10 hover:border-primary/40 transition-all text-center"
-            >
-              <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-2xl">🛒</div>
-              <div>
-                <p className="font-semibold text-foreground text-sm">Explorar productos</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Miles de artículos</p>
-              </div>
-            </button>
           </div>
         </div>
 
@@ -1155,22 +999,6 @@ export function WorkerDashboard() {
         reason={kycModalReason}
       />
 
-      {/* ── Sticky Premium CTA — siempre visible para no-premium ─────────── */}
-      {w && !isPremiumActive && !pendingPremiumRequest && (
-        <button
-          onClick={() => navigate("/professional/premium")}
-          title="Más visibilidad, más clientes"
-          className="premium-pill-pulse fixed right-4 z-40 flex items-center gap-2 px-4 py-2.5 rounded-full font-bold text-sm"
-          style={{
-            bottom: "5.5rem",
-            background: "linear-gradient(135deg,rgba(245,158,11,0.92) 0%,rgba(234,179,8,0.88) 100%)",
-            color: "#fff",
-            border: "1px solid rgba(251,191,36,0.45)",
-          }}>
-          <Crown className="w-4 h-4" />
-          Ganar más clientes
-        </button>
-      )}
     </AppLayout>
   );
 }
