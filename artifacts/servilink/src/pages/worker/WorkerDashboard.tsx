@@ -17,7 +17,7 @@ import {
   AlertCircle, ChevronRight, ChevronDown, ArrowDownToLine, LocateFixed, RefreshCw,
   LockKeyhole, Crown, Rocket, X, Copy, CheckCheck, CalendarDays, MessageSquare,
   BadgeCheck, Shield, Zap, Receipt, ClipboardList, DollarSign, MapPin,
-  CheckCircle2, Loader2, ShoppingBag, Store, Pencil, ListOrdered, Utensils,
+  CheckCircle2, Loader2, ShoppingBag, Store, Pencil, ListOrdered, Briefcase, Utensils,
 } from "lucide-react";
 import { format, formatDistanceToNowStrict } from "date-fns";
 import { es } from "date-fns/locale";
@@ -256,6 +256,38 @@ export function WorkerDashboard() {
           )}
         </div>
 
+        {w && (
+          <div className="rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 p-6 text-white shadow-xl">
+            <p className="text-sm text-white/70 font-medium mb-1">Tu saldo disponible</p>
+            <p className="text-5xl font-black tracking-tight">
+              ${availableNet.toFixed(2)}
+              <span className="text-lg font-normal text-white/60 ml-1">USD</span>
+            </p>
+            {reservedAmount > 0 && (
+              <div className="flex items-center gap-1.5 mt-2 text-white/60 text-sm">
+                <LockKeyhole className="w-3.5 h-3.5" />
+                ${reservedAmount.toFixed(2)} en proceso de retiro
+              </div>
+            )}
+            <div className="flex items-center gap-2 mt-5">
+              <button
+                onClick={() => navigate("/professional/withdrawals")}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md ${availableNet >= 5 ? "bg-white text-emerald-700 hover:bg-white/90" : "bg-white/20 text-white/60 cursor-not-allowed"}`}
+                disabled={availableNet < 5}
+              >
+                <ArrowDownToLine className="w-4 h-4" />
+                {availableNet >= 5 ? "Solicitar retiro" : "Mín. $5 para retirar"}
+              </button>
+              <button
+                onClick={() => navigate("/professional/analytics")}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <TrendingUp className="w-4 h-4" /> Ver historial
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ── 3. CTA Principal ─────────────────────────────────────────────── */}
         <button
           onClick={() => navigate("/professional/bookings")}
@@ -284,6 +316,64 @@ export function WorkerDashboard() {
             </p>
           </div>
         )}
+
+        {/* ── Acciones rápidas ─────────────────────────────────────────────── */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-black uppercase tracking-widest text-muted-foreground">Acciones rápidas</h2>
+            <span className="text-xs text-muted-foreground">Atajos de la semana</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => navigate("/professional/profile")}
+              className="flex flex-col gap-3 p-4 rounded-3xl border border-border bg-card text-left hover:border-primary/40 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                <Pencil className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Editar perfil</p>
+                <p className="text-xs text-muted-foreground">Actualiza tu presentación y zona</p>
+              </div>
+            </button>
+            <button
+              onClick={() => navigate("/professional/services")}
+              className="flex flex-col gap-3 p-4 rounded-3xl border border-border bg-card text-left hover:border-primary/40 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+                <ListOrdered className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Servicios y precios</p>
+                <p className="text-xs text-muted-foreground">Controla tu catálogo y tarifas</p>
+              </div>
+            </button>
+            <button
+              onClick={() => navigate("/jobs")}
+              className="flex flex-col gap-3 p-4 rounded-3xl border border-border bg-card text-left hover:border-primary/40 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-2xl bg-sky-500/10 flex items-center justify-center text-sky-600">
+                <Briefcase className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Bolsa de Empleo</p>
+                <p className="text-xs text-muted-foreground">Descubre trabajos más rápido</p>
+              </div>
+            </button>
+            <button
+              onClick={() => navigate("/mensajes")}
+              className="flex flex-col gap-3 p-4 rounded-3xl border border-border bg-card text-left hover:border-primary/40 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 flex items-center justify-center text-cyan-600">
+                <MessageSquare className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Mensajes</p>
+                <p className="text-xs text-muted-foreground">Responde clientes y solicitudes</p>
+              </div>
+            </button>
+          </div>
+        </div>
 
         {/* ── Trabajos activos ─────────────────────────────────────────────── */}
         <div>
@@ -609,56 +699,6 @@ export function WorkerDashboard() {
           >
             <div className="space-y-4 mt-4">
 
-        {/* ── EDITAR PERFIL ────────────────────────────────────────────────── */}
-        {w && w.categoryId && (
-          <div className="rounded-2xl border border-border bg-card overflow-hidden">
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Pencil className="w-4 h-4 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground">Mi perfil de profesional</p>
-                <p className="text-xs text-muted-foreground">Gestiona lo que los clientes ven de ti</p>
-              </div>
-              <button
-                onClick={() => navigate("/professional/profile")}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors flex-shrink-0"
-              >
-                <Pencil className="w-3 h-3" />
-                Editar
-              </button>
-            </div>
-            <div className="grid grid-cols-3 divide-x divide-border">
-              <button
-                onClick={() => navigate("/professional/profile")}
-                className="flex flex-col items-center gap-1.5 py-4 px-2 hover:bg-muted/50 transition-colors group"
-              >
-                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
-                  <ClipboardList className="w-4 h-4 text-blue-500" />
-                </div>
-                <span className="text-[11px] font-medium text-foreground text-center leading-tight">Especialidad<br/>y descripción</span>
-              </button>
-              <button
-                onClick={() => navigate("/professional/services")}
-                className="flex flex-col items-center gap-1.5 py-4 px-2 hover:bg-muted/50 transition-colors group"
-              >
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
-                  <ListOrdered className="w-4 h-4 text-emerald-500" />
-                </div>
-                <span className="text-[11px] font-medium text-foreground text-center leading-tight">Servicios<br/>y precios</span>
-              </button>
-              <button
-                onClick={() => navigate("/professional/profile")}
-                className="flex flex-col items-center gap-1.5 py-4 px-2 hover:bg-muted/50 transition-colors group"
-              >
-                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
-                  <Utensils className="w-4 h-4 text-amber-500" />
-                </div>
-                <span className="text-[11px] font-medium text-foreground text-center leading-tight">Menú<br/>de servicios</span>
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* ── ONBOARDING: Configura tu servicio ───────────────────────────── */}
         {w && !w.categoryId && (
