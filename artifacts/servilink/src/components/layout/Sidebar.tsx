@@ -134,7 +134,7 @@ const workerLinks = [
   { href: "/professional/withdrawals", label: "Mis Retiros", icon: ArrowDownToLine },
   { href: "/billetera", label: "Mi LinkWallet", icon: Wallet },
   { href: "/professional/verification", label: "Verificación", icon: Shield },
-  { href: "/jobs?tab=mine", label: "Mi Hoja de Vida", icon: Briefcase },
+  
 ];
 
 const workerSections = [
