@@ -1023,12 +1023,13 @@ function MyProfileTab({ accent }: { accent: string }) {
 // Main JobsPage — PUBLIC browse, gated CV/contact
 // ─────────────────────────────────────────────────────────────────────────────
 export function JobsPage() {
-  const { user } = useAuth();
+  const { user, appMode } = useAuth();
   const [, navigate] = useLocation();
   const search = useSearch();
   const accent = "#06B6D4";
   const queryTab = new URLSearchParams(search).get("tab");
-  const initialTab = queryTab === "mine" ? "mine" : "browse";
+  const isWorkerMode = appMode === "worker";
+  const initialTab: "browse" | "mine" = isWorkerMode ? "mine" : (queryTab === "mine" ? "mine" : "browse");
   const [tab, setTab] = useState<"browse" | "mine">(initialTab);
   const [profiles, setProfiles] = useState<JobProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1090,10 +1091,10 @@ export function JobsPage() {
                   </div>
                   <div>
                     <h1 className="font-black text-white text-base leading-tight">
-                      {queryTab === "mine" ? "Mi Hoja de Vida" : "Encontrar Personal"}
+                      {isWorkerMode ? "Mi Hoja de Vida" : "Encontrar Personal"}
                     </h1>
                     <p className="text-xs text-white/35">
-                      {queryTab === "mine" ? "Revisa tu perfil profesional y presencia en la Bolsa de Empleo" : "Encuentra talento venezolano verificado"}
+                      {isWorkerMode ? "Revisa tu perfil profesional y presencia en la Bolsa de Empleo" : "Encuentra talento venezolano verificado"}
                     </p>
                   </div>
                 </div>
@@ -1105,14 +1106,25 @@ export function JobsPage() {
                   </button>
                 )}
               </div>
-             <div className="flex gap-2">
-  <button
-    className="flex-1 py-2 rounded-xl text-sm font-bold transition-all"
-    style={{ background: accent, color: "#fff" }}
-  >
-    {queryTab === "mine" ? "Mi Hoja de Vida" : "Encontrar Personal"}
-  </button>
-</div>
+              <div className="flex gap-2">
+                {isWorkerMode ? (
+                  <button
+                    onClick={() => setTab("mine")}
+                    className="flex-1 py-2 rounded-xl text-sm font-bold transition-all"
+                    style={{ background: accent, color: "#fff" }}
+                  >
+                    Mi Hoja de Vida
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setTab("browse")}
+                    className="flex-1 py-2 rounded-xl text-sm font-bold transition-all"
+                    style={{ background: accent, color: "#fff" }}
+                  >
+                    Encontrar Personal
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
