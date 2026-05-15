@@ -49,7 +49,7 @@ const PILLARS = [
   },
   {
     icon: Briefcase,
-    label: "Empleo",
+    label: "Consigue personal",
     desc: "Bolsa de trabajo y talento",
     color: "#f59e0b",
     bg: "rgba(245,158,11,0.12)",
@@ -82,7 +82,7 @@ const FAB_OPTIONS = [
   { icon: Store,      label: "ServiMarket",            color: "#818cf8", bg: "rgba(129,140,248,0.16)", border: "rgba(129,140,248,0.38)", action: "/store" },
   { icon: Wrench,     label: "Servicios",             color: "#06B6D4", bg: "rgba(6,182,212,0.16)",   border: "rgba(6,182,212,0.38)",   action: "/search" },
   { icon: KeyRound,   label: "Alquileres",            color: "#c084fc", bg: "rgba(192,132,252,0.16)", border: "rgba(192,132,252,0.38)", action: "/store?type=rental" },
-  { icon: Briefcase,  label: "Empleo",                color: "#f59e0b", bg: "rgba(245,158,11,0.16)",  border: "rgba(245,158,11,0.40)",  action: "/jobs" },
+  { icon: Briefcase,  label: "Consigue personal",     color: "#f59e0b", bg: "rgba(245,158,11,0.16)",  border: "rgba(245,158,11,0.40)",  action: "/jobs" },
   { icon: CarFront,   label: "Transporte / Delivery", color: "#34d399", bg: "rgba(52,211,153,0.14)",   border: "rgba(52,211,153,0.36)",  action: "/transport" },
   { icon: Newspaper,  label: "Clasificados",          color: "#94a3b8", bg: "rgba(148,163,184,0.14)", border: "rgba(148,163,184,0.34)", action: "/clasificados" },
 ];
