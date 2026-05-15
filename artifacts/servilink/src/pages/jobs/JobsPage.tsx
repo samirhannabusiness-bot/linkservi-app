@@ -1036,6 +1036,11 @@ export function JobsPage() {
     (hasDualRole && activeMode === "secondary");
   const initialTab: "browse" | "mine" = isWorkerMode ? "mine" : "browse";
   const [tab, setTab] = useState<"browse" | "mine">(initialTab);
+  useEffect(() => {
+    const qt = new URLSearchParams(search).get("tab");
+    if (qt === "mine") setTab("mine");
+    else if (qt === "browse") setTab("browse");
+  }, [search]);
   const [profiles, setProfiles] = useState<JobProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProfile, setSelectedProfile] = useState<JobProfile | null>(null);
