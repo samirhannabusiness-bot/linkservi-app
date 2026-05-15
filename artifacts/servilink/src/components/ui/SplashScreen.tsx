@@ -180,7 +180,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             animate={{ opacity: phase >= 2 ? 1 : 0 }}
             transition={{ delay: 0.15, duration: 0.4 }}
           >
-            Venezuela · 2025
+            Venezuela · 2026
           </motion.p>
         </motion.div>
       )}
