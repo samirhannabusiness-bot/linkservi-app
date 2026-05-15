@@ -1023,13 +1023,14 @@ function MyProfileTab({ accent }: { accent: string }) {
 // Main JobsPage — PUBLIC browse, gated CV/contact
 // ─────────────────────────────────────────────────────────────────────────────
 export function JobsPage() {
-  const { user, isWorker } = useAuth();
+  const { user, isWorker, activeMode, hasDualRole } = useAuth();
   const [, navigate] = useLocation();
   const search = useSearch();
   const accent = "#06B6D4";
   const queryTab = new URLSearchParams(search).get("tab");
-  const isWorkerMode = isWorker;
-  const initialTab: "browse" | "mine" = isWorkerMode ? "mine" : (queryTab === "mine" ? "mine" : "browse");
+  // Profesional cuando: rol worker, o tiene dual-role en modo secundario, o llegó por ?tab=mine
+  const isWorkerMode = isWorker || queryTab === "mine" || (hasDualRole && activeMode === "secondary");
+  const initialTab: "browse" | "mine" = isWorkerMode ? "mine" : "browse";
   const [tab, setTab] = useState<"browse" | "mine">(initialTab);
   const [profiles, setProfiles] = useState<JobProfile[]>([]);
   const [loading, setLoading] = useState(true);
