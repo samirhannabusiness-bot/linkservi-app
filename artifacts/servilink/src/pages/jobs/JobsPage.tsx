@@ -1105,23 +1105,14 @@ export function JobsPage() {
                   </button>
                 )}
               </div>
-              <div className="flex gap-2">
-                {tab === "mine" ? (
-                  <button
-                    className="flex-1 py-2 rounded-xl text-sm font-bold transition-all"
-                    style={{ background: accent, color: "#fff" }}
-                  >
-                    Mi Hoja de Vida
-                  </button>
-                ) : (
-                  <button
-                    className="flex-1 py-2 rounded-xl text-sm font-bold transition-all"
-                    style={{ background: accent, color: "#fff" }}
-                  >
-                    Encontrar Personal
-                  </button>
-                )}
-              </div>
+             <div className="flex gap-2">
+  <button
+    className="flex-1 py-2 rounded-xl text-sm font-bold transition-all"
+    style={{ background: accent, color: "#fff" }}
+  >
+    {queryTab === "mine" ? "Mi Hoja de Vida" : "Encontrar Personal"}
+  </button>
+</div>
             </div>
           </div>
 
