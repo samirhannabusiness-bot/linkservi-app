@@ -1028,8 +1028,12 @@ export function JobsPage() {
   const search = useSearch();
   const accent = "#06B6D4";
   const queryTab = new URLSearchParams(search).get("tab");
-  // Profesional cuando: rol worker, o tiene dual-role en modo secundario, o llegó por ?tab=mine
-  const isWorkerMode = isWorker || queryTab === "mine" || (hasDualRole && activeMode === "secondary");
+  // Mismo criterio que el Sidebar (línea 917): worker, seller, cohost, dual-role secundario, o ?tab=mine
+  const isWorkerMode = isWorker ||
+    user?.role === "seller" ||
+    user?.role === "cohost" ||
+    queryTab === "mine" ||
+    (hasDualRole && activeMode === "secondary");
   const initialTab: "browse" | "mine" = isWorkerMode ? "mine" : "browse";
   const [tab, setTab] = useState<"browse" | "mine">(initialTab);
   const [profiles, setProfiles] = useState<JobProfile[]>([]);
