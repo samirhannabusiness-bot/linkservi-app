@@ -1023,12 +1023,12 @@ function MyProfileTab({ accent }: { accent: string }) {
 // Main JobsPage — PUBLIC browse, gated CV/contact
 // ─────────────────────────────────────────────────────────────────────────────
 export function JobsPage() {
-  const { user, appMode } = useAuth();
+  const { user, isWorker } = useAuth();
   const [, navigate] = useLocation();
   const search = useSearch();
   const accent = "#06B6D4";
   const queryTab = new URLSearchParams(search).get("tab");
-  const isWorkerMode = appMode === "worker";
+  const isWorkerMode = isWorker;
   const initialTab: "browse" | "mine" = isWorkerMode ? "mine" : (queryTab === "mine" ? "mine" : "browse");
   const [tab, setTab] = useState<"browse" | "mine">(initialTab);
   const [profiles, setProfiles] = useState<JobProfile[]>([]);
