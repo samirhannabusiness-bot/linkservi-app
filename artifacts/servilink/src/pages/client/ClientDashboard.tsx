@@ -23,7 +23,7 @@ const MODULES: ModuleCfg[] = [
   { id: "transporte",  label: "Transporte",   desc: "Pide tu viaje al instante",     Icon: Car,         href: "/transport" },
   { id: "alquiler",    label: "Alquiler",     desc: "Casas, autos y más",            Icon: HomeIcon,    href: "/store" },
   { id: "clasificados",label: "Clasificados", desc: "Compra y vende fácil",          Icon: Tag,         href: "/clasificados" },
-  { id: "empleo",      label: "Empleo",       desc: "Encuentra trabajo hoy",         Icon: Briefcase,   href: "/jobs" },
+  { id: "empleo",      label: "Consigue personal", desc: "Encuentra talento hoy",      Icon: Briefcase,   href: "/jobs" },
 ];
 
 interface Booking {
