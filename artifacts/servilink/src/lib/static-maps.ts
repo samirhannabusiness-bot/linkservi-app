@@ -1,15 +1,93 @@
 import { useEffect, useState, type RefObject } from "react";
 
-const API_KEY = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined) ?? "";
-
 const TILE_SIZE = 256;
 
 export const CARACAS_CENTER = { lat: 10.4806, lng: -66.9036 };
 export const CITY_ZOOM = 11;
 export const GPS_ZOOM = 13;
 
+/** @deprecated No longer needed — maps use OSM tiles (no API key required) */
 export function hasApiKey(): boolean {
-  return API_KEY.length > 0;
+  return true;
+}
+
+/** World pixel coordinates for a lat/lng at a given zoom level (OSM/Mercator) */
+export function worldPixel(lat: number, lng: number, zoom: number): { px: number; py: number } {
+  const scale = TILE_SIZE * Math.pow(2, zoom);
+  const siny = Math.min(Math.max(Math.sin((lat * Math.PI) / 180), -0.9999), 0.9999);
+  return {
+    px: scale * (0.5 + lng / 360),
+    py: scale * (0.5 - Math.log((1 + siny) / (1 - siny)) / (4 * Math.PI)),
+  };
+}
+
+/** Convert lat/lng to container pixel coordinates given a center and container size */
+export function projectToContainer(
+  lat: number,
+  lng: number,
+  centerLat: number,
+  centerLng: number,
+  zoom: number,
+  containerW: number,
+  containerH: number,
+): { x: number; y: number } {
+  const center = worldPixel(centerLat, centerLng, zoom);
+  const point = worldPixel(lat, lng, zoom);
+  return {
+    x: point.px - center.px + containerW / 2,
+    y: point.py - center.py + containerH / 2,
+  };
+}
+
+export interface OsmTile {
+  key: string;
+  url: string;
+  left: number;
+  top: number;
+}
+
+/** Build the list of OSM tiles needed to fill a container */
+export function buildOsmTiles(
+  centerLat: number,
+  centerLng: number,
+  zoom: number,
+  w: number,
+  h: number,
+  dark: boolean,
+): OsmTile[] {
+  if (!w || !h) return [];
+  const center = worldPixel(centerLat, centerLng, zoom);
+  const originX = center.px - w / 2;
+  const originY = center.py - h / 2;
+
+  const startTX = Math.floor(originX / TILE_SIZE) - 1;
+  const startTY = Math.floor(originY / TILE_SIZE) - 1;
+  const endTX = Math.floor((originX + w) / TILE_SIZE) + 1;
+  const endTY = Math.floor((originY + h) / TILE_SIZE) + 1;
+
+  const n = Math.pow(2, zoom);
+  const tiles: OsmTile[] = [];
+  for (let tx = startTX; tx <= endTX; tx++) {
+    for (let ty = startTY; ty <= endTY; ty++) {
+      const wx = ((tx % n) + n) % n;
+      const wy = ((ty % n) + n) % n;
+      let url: string;
+      if (dark) {
+        const s = ["a", "b", "c", "d"][(wx + wy) % 4];
+        url = `https://${s}.basemaps.cartocdn.com/dark_all/${zoom}/${wx}/${wy}.png`;
+      } else {
+        const s = ["a", "b", "c"][(wx + wy) % 3];
+        url = `https://${s}.tile.openstreetmap.org/${zoom}/${wx}/${wy}.png`;
+      }
+      tiles.push({
+        key: `${tx},${ty}`,
+        url,
+        left: tx * TILE_SIZE - originX,
+        top: ty * TILE_SIZE - originY,
+      });
+    }
+  }
+  return tiles;
 }
 
 function project(lat: number, lng: number) {
