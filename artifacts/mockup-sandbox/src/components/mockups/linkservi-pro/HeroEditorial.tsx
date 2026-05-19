@@ -561,7 +561,7 @@ export function HeroEditorial() {
                 </span>
               </div>
               <p className="text-[13px] text-slate-400 max-w-xs leading-relaxed">
-                El marketplace integral de Venezuela. Servicios, tiendas,
+                El ServiMarket integral de Venezuela. Servicios, tiendas,
                 transporte y clasificados — verificados y seguros.
               </p>
               <div className="mt-6 flex gap-2">

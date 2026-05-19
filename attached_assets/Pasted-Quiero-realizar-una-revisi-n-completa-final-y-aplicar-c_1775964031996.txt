@@ -1,4 +1,4 @@
-Quiero realizar una revisión completa final y aplicar correcciones e integraciones necesarias en mi app ServiLink (marketplace de servicios tipo Uber para Venezuela).
+Quiero realizar una revisión completa final y aplicar correcciones e integraciones necesarias en mi app ServiLink (ServiMarket de servicios tipo Uber para Venezuela).
 
 El objetivo es asegurar que la app funcione perfectamente, sea confiable, y esté lista para usuarios reales.
 

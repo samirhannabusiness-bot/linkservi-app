@@ -24,7 +24,7 @@ export function BlogIndexPage() {
   });
 
   useSeo({
-    title: "Blog LinkServi — Guías, consejos y noticias del marketplace",
+    title: "Blog LinkServi — Guías, consejos y noticias del ServiMarket",
     description: "Aprende cómo contratar mejor, vender más y gestionar tu vida con servicios profesionales. Guías expertas de LinkServi.",
     canonical: `${BASE}/blog`,
     type: "website",

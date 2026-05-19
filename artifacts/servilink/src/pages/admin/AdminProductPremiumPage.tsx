@@ -33,7 +33,7 @@ export function AdminProductPremiumPage() {
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "product-premium"] });
-      toast({ title: "¡Producto destacado activado!", description: "El producto ya aparece como Destacado en el marketplace." });
+      toast({ title: "¡Producto destacado activado!", description: "El producto ya aparece como Destacado en el ServiMarket." });
     },
     onError: (err: any) => toast({ title: "Error al aprobar", description: err?.message, variant: "destructive" }),
   });
@@ -67,7 +67,7 @@ export function AdminProductPremiumPage() {
           <Crown className="w-6 h-6 text-amber-400" /> Premium ServiMarket
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Aprueba o rechaza solicitudes de productos destacados en el marketplace
+          Aprueba o rechaza solicitudes de productos destacados en el ServiMarket
         </p>
       </div>
 

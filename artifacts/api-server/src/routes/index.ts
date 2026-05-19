@@ -43,7 +43,7 @@ import {
   clientRatingsRouter,
 } from "./servicios";
 
-// ── Dominio: Marketplace ──────────────────────────────────────────────────────
+// ── Dominio: ServiMarket ──────────────────────────────────────────────────────
 import {
   storesRouter,
   productsRouter,
@@ -55,7 +55,7 @@ import {
   cohostPlansRouter,
   favoritesRouter,
   adminProductPremiumRouter,
-} from "./marketplace";
+} from "./ServiMarket";
 
 // ── Dominio: Empleo ───────────────────────────────────────────────────────────
 import {
@@ -138,7 +138,7 @@ router.use(workerServicesRouter);
 router.use(servicePhotosRouter);
 router.use(clientRatingsRouter);
 
-// Marketplace
+// ServiMarket
 router.use(storesRouter);
 router.use(productsRouter);
 router.use(productOrdersRouter);

@@ -48,7 +48,7 @@ qué datos se están guardando realmente
 Separar claramente:
 
 servicios (tipo Uber)
-marketplace / tienda
+ServiMarket / tienda
 alquileres
 bolsa de empleo (jobs)
 sistema de tasas (BCV / Binance / Euro)

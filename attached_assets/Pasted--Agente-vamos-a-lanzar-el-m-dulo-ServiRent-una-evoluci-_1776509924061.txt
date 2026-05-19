@@ -1,4 +1,4 @@
-"Agente, vamos a lanzar el módulo 'ServiRent', una evolución del Marketplace que permite a los usuarios alquilar objetos. Necesito que implementes este sistema con una lógica de Startup Unicornio, priorizando la seguridad y la monetización:
+"Agente, vamos a lanzar el módulo 'ServiRent', una evolución del ServiMarket que permite a los usuarios alquilar objetos. Necesito que implementes este sistema con una lógica de Startup Unicornio, priorizando la seguridad y la monetización:
 
 1. Arquitectura del Producto (Venta vs Alquiler):
 

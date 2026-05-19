@@ -404,7 +404,7 @@ router.post("/products", authenticate, requireRole("cohost", "seller", "admin", 
       resolvedCoHostId = store.coHostId;
     }
 
-    // ── Free-tier product limit (Pilar 4: Marketplace Limits) ────────────────
+    // ── Free-tier product limit (Pilar 4: ServiMarket Limits) ────────────────
     // Evaluate quota against the resolved owner of the products (resolvedCoHostId).
     if (req.user!.role !== "admin") {
       const [{ cnt }] = await db

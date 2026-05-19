@@ -1,4 +1,4 @@
-Agente, el CEO ha decidido que el sistema de Alquileres pase de ser una herramienta administrativa a un pilar central del Marketplace público. Debes integrar la lógica de alquiler en todo el ecosistema (Client, Worker, Guest) con un enfoque de UI/UX Premium.
+Agente, el CEO ha decidido que el sistema de Alquileres pase de ser una herramienta administrativa a un pilar central del ServiMarket público. Debes integrar la lógica de alquiler en todo el ecosistema (Client, Worker, Guest) con un enfoque de UI/UX Premium.
 
 Tareas a ejecutar en paralelo:
 
@@ -10,7 +10,7 @@ Añade campos obligatorios si es Alquiler: pricePerDay (Tarifa diaria) y securit
 
 Asegúrate de que estos datos se guarden en la tabla products y se reflejen en los endpoints de la API.
 
-2. UI Senior en el Marketplace (Visuals):
+2. UI Senior en el ServiMarket (Visuals):
 
 Etiquetas Dinámicas: En las tarjetas de producto (ProductCard), si el producto es de alquiler, muestra el precio con el formato: $XX / día. Añade un badge elegante que diga "ALQUILER".
 

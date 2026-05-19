@@ -27,7 +27,7 @@ Organizar TODA la app para que:
 La app tiene múltiples módulos:
 
 * servicios (cliente ↔ trabajador)
-* marketplace (tiendas)
+* ServiMarket (tiendas)
 * alquiler (rentals con depósito/contrato)
 * bolsa de empleo (con video CV)
 * co-host (gestión y comisiones)

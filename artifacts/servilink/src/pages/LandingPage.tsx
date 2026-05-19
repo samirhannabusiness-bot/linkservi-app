@@ -420,7 +420,7 @@ function RateCard() {
             className="w-full mt-5 py-4 rounded-2xl font-bold text-white shadow-xl transition-all active:scale-[0.98]"
             style={{ background: cfg.gradient }}
            >
-            Activar tasa {cfg.short} en Marketplace
+            Activar tasa {cfg.short} en ServiMarket
            </button>
         </div>
       </div>

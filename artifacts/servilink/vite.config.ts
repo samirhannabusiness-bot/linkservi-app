@@ -46,7 +46,7 @@ export default defineConfig({
         "icon-maskable-*.png",
       ],
       manifest: {
-        name: "LinkServi - Marketplace de Servicios",
+        name: "LinkServi - ServiMarket de Servicios",
         short_name: "LinkServi",
         description: "Conectamos clientes con trabajadores profesionales en Venezuela",
         theme_color: "#0f172a",

@@ -899,7 +899,7 @@ export async function sendImpulseEmail(opts: {
         Hay nuevos productos y servicios disponibles en tu área. No dejes pasar las mejores ofertas de hoy.
       </p>
       <div style="background:rgba(129,140,248,0.1);border:1px solid rgba(129,140,248,0.25);border-radius:12px;padding:14px 18px;margin-bottom:20px;">
-        <p style="color:#a5b4fc;font-size:14px;font-weight:700;margin:0 0 4px;">🛍 Marketplace activo</p>
+        <p style="color:#a5b4fc;font-size:14px;font-weight:700;margin:0 0 4px;">🛍 ServiMarket activo</p>
         <p style="color:#94a3b8;font-size:13px;margin:0;line-height:1.6;">
           Nuevas publicaciones esta semana. Compara precios y encuentra lo que necesitas.
         </p>
@@ -914,7 +914,7 @@ export async function sendImpulseEmail(opts: {
       ctaUrl: `https://linkservi.com/${isWorker ? "worker/dashboard" : "store"}`,
       subjectA:  isWorker ? `⚡ ${first}, estás recibiendo visitas — revisa tu perfil` : `⚡ ${first}, hay ofertas esperándote hoy`,
       subjectB:  isWorker ? `${first}, tu perfil activo atrae más clientes — mira esto` : `${first}, nuevos productos cerca de ti esta semana`,
-      ctaLabelA: isWorker ? "Ver mi perfil →"      : "Ver el marketplace →",
+      ctaLabelA: isWorker ? "Ver mi perfil →"      : "Ver el ServiMarket →",
       ctaLabelB: isWorker ? "Actualizar servicios →" : "Explorar ahora →",
     },
   );
@@ -952,7 +952,7 @@ export async function sendReactivationEmail(opts: {
       <div style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);border-radius:12px;padding:14px 18px;margin-bottom:20px;">
         <p style="color:#6ee7b7;font-size:14px;font-weight:700;margin:0 0 4px;">✨ Novedades en LinkServi</p>
         <p style="color:#94a3b8;font-size:13px;margin:0;line-height:1.6;">
-          Nuevos profesionales verificados, productos en el marketplace y ahora también alquileres.
+          Nuevos profesionales verificados, productos en el ServiMarket y ahora también alquileres.
           ¡Vuelve y descúbrelo!
         </p>
       </div>`;

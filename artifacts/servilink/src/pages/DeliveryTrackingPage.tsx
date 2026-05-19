@@ -94,7 +94,7 @@ export function DeliveryTrackingPage() {
         <AlertTriangle className="w-10 h-10 text-muted-foreground" />
         <p className="text-muted-foreground">Solicitud no encontrada</p>
         <button onClick={() => navigate("/store")} className="btn-gradient text-white px-6 py-2.5 rounded-xl text-sm font-bold">
-          Ir al marketplace
+          Ir al ServiMarket
         </button>
       </div>
     );
@@ -110,7 +110,7 @@ export function DeliveryTrackingPage() {
       {/* Back */}
       <button onClick={() => navigate("/store")}
         className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mt-2">
-        <ArrowLeft className="w-4 h-4" /> Volver al marketplace
+        <ArrowLeft className="w-4 h-4" /> Volver al ServiMarket
       </button>
 
       {/* Status card */}

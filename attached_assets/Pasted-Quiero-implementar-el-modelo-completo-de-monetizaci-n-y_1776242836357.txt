@@ -8,7 +8,7 @@ Crear y usar estos roles claramente separados:
 
 customer → cliente que contrata servicios o compra productos
 worker → trabajador que presta servicios
-seller → vendedor del marketplace (dueño de tienda)
+seller → vendedor del ServiMarket (dueño de tienda)
 host → gestor que gana comisiones por operaciones
 
 IMPORTANTE:
@@ -32,7 +32,7 @@ Si NO hay host:
 
 20% → plataforma
 80% → trabajador
-🏪 PRODUCTOS (MARKETPLACE)
+🏪 PRODUCTOS (ServiMarket)
 
 Cuando se vende un producto:
 
@@ -138,7 +138,7 @@ Evitar cálculos duplicados
 Convertir ServiLink en:
 
 plataforma de servicios tipo Uber
-marketplace tipo MercadoLibre
+ServiMarket tipo MercadoLibre
 sistema de crecimiento tipo afiliados (hosts)
 
 Todo integrado en un solo sistema escalable.

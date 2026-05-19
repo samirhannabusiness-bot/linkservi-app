@@ -1,4 +1,4 @@
-Necesito que hagas una revisión completa de la app y me ayudes a ordenar correctamente el modelo de marketplace, porque actualmente estoy confundido con cómo está funcionando.
+Necesito que hagas una revisión completa de la app y me ayudes a ordenar correctamente el modelo de ServiMarket, porque actualmente estoy confundido con cómo está funcionando.
 
 ---
 
@@ -87,11 +87,11 @@ Adicionalmente:
   * trabajadores
   * co-hosts
 
-* Debe existir una vista donde se puedan explorar tiendas (tipo marketplace)
+* Debe existir una vista donde se puedan explorar tiendas (tipo ServiMarket)
 
 ---
 
-8. Vendedores dentro del marketplace
+8. Vendedores dentro del ServiMarket
 
 * Los trabajadores también deben poder vender productos
 * Ya que están verificados, deben poder crear su propia tienda o perfil de venta
@@ -124,7 +124,7 @@ Adicionalmente:
 
 OBJETIVO FINAL
 
-Quiero que reorganices todo el flujo del marketplace para que sea claro, lógico y funcional:
+Quiero que reorganices todo el flujo del ServiMarket para que sea claro, lógico y funcional:
 
 * Quién vende → tienda
 * Quién gestiona → co-host

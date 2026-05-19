@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 
 const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
-    title: "Marketplace",
+    title: "ServiMarket",
     links: [
       { label: "ServiMarket",    href: "/store" },
       { label: "Servicios",      href: "/search" },
@@ -48,7 +48,7 @@ const TRUST_BADGES = [
   { icon: Shield,      label: "Soporte 24/7" },
 ];
 
-export function PublicMarketplaceFooter() {
+export function PublicServiMarketFooter() {
   const [, navigate] = useLocation();
 
   return (
@@ -82,7 +82,7 @@ export function PublicMarketplaceFooter() {
               <span className="text-lg font-bold tracking-tight text-white">LinkServi</span>
             </button>
             <p className="mt-4 max-w-xs text-sm text-slate-400 leading-relaxed">
-              El marketplace #1 de Venezuela con pago protegido. Servicios, productos y transporte en un solo lugar, sin riesgos.
+              El ServiMarket #1 de Venezuela con pago protegido. Servicios, productos y transporte en un solo lugar, sin riesgos.
             </p>
             <div className="mt-5 flex items-center gap-3">
               {([

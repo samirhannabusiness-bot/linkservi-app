@@ -1,11 +1,11 @@
 import { type ReactNode } from "react";
 import { TrustBand } from "./TrustBand";
-import { PublicMarketplaceHeader } from "./PublicMarketplaceHeader";
-import { PublicMarketplaceFooter } from "./PublicMarketplaceFooter";
+import { PublicServiMarketHeader } from "./PublicServiMarketHeader";
+import { PublicServiMarketFooter } from "./PublicServiMarketFooter";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 
 /**
- * PublicShell — Trust First chrome for all public marketplace pages.
+ * PublicShell — Trust First chrome for all public ServiMarket pages.
  *
  * Wraps page content with:
  *   - Trust band (top: escrow + verified + 24/7)
@@ -22,11 +22,11 @@ export function PublicShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh bg-[#0a0e1a] text-white font-sans antialiased flex flex-col">
       <TrustBand />
-      <PublicMarketplaceHeader />
+      <PublicServiMarketHeader />
       <main className="flex-1 min-w-0">
         {children}
       </main>
-      <PublicMarketplaceFooter />
+      <PublicServiMarketFooter />
       <CartDrawer />
     </div>
   );

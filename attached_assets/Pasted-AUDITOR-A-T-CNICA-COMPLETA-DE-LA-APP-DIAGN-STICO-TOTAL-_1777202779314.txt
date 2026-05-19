@@ -81,7 +81,7 @@ Explicar:
 
 ---
 
-📦 7. MARKETPLACE / TIENDAS
+📦 7. ServiMarket / TIENDAS
 
 * cómo funcionan las tiendas
 * cómo se crean productos

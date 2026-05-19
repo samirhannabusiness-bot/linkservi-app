@@ -202,7 +202,7 @@ pending → accepted → payment_pending → payment_confirmed
 
 ---
 
-## 7. MARKETPLACE / TIENDAS
+## 7. ServiMarket / TIENDAS
 
 **Crear tienda:**
 - `POST /api/stores`. Campos: branding (logo, banner, color acento), ubicación, datos de pago.
@@ -241,7 +241,7 @@ pending → accepted → payment_pending → payment_confirmed
 |---|---|---|---|
 | `users` | serial | — | identidad central, multirole |
 | `workers` | serial | `user_id`, `category_id`, `cohost_id` | perfil profesional |
-| `stores` | serial | `cohost_id` | tiendas marketplace |
+| `stores` | serial | `cohost_id` | tiendas ServiMarket |
 | `products` | serial | `store_id`, `cohost_id` | inventario |
 | `bookings` | serial | `client_id`, `worker_id`, `service_id` | transacciones de servicios |
 | `product_orders` | serial | `product_id`, `client_id` | órdenes de productos |
@@ -371,7 +371,7 @@ pending → accepted → payment_pending → payment_confirmed
 | 3 | Media | XSS no sanitizado server-side en contenido de usuario (descripciones, nombres). Depende 100% del front | varios |
 | 4 | Media | Sin CSRF token (mitigado por SameSite + Bearer, pero si el front tiene XSS, los cookies/Bearer son robables) | `lib/auth.ts` |
 | 5 | Media | Validación con Zod inconsistente: muchas rutas hacen `if (!name || !email)` manual en lugar de Zod | varias rutas |
-| 6 | Media | `POST /api/products/:id/track-view` público sin rate limit por producto/IP — inflable | `routes/marketplace/products.ts` |
+| 6 | Media | `POST /api/products/:id/track-view` público sin rate limit por producto/IP — inflable | `routes/ServiMarket/products.ts` |
 | 7 | Baja | Sin refresh tokens — invalidación de sesión solo por expiración | `lib/auth.ts:31` |
 | 8 | Baja | Logs `pino` no enmascaran emails ni teléfonos en cuerpos de request | `app.ts` |
 
@@ -423,7 +423,7 @@ pending → accepted → payment_pending → payment_confirmed
 **Escalable:**
 - Monorepo con shared schema = cambio de DB se propaga a back y front con tipos.
 - TanStack Query + ServiceWorker = capa de cache decente sin Redis.
-- Endpoints REST claros y separados por dominio (`servicios/`, `marketplace/`, `empleo/`, `alquileres/`).
+- Endpoints REST claros y separados por dominio (`servicios/`, `ServiMarket/`, `empleo/`, `alquileres/`).
 
 **Diferencial:**
 - C2P automatizado con BDV es tecnología que pocas startups venezolanas implementan bien.

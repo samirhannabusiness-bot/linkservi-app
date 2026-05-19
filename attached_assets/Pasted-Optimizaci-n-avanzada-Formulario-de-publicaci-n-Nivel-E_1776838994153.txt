@@ -32,7 +32,7 @@ Agregar microcopy dentro de la tarjeta de vista previa.
 
 * incentiva subir imágenes
 * refuerza comportamiento correcto
-* aumenta calidad del marketplace
+* aumenta calidad del ServiMarket
 
 ---
 
@@ -139,7 +139,7 @@ Mejorar manejo de validación.
 * publicaciones más completas
 * mejor calidad de productos
 * mayor tasa de finalización
-* experiencia tipo marketplace avanzado
+* experiencia tipo ServiMarket avanzado
 
 ---
 

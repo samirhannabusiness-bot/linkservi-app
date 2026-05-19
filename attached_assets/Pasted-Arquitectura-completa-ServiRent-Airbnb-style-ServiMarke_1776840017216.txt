@@ -4,7 +4,7 @@ Arquitectura completa — ServiRent (Airbnb-style) + ServiMarket estructurado
 
 # OBJETIVO
 
-Separar correctamente los tipos de alquiler y mejorar el marketplace sin romper la funcionalidad actual, creando flujos tipo Airbnb para propiedades, vehículos y experiencias.
+Separar correctamente los tipos de alquiler y mejorar el ServiMarket sin romper la funcionalidad actual, creando flujos tipo Airbnb para propiedades, vehículos y experiencias.
 
 ---
 
@@ -108,7 +108,7 @@ Agregar:
 
 ---
 
-## UI Marketplace — Alquileres
+## UI ServiMarket — Alquileres
 
 ### Vista principal
 
@@ -159,7 +159,7 @@ Ejemplo:
 
 ---
 
-# PARTE 3 — MARKETPLACE PRODUCTOS (VENTA)
+# PARTE 3 — ServiMarket PRODUCTOS (VENTA)
 
 ## Campo adicional
 
@@ -211,7 +211,7 @@ Paso 0:
 
 ---
 
-## UI Marketplace — Productos
+## UI ServiMarket — Productos
 
 Tabs:
 
@@ -253,7 +253,7 @@ Tabs:
 # RESULTADO
 
 * sistema tipo Airbnb integrado
-* marketplace organizado
+* ServiMarket organizado
 * mejor UX
 * mayor conversión
 * escalabilidad real

@@ -267,7 +267,7 @@ export function TrustFirst() {
           <div>
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#00daf3]/30 bg-[#00daf3]/10 px-3 py-1 text-xs font-semibold text-[#00daf3]">
               <ShieldCheck className="h-3.5 w-3.5" />
-              Marketplace #1 de Venezuela con pago protegido
+              ServiMarket #1 de Venezuela con pago protegido
             </div>
             <h1 className="text-5xl font-bold leading-[1.05] tracking-tight md:text-6xl">
               Contrata sin miedo.<br />
@@ -609,7 +609,7 @@ export function TrustFirst() {
                 <span className="text-lg font-bold tracking-tight">LinkServi</span>
               </a>
               <p className="mt-4 max-w-sm text-sm text-slate-400">
-                El marketplace de Venezuela donde cada transacción está protegida.
+                El ServiMarket de Venezuela donde cada transacción está protegida.
                 Servicios, productos y transporte con respaldo real.
               </p>
               <div className="mt-5 flex items-center gap-3">
@@ -627,7 +627,7 @@ export function TrustFirst() {
 
             {[
               {
-                title: "Marketplace",
+                title: "ServiMarket",
                 links: ["Servicios", "Productos", "Transporte", "Clasificados", "Ofertas"],
               },
               {

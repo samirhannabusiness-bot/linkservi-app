@@ -265,7 +265,7 @@ export function DashboardPro() {
                     </span>
                   </h1>
                   <p className="mt-3 text-sm text-slate-400 max-w-xl">
-                    Marketplace operado como un terminal profesional. Pagos en escrow, profesionales verificados y entrega en tiempo real.
+                    ServiMarket operado como un terminal profesional. Pagos en escrow, profesionales verificados y entrega en tiempo real.
                   </p>
 
                   <div className="mt-5 flex flex-wrap items-center gap-2">
@@ -556,7 +556,7 @@ export function DashboardPro() {
                     <span className="font-semibold tracking-tight">LinkServi</span>
                   </div>
                   <p className="text-[12px] text-slate-400 max-w-xs leading-relaxed">
-                    El marketplace profesional de Venezuela. Servicios, productos, transporte y clasificados — protegidos por escrow.
+                    El ServiMarket profesional de Venezuela. Servicios, productos, transporte y clasificados — protegidos por escrow.
                   </p>
                   <div className="mt-4 flex items-center gap-2">
                     {["IG", "TT", "X", "YT"].map((s) => (
@@ -571,7 +571,7 @@ export function DashboardPro() {
                 </div>
                 {[
                   {
-                    title: "Marketplace",
+                    title: "ServiMarket",
                     items: ["Categorías", "Profesionales", "Tiendas", "Transporte"],
                   },
                   {

@@ -1,7 +1,7 @@
 IMPLEMENTAR: LINKSERVI STREAM (SOCIAL COMMERCE ENGINE)
 
 OBJETIVO:
-Crear un sistema de contenido tipo TikTok integrado con el marketplace de LinkServi, donde cada video genere ventas directas de productos y servicios dentro de la app.
+Crear un sistema de contenido tipo TikTok integrado con el ServiMarket de LinkServi, donde cada video genere ventas directas de productos y servicios dentro de la app.
 
 IMPORTANTE:
 NO es una red social.

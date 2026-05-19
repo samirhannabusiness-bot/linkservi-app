@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "LinkServi - Marketplace de Servicios"
+title = "LinkServi - ServiMarket de Servicios"
 version = "1.0.0"
 id = "artifacts/servilink"
 router = "path"

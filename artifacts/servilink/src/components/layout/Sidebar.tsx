@@ -212,7 +212,7 @@ const allAdminSections: AdminSection[] = [
     ],
   },
   {
-    label: "MARKETPLACE",
+    label: "ServiMarket",
     links: [
       { href: "/admin/stores",          label: "Tiendas",           icon: Store,    roles: ["super_admin", "finanzas"] },
       { href: "/admin/product-premium", label: "Destacados Tienda", icon: Crown,    roles: ["super_admin", "marketing"] },

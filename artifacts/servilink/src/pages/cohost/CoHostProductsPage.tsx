@@ -636,7 +636,7 @@ export function CoHostProductsPage() {
               <div className="rounded-2xl p-3.5 space-y-2"
                 style={{ background: "rgba(245,158,11,0.07)", border: "1px solid rgba(245,158,11,0.18)" }}>
                 {[
-                  { icon: <Zap className="w-3.5 h-3.5" />, text: "Posición superior en el marketplace" },
+                  { icon: <Zap className="w-3.5 h-3.5" />, text: "Posición superior en el ServiMarket" },
                   { icon: <Eye className="w-3.5 h-3.5" />, text: "Los destacados reciben 2× más visitas" },
                   { icon: <TrendingUp className="w-3.5 h-3.5" />, text: "Estadísticas detalladas de vistas y clics" },
                   { icon: <CheckCircle className="w-3.5 h-3.5" />, text: "Badge ⭐ visible en búsquedas y tienda" },

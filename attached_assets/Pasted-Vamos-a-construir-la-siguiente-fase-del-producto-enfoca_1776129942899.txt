@@ -4,7 +4,7 @@ Vamos a construir la siguiente fase del producto enfocada en validar el modelo d
 
 Objetivo:
 
-Tener una versión funcional y visualmente sólida tipo marketplace local (servicios + productos), sin implementar aún toda la complejidad de un e-commerce completo.
+Tener una versión funcional y visualmente sólida tipo ServiMarket local (servicios + productos), sin implementar aún toda la complejidad de un e-commerce completo.
 
 ---
 
@@ -101,4 +101,4 @@ IMPORTANTE — NO incluir aún:
 
 Objetivo final:
 
-Simular un marketplace local tipo Amazon + servicios, donde los productos y servicios aparecen según cercanía, gestionados por co-hosts, listo para mostrar a inversionistas sin añadir complejidad innecesaria.
+Simular un ServiMarket local tipo Amazon + servicios, donde los productos y servicios aparecen según cercanía, gestionados por co-hosts, listo para mostrar a inversionistas sin añadir complejidad innecesaria.

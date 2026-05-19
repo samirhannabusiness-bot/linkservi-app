@@ -1,4 +1,4 @@
-Quiero que desarrolles una aplicación tipo marketplace de servicios bajo demanda, similar al modelo de Uber, pero enfocada en servicios profesionales y técnicos.
+Quiero que desarrolles una aplicación tipo ServiMarket de servicios bajo demanda, similar al modelo de Uber, pero enfocada en servicios profesionales y técnicos.
 
 🎯 OBJETIVO PRINCIPAL
 

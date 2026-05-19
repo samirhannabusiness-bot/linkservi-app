@@ -23,7 +23,7 @@ PRIORIDAD ALTA en:
 
 rentals / alquileres (admin-rentals.ts)
 bookings (servicios/bookings.ts)
-product-orders (marketplace/product-orders.ts)
+product-orders (ServiMarket/product-orders.ts)
 delivery_orders
 notificaciones relacionadas a eventos críticos
 2. ENVOLVER EN TRANSACCIONES (DRIZZLE)

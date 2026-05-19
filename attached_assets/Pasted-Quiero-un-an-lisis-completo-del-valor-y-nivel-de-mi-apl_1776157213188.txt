@@ -8,14 +8,14 @@ Analiza lo siguiente:
 
 * Explica claramente qué hace la app
 * Qué problema resuelve
-* Qué tipo de plataforma es (marketplace, servicios, etc.)
+* Qué tipo de plataforma es (ServiMarket, servicios, etc.)
 * Cómo interactúan los diferentes roles (cliente, trabajador, co-host, admin)
 
 2. FUNCIONALIDADES COMPLETAS
    Haz una lista detallada de TODAS las funcionalidades actuales, incluyendo:
 
 * Servicios (contratación, flujo, estados)
-* Marketplace (tiendas, productos, compras)
+* ServiMarket (tiendas, productos, compras)
 * Sistema de pagos
 * Sistema de balances
 * Retiros

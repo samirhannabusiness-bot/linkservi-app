@@ -4,7 +4,7 @@ Por favor, detalla los siguientes puntos:
 
 1. Resumen Ejecutivo del Ecosistema:
 
-Define la aplicación como una Super-App Multimodal que integra: Marketplace Híbrido (Venta/Alquiler), Bolsa de Empleo con verificación de identidad, y Logística de Delivery On-Demand.
+Define la aplicación como una Super-App Multimodal que integra: ServiMarket Híbrido (Venta/Alquiler), Bolsa de Empleo con verificación de identidad, y Logística de Delivery On-Demand.
 
 2. Stack Tecnológico & Infraestructura:
 

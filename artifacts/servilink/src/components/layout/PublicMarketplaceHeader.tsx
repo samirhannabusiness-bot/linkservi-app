@@ -16,7 +16,7 @@ const SUB_NAV: { label: string; href: string }[] = [
   { label: "Cómo te protegemos", href: "/terms" },
 ];
 
-export function PublicMarketplaceHeader() {
+export function PublicServiMarketHeader() {
   const [, navigate] = useLocation();
   const { user } = useAuth();
   const { totalCount, openDrawer } = useCart();

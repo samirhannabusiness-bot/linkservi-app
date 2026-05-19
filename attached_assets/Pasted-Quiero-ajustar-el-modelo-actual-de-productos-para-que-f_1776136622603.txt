@@ -1,4 +1,4 @@
-Quiero ajustar el modelo actual de productos para que funcione como un marketplace profesional basado en tiendas gestionadas por co-hosts, manteniendo el sistema de pagos actual (escrow).
+Quiero ajustar el modelo actual de productos para que funcione como un ServiMarket profesional basado en tiendas gestionadas por co-hosts, manteniendo el sistema de pagos actual (escrow).
 
 ---
 
@@ -101,7 +101,7 @@ IMPORTANTE
 
 OBJETIVO
 
-Tener un marketplace donde:
+Tener un ServiMarket donde:
 
 * Las tiendas venden productos
 * Los co-hosts gestionan operaciones

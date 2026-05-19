@@ -223,7 +223,7 @@ toc.forEach(([n, t, pg]) => {
 doc.addPage();
 h1("1. ¿Qué es el Sync Agent?");
 p("El LinkServi Sync Agent es un programa pequeño que se instala en la misma computadora donde corre tu sistema administrativo SAINT (o cualquier ERP basado en SQL Server / Firebird). Su único trabajo es leer los productos de tu base de datos local y enviarlos automáticamente a tu tienda en LinkServi.com.");
-p("Se queda corriendo en segundo plano — no tienes que abrirlo cada día. Cada cierto tiempo (15 minutos por defecto) revisa cambios y los publica en tu marketplace, manteniendo precios y existencias siempre al día.");
+p("Se queda corriendo en segundo plano — no tienes que abrirlo cada día. Cada cierto tiempo (15 minutos por defecto) revisa cambios y los publica en tu ServiMarket, manteniendo precios y existencias siempre al día.");
 callout("ok", "En resumen", "Tú facturas en SAINT como siempre. El Sync Agent se encarga de que tu tienda online refleje exactamente el mismo catálogo, sin que tengas que tocar nada.");
 
 h2("¿Qué problema resuelve?");
@@ -407,7 +407,7 @@ table(
   ["Campo", "Origen típico (SAINT)", "Uso en LinkServi"],
   [
     ["sku", "codigo / cod_producto", "Identificador único del producto."],
-    ["name", "descripcion / nombre", "Título visible en el marketplace."],
+    ["name", "descripcion / nombre", "Título visible en el ServiMarket."],
     ["price", "precio / precio1", "Precio de venta en USD."],
     ["stock", "existencia", "Unidades disponibles."],
   ],

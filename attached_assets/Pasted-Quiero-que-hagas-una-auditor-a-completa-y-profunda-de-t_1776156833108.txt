@@ -31,7 +31,7 @@ Analiza lo siguiente:
 * Seguridad del dinero (evitar fraude)
 * Casos donde pueda romperse el flujo
 
-5. MARKETPLACE (TIENDA)
+5. ServiMarket (TIENDA)
 
 * Flujo de compra completo
 * Visualización de productos

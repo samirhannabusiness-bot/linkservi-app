@@ -19,7 +19,7 @@ interface ModuleCfg {
 
 const MODULES: ModuleCfg[] = [
   { id: "ondemand",    label: "Servicios",    desc: "Plomeros, electricistas y más", Icon: Wrench,      href: "/client/search" },
-  { id: "marketplace", label: "Marketplace",  desc: "Productos cerca de ti",         Icon: ShoppingBag, href: "/store" },
+  { id: "ServiMarket", label: "ServiMarket",  desc: "Productos cerca de ti",         Icon: ShoppingBag, href: "/store" },
   { id: "transporte",  label: "Transporte",   desc: "Pide tu viaje al instante",     Icon: Car,         href: "/transport" },
   { id: "alquiler",    label: "Alquiler",     desc: "Casas, autos y más",            Icon: HomeIcon,    href: "/store" },
   { id: "clasificados",label: "Clasificados", desc: "Compra y vende fácil",          Icon: Tag,         href: "/clasificados" },

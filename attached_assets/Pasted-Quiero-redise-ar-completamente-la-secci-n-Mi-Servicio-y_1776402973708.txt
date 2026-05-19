@@ -58,7 +58,7 @@ Cada servicio debe ser una CARD:
 * descripción corta
 * botón "Seleccionar"
 
-Diseño moderno, tipo marketplace.
+Diseño moderno, tipo ServiMarket.
 
 Agregar:
 
@@ -160,4 +160,4 @@ Inspiración:
 
 * Fiverr
 * Uber servicios
-* marketplaces modernos
+* ServiMarkets modernos

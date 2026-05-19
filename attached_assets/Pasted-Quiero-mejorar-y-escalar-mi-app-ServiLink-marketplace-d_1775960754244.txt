@@ -1,4 +1,4 @@
-Quiero mejorar y escalar mi app ServiLink (marketplace de servicios tipo Uber para Venezuela) utilizando únicamente herramientas y APIs gratuitas en esta etapa inicial.
+Quiero mejorar y escalar mi app ServiLink (ServiMarket de servicios tipo Uber para Venezuela) utilizando únicamente herramientas y APIs gratuitas en esta etapa inicial.
 
 El objetivo es lograr una app funcional, rápida y profesional sin costos, priorizando geolocalización, notificaciones, chat en tiempo real, sistema de precios y seguridad.
 

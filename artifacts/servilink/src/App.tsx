@@ -92,7 +92,7 @@ const ConversationsPage      = lazy(() => import("@/pages/ConversationsPage").th
 const StoreChatPage          = lazy(() => import("@/pages/StoreChatPage").then(m => ({ default: m.StoreChatPage })));
 const StoreChatListPage      = lazy(() => import("@/pages/StoreChatListPage").then(m => ({ default: m.StoreChatListPage })));
 
-// Store / marketplace
+// Store / ServiMarket
 const StorePage              = lazy(() => import("@/pages/StorePage").then(m => ({ default: m.StorePage })));
 const PublicStorePage        = lazy(() => import("@/pages/PublicStorePage").then(m => ({ default: m.PublicStorePage })));
 const CheckoutPage           = lazy(() => import("@/pages/client/CheckoutPage").then(m => ({ default: m.CheckoutPage })));
@@ -774,7 +774,7 @@ function Router() {
           {() => <AuthGuard roles={["client", "worker", "cohost", "seller", "admin"]}><NotificationsPage /></AuthGuard>}
         </Route>
 
-        {/* Store / marketplace — público; login wall en acciones */}
+        {/* Store / ServiMarket — público; login wall en acciones */}
         <Route path="/store">
           {() => <StorePage />}
         </Route>

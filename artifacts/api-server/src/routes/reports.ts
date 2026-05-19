@@ -351,7 +351,7 @@ function buildPdf(
 
     const channels = [
       { label: "Servicios profesionales", amount: data.revenue,  pct: servicePct },
-      { label: "Tienda / Marketplace",    amount: 0,             pct: storePct   },
+      { label: "Tienda / ServiMarket",    amount: 0,             pct: storePct   },
       { label: "Alquileres",              amount: 0,             pct: rentalPct  },
     ];
 

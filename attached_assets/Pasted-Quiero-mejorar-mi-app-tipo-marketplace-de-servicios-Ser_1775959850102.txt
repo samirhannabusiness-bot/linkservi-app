@@ -1,4 +1,4 @@
-Quiero mejorar mi app tipo marketplace de servicios (ServiLink), estilo Uber, enfocada en Venezuela. Necesito que implementes las siguientes funcionalidades clave para llevarla a nivel profesional, priorizando confianza, rapidez y facilidad de uso:
+Quiero mejorar mi app tipo ServiMarket de servicios (ServiLink), estilo Uber, enfocada en Venezuela. Necesito que implementes las siguientes funcionalidades clave para llevarla a nivel profesional, priorizando confianza, rapidez y facilidad de uso:
 
 1. Geolocalización en tiempo real:
 

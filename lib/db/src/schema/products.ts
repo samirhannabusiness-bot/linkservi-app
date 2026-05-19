@@ -53,7 +53,7 @@ export const productsTable = pgTable("products", {
   index("products_store_id_idx").on(table.storeId),
   index("products_is_active_idx").on(table.isActive),
   index("products_category_idx").on(table.category),
-  // FASE 1 backend perf: índices para los filtros del marketplace.
+  // FASE 1 backend perf: índices para los filtros del ServiMarket.
   index("products_listing_type_idx").on(table.listingType),
   index("products_is_premium_idx").on(table.isPremium),
   uniqueIndex("products_store_external_unique").on(table.storeId, table.externalId),
