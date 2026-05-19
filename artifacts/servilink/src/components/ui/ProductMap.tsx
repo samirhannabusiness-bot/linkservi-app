@@ -4,13 +4,11 @@ import {
   CARACAS_CENTER,
   CITY_ZOOM,
   GPS_ZOOM,
-  buildStaticMapUrl,
-  clampMapSize,
-  coverTransform,
+  buildOsmTiles,
   fanOutOverlappingPoints,
-  hasApiKey,
-  latLngToPixel,
+  projectToContainer,
   useContainerSize,
+  type OsmTile,
 } from "@/lib/static-maps";
 
 interface Product {
@@ -314,8 +312,7 @@ export function ProductMap({
   const [internalSelected, setInternalSelected] = useState<number | null>(null);
   const selectedId = selectedProductId !== undefined ? selectedProductId : internalSelected;
 
-  const [imgError, setImgError] = useState(false);
-  const [imgLoaded, setImgLoaded] = useState(false);
+  const [tilesReady, setTilesReady] = useState(false);
   const [locating, setLocating] = useState(false);
 
   const hasGps = typeof userLat === "number" && typeof userLng === "number";
@@ -346,16 +343,11 @@ export function ProductMap({
 
   useEffect(() => { injectStyles(); }, []);
 
-  // Build static map URL (only re-fetch when meaningful inputs change)
-  const mapUrl = useMemo(() => {
-    if (!containerW || !containerH || !hasApiKey()) return null;
-    setImgLoaded(false);
-    setImgError(false);
-    return buildStaticMapUrl({
-      centerLat, centerLng, zoom,
-      width: containerW, height: containerH,
-      dark: false,
-    });
+  // Build OSM tile grid whenever view changes
+  const tiles = useMemo<OsmTile[]>(() => {
+    if (!containerW || !containerH) return [];
+    setTilesReady(false);
+    return buildOsmTiles(centerLat, centerLng, zoom, containerW, containerH, false);
   }, [centerLat, centerLng, zoom, containerW, containerH]);
 
   // Compute pins (with fan-out for overlapping coords)
@@ -366,14 +358,11 @@ export function ProductMap({
     return fanOutOverlappingPoints(withCoords);
   }, [products]);
 
-  // Compute screen positions for pins (in static-image space, then transform to container via cover)
+  // Compute screen positions for pins using OSM world-pixel projection
   const pinPositions = useMemo(() => {
     if (!containerW || !containerH) return [];
-    const { safeW, safeH } = clampMapSize(containerW, containerH);
-    const t = coverTransform(safeW, safeH, containerW, containerH);
     return pins.map(p => {
-      const imgPx = latLngToPixel(p.displayLat, p.displayLng, centerLat, centerLng, zoom, safeW, safeH);
-      const px = { x: imgPx.x * t.scale + t.offsetX, y: imgPx.y * t.scale + t.offsetY };
+      const px = projectToContainer(p.displayLat, p.displayLng, centerLat, centerLng, zoom, containerW, containerH);
       return { product: p, px };
     });
   }, [pins, centerLat, centerLng, zoom, containerW, containerH]);
@@ -400,10 +389,7 @@ export function ProductMap({
 
   const gpsPos = useMemo(() => {
     if (!hasGps || !containerW || !containerH) return null;
-    const { safeW, safeH } = clampMapSize(containerW, containerH);
-    const t = coverTransform(safeW, safeH, containerW, containerH);
-    const imgPx = latLngToPixel(userLat!, userLng!, centerLat, centerLng, zoom, safeW, safeH);
-    return { x: imgPx.x * t.scale + t.offsetX, y: imgPx.y * t.scale + t.offsetY };
+    return projectToContainer(userLat!, userLng!, centerLat, centerLng, zoom, containerW, containerH);
   }, [hasGps, userLat, userLng, centerLat, centerLng, zoom, containerW, containerH]);
 
   const handleLocate = useCallback(() => {
@@ -434,40 +420,8 @@ export function ProductMap({
     const fanned = pins.find(p => p.id === selectedProduct.id);
     const lat = fanned?.displayLat ?? selectedProduct.latitude;
     const lng = fanned?.displayLng ?? selectedProduct.longitude;
-    const { safeW, safeH } = clampMapSize(containerW, containerH);
-    const t = coverTransform(safeW, safeH, containerW, containerH);
-    const imgPx = latLngToPixel(lat, lng, centerLat, centerLng, zoom, safeW, safeH);
-    return { x: imgPx.x * t.scale + t.offsetX, y: imgPx.y * t.scale + t.offsetY };
+    return projectToContainer(lat, lng, centerLat, centerLng, zoom, containerW, containerH);
   }, [selectedProduct, pins, centerLat, centerLng, zoom, containerW, containerH]);
-
-  // Fallback list view (no API key or image errored)
-  if (!hasApiKey() || imgError) {
-    return (
-      <div ref={containerRef} style={{ width: "100%", height: "100%", borderRadius: 20, background: "linear-gradient(135deg,#f8fafc,#f1f5f9)", border: "1px solid rgba(0,0,0,.06)", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid rgba(0,0,0,.06)" }}>
-          <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0 }}>🗺️ Mapa no disponible</p>
-        </div>
-        <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(180px,1fr))", gap: 12 }}>
-            {pins.map(p => (
-              <div key={p.id} style={{ background: "#fff", borderRadius: 12, overflow: "hidden", border: "1px solid rgba(0,0,0,.07)", boxShadow: "0 2px 8px rgba(0,0,0,.06)" }}>
-                {p.image && <img src={p.image} alt={p.name} style={{ width: "100%", height: 80, objectFit: "cover" }} />}
-                <div style={{ padding: "8px 10px 10px" }}>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: "#0f172a", marginBottom: 4, lineHeight: 1.3 }}>{p.name}</p>
-                  <p style={{ fontSize: 13, fontWeight: 900, color: "#1e293b", margin: "0 0 8px" }}>${p.priceUsd.toFixed(2)}</p>
-                  {canBuy && (
-                    <button onClick={() => onBuy(p.id)} style={{ width: "100%", padding: "6px 0", borderRadius: 8, background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff", fontWeight: 700, fontSize: 11, border: "none", cursor: "pointer" }}>
-                      🛒 Comprar
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div
@@ -479,25 +433,27 @@ export function ProductMap({
       }}
       onClick={() => selectProduct(null)}
     >
-      {mapUrl && (
+      {/* OSM tile layer */}
+      {tiles.map((tile) => (
         <img
-          src={mapUrl}
-          alt="Mapa"
-          onLoad={() => setImgLoaded(true)}
-          onError={() => setImgError(true)}
+          key={tile.key}
+          src={tile.url}
+          alt=""
           draggable={false}
+          onLoad={() => setTilesReady(true)}
           style={{
-            position: "absolute", inset: 0,
-            width: "100%", height: "100%",
-            objectFit: "cover",
-            opacity: imgLoaded ? 1 : 0,
-            transition: "opacity .25s ease",
-            userSelect: "none", pointerEvents: "none",
+            position: "absolute",
+            left: tile.left,
+            top: tile.top,
+            width: 256,
+            height: 256,
+            userSelect: "none",
+            pointerEvents: "none",
           }}
         />
-      )}
+      ))}
 
-      {!imgLoaded && (
+      {!tilesReady && (
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center" }}>
             <div style={{ width: 36, height: 36, margin: "0 auto 10px", border: "3px solid #6366f1", borderTopColor: "transparent", borderRadius: "50%", animation: "pms-spin .8s linear infinite" }} />
@@ -507,7 +463,7 @@ export function ProductMap({
       )}
 
       {/* Counter pill */}
-      {imgLoaded && pins.length > 0 && (
+      {pins.length > 0 && (
         <div style={{ position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)", background: "rgba(255,255,255,.93)", backdropFilter: "blur(10px)", borderRadius: 100, padding: "5px 14px", border: "1px solid rgba(0,0,0,.07)", fontSize: 12, fontWeight: 600, color: "#475569", display: "flex", alignItems: "center", gap: 6, pointerEvents: "none", boxShadow: "0 2px 10px rgba(0,0,0,.08)", whiteSpace: "nowrap", zIndex: 10 }}>
           <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#6366f1" }} />
           {pins.length} producto{pins.length !== 1 ? "s" : ""} en el mapa
@@ -515,7 +471,7 @@ export function ProductMap({
       )}
 
       {/* GPS pulse */}
-      {imgLoaded && gpsPos && (
+      {gpsPos && (
         <div
           style={{
             position: "absolute",
@@ -529,7 +485,7 @@ export function ProductMap({
       )}
 
       {/* Pins */}
-      {imgLoaded && pinPositions.map(({ product, px }) => {
+      {pinPositions.map(({ product, px }) => {
         if (px.x < -40 || px.x > containerW + 40 || px.y < -40 || px.y > containerH + 40) return null;
         const isSelected = selectedId === product.id;
         const isSuccess = successId === product.id;
@@ -557,42 +513,38 @@ export function ProductMap({
       })}
 
       {/* Locate button */}
-      {imgLoaded && (
-        <button
-          onClick={(e) => { e.stopPropagation(); handleLocate(); }}
-          title="Usar mi ubicación"
-          style={{ position: "absolute", bottom: 52, left: 12, zIndex: 10, width: 40, height: 40, borderRadius: 12, background: locating ? "rgba(99,102,241,0.1)" : "rgba(255,255,255,.96)", border: "1px solid rgba(0,0,0,.1)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,.1)", fontSize: 18 }}
-        >
-          {locating ? (
-            <div style={{ width: 16, height: 16, border: "2px solid #6366f1", borderTopColor: "transparent", borderRadius: "50%", animation: "pms-spin .8s linear infinite" }} />
-          ) : "📍"}
-        </button>
-      )}
+      <button
+        onClick={(e) => { e.stopPropagation(); handleLocate(); }}
+        title="Usar mi ubicación"
+        style={{ position: "absolute", bottom: 52, left: 12, zIndex: 10, width: 40, height: 40, borderRadius: 12, background: locating ? "rgba(99,102,241,0.1)" : "rgba(255,255,255,.96)", border: "1px solid rgba(0,0,0,.1)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,.1)", fontSize: 18 }}
+      >
+        {locating ? (
+          <div style={{ width: 16, height: 16, border: "2px solid #6366f1", borderTopColor: "transparent", borderRadius: "50%", animation: "pms-spin .8s linear infinite" }} />
+        ) : "📍"}
+      </button>
 
       {/* Zoom controls */}
-      {imgLoaded && (
-        <div style={{ position: "absolute", bottom: 12, right: 12, zIndex: 10, display: "flex", flexDirection: "column", borderRadius: 12, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,.12)", border: "1px solid rgba(0,0,0,.1)" }}>
-          <button
-            onClick={(e) => { e.stopPropagation(); setZoom(z => Math.min(MAX_ZOOM, z + 1)); }}
-            disabled={zoom >= MAX_ZOOM}
-            title="Acercar"
-            style={{ width: 36, height: 36, border: "none", background: "rgba(255,255,255,.96)", cursor: zoom >= MAX_ZOOM ? "not-allowed" : "pointer", borderBottom: "1px solid rgba(0,0,0,.08)", display: "flex", alignItems: "center", justifyContent: "center", color: "#0f172a" }}
-          >
-            <Plus style={{ width: 16, height: 16 }} />
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); setZoom(z => Math.max(MIN_ZOOM, z - 1)); }}
-            disabled={zoom <= MIN_ZOOM}
-            title="Alejar"
-            style={{ width: 36, height: 36, border: "none", background: "rgba(255,255,255,.96)", cursor: zoom <= MIN_ZOOM ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#0f172a" }}
-          >
-            <Minus style={{ width: 16, height: 16 }} />
-          </button>
-        </div>
-      )}
+      <div style={{ position: "absolute", bottom: 12, right: 12, zIndex: 10, display: "flex", flexDirection: "column", borderRadius: 12, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,.12)", border: "1px solid rgba(0,0,0,.1)" }}>
+        <button
+          onClick={(e) => { e.stopPropagation(); setZoom(z => Math.min(MAX_ZOOM, z + 1)); }}
+          disabled={zoom >= MAX_ZOOM}
+          title="Acercar"
+          style={{ width: 36, height: 36, border: "none", background: "rgba(255,255,255,.96)", cursor: zoom >= MAX_ZOOM ? "not-allowed" : "pointer", borderBottom: "1px solid rgba(0,0,0,.08)", display: "flex", alignItems: "center", justifyContent: "center", color: "#0f172a" }}
+        >
+          <Plus style={{ width: 16, height: 16 }} />
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); setZoom(z => Math.max(MIN_ZOOM, z - 1)); }}
+          disabled={zoom <= MIN_ZOOM}
+          title="Alejar"
+          style={{ width: 36, height: 36, border: "none", background: "rgba(255,255,255,.96)", cursor: zoom <= MIN_ZOOM ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#0f172a" }}
+        >
+          <Minus style={{ width: 16, height: 16 }} />
+        </button>
+      </div>
 
       {/* Floating product card */}
-      {imgLoaded && selectedProduct && selectedPos && (
+      {selectedProduct && selectedPos && (
         <FloatingProductCard
           product={selectedProduct}
           pos={selectedPos}
